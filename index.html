@@ -690,12 +690,9 @@ window.PN_LIB = (() => {
     }
     parts.push('');
     parts.push(`TONE: ${toneInfo.label}. ${toneInfo.guidance}`);
-    if (voiceMode && voiceSample && voiceSample.trim()) {
+    if (voiceMode) {
       parts.push('');
-      parts.push(`VOICE PRESERVATION: ${voiceStrength}% — match the cadence, sentence length, and word choice in the sample below.`);
-      parts.push('--- WRITER VOICE SAMPLE ---');
-      parts.push(voiceSample.trim());
-      parts.push('--- END SAMPLE ---');
+      parts.push(`VOICE PRESERVATION: ${voiceStrength}% — infer the writer's natural voice directly from the session content provided above. Mirror their sentence length, vocabulary, phrasing patterns, and level of formality in the generated note. Do not impose a different register.`);
     }
     parts.push('');
     parts.push('SESSION CONTENT:');
@@ -1073,7 +1070,6 @@ function App() {
   const [tone, setTone] = useState('balanced');
   const [voiceOn, setVoiceOn] = useState(false);
   const [voiceStrength, setVoiceStrength] = useState(50);
-  const [voiceSample, setVoiceSample] = useState('');
   const [inputMode, setInputMode] = useState('free');
   const [freeText, setFreeText] = useState('');
   const [structured, setStructured] = useState({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
@@ -1106,11 +1102,11 @@ function App() {
     if (loading) return;
     if (!rawInput.trim()) { showToast('Add some session content first'); return; }
     if (!apiKey) { setShowKeyModal(true); return; }
-    setLoading(true); setNameFlags(detectedNames); setPhiFlags(detectedPHI);
+    setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(detectedNames); setPhiFlags(detectedPHI);
     const allNames = detectedNames;
     const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
     const prompt = L.buildPrompt({
-      format, tone, subject, voiceMode: voiceOn, voiceStrength, voiceSample, inputMode,
+      format, tone, subject, voiceMode: voiceOn, voiceStrength, inputMode,
       freeText: sanitize(freeText),
       structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,sanitize(v)])),
       bullets: sanitize(bullets),
@@ -1143,7 +1139,7 @@ function App() {
     setNote(''); setGeneratedMeta(null); setNameFlags([]); setPhiFlags([]);
     setFreeText(''); setBullets('');
     setStructured({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
-    setVoiceSample(''); setVoiceOn(false); setInterventions([]); setOtherIntervention('');
+    setVoiceOn(false); setInterventions([]); setOtherIntervention('');
     setMse({}); setRisk(L.RISK_ITEMS.reduce((acc,r)=>{ acc[r.key]={status:null,note:''}; return acc; },{}));
     setConfirming(false); try { localStorage.removeItem('pn.drafts'); } catch {}
     showToast('Note erased');
@@ -1229,10 +1225,7 @@ function App() {
                 </div>
                 <input type="range" className="slider" min="0" max="100" step="5" value={voiceStrength} onChange={(e)=>setVoiceStrength(Number(e.target.value))}/>
               </div>
-              <div className="row" style={{margin:0}}>
-                <label>Voice sample (paste a past note)</label>
-                <textarea className="textarea" rows="4" placeholder="Paste 1–2 of your prior notes so the tool can mirror your phrasing. Names are stripped before generation." value={voiceSample} onChange={(e)=>setVoiceSample(e.target.value)}/>
-              </div>
+              <div className="note-sm" style={{marginTop:4}}>Your voice is inferred from the session content you write above — the tool mirrors your phrasing, sentence length, and word choices.</div>
             </div>
           )}
         </div>
@@ -1313,9 +1306,9 @@ function App() {
           <div className="actions">
             <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
             <button className="btn danger" disabled={!note||loading} onClick={()=>setConfirming(true)}><Icon.check/>Note completed</button>
-            <button className="btn primary" disabled={loading||!!note} onClick={generate} title={note?'Mark the current note completed before starting a new one':''}>
+            <button className="btn primary" disabled={loading} onClick={generate}>
               {loading ? <span className="spin"/> : <Icon.spark/>}
-              {loading ? 'Generating…' : 'Generate note'}
+              {loading ? 'Generating…' : note ? 'Regenerate note' : 'Generate note'}
             </button>
           </div>
         </div>
