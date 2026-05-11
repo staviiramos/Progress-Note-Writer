@@ -958,25 +958,28 @@ const Icon = {
   sliders: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2" fill="var(--paper)"/><circle cx="15" cy="12" r="2" fill="var(--paper)"/><circle cx="9" cy="18" r="2" fill="var(--paper)"/></svg>,
 };
 
-async function callAnthropicAPI(prompt, apiKey) {
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+async function callGitHubModels(prompt, token) {
+  const resp = await fetch('https://models.inference.ai.azure.com/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-allow-browser': 'true',
+      'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] }),
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 2000,
+      temperature: 0.3,
+    }),
   });
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
-    if (resp.status === 401) throw new Error('invalid_key');
+    if (resp.status === 401 || resp.status === 403) throw new Error('invalid_key');
     if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
     throw new Error(err.error?.message || `API error (${resp.status})`);
   }
   const data = await resp.json();
-  return data.content[0].text;
+  return data.choices[0].message.content;
 }
 
 function useToast() {
@@ -1033,16 +1036,18 @@ function ApiKeyModal({ currentKey, onSave, onCancel }) {
   return (
     <div className="modal-backdrop" onClick={onCancel || undefined}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Anthropic API key</h3>
-        <p>Your key is sent directly from this browser to <strong style={{color:'inherit'}}>api.anthropic.com</strong>. It is held in your session only — never written to disk and never shared with any other service.</p>
+        <h3>GitHub Personal Access Token</h3>
+        <p>This app uses <strong style={{color:'inherit'}}>GitHub Models</strong> — a free AI service included with your GitHub account. Paste a Personal Access Token below to get started.</p>
         <div className="row">
-          <label className="field-label">API key</label>
-          <input ref={inputRef} className="input" type="password" placeholder="sk-ant-api03-…" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key==='Enter') save(); }} autoComplete="off" spellCheck={false} />
+          <label className="field-label">Personal Access Token</label>
+          <input ref={inputRef} className="input" type="password" placeholder="ghp_…" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key==='Enter') save(); }} autoComplete="off" spellCheck={false} />
         </div>
-        <p className="api-key-note" style={{marginBottom:0}}>Get your key at <strong>console.anthropic.com</strong>. Before using this tool with identifiable patient information, confirm your account has a HIPAA Business Associate Agreement with Anthropic. The key clears when you close this browser tab.</p>
+        <p className="api-key-note" style={{marginBottom:0}}>
+          Create a token at <strong>github.com/settings/tokens</strong> — click "Generate new token (classic)" and no special permissions are required. The token is held in your browser session only and clears when you close this tab.
+        </p>
         <div className="modal-actions">
           {onCancel && <button className="btn" onClick={onCancel}>Cancel</button>}
-          <button className="btn primary" disabled={!draft.trim()} onClick={save}>Save key</button>
+          <button className="btn primary" disabled={!draft.trim()} onClick={save}>Save token</button>
         </div>
       </div>
     </div>
@@ -1113,14 +1118,14 @@ function App() {
       mse, risk, redactedNames: allNames,
     });
     try {
-      const raw = await callAnthropicAPI(prompt, apiKey);
+      const raw = await callGitHubModels(prompt, apiKey);
       const cleaned = L.scrubText(raw);
       setNote(L.redactNames(cleaned, allNames, subject));
       setGeneratedMeta({ format, subject, tone, at: new Date() });
     } catch(err) {
       if (err.message==='invalid_key') {
         setApiKey(''); try { sessionStorage.removeItem('pn.apikey'); } catch {}
-        showToast('Invalid API key — please check your key');
+        showToast('Invalid token — please check your GitHub token');
         setShowKeyModal(true);
       } else {
         showToast(err.message || 'Generation failed. Try again.');
@@ -1163,8 +1168,8 @@ function App() {
             <Icon.shield/>HIPAA Safe Harbor
           </span>
           <span><span className="dot"/>Nothing saved · in-memory only</span>
-          <button className={apiKey ? 'btn ghost' : 'btn'} style={{padding:'4px 10px',fontSize:11.5,height:'auto'}} onClick={() => setShowKeyModal(true)} title={apiKey ? 'API key configured — click to update' : 'Enter your Anthropic API key'}>
-            <Icon.key/>{apiKey ? 'API key ✓' : 'Set API key'}
+          <button className={apiKey ? 'btn ghost' : 'btn'} style={{padding:'4px 10px',fontSize:11.5,height:'auto'}} onClick={() => setShowKeyModal(true)} title={apiKey ? 'GitHub token configured — click to update' : 'Enter your GitHub Personal Access Token (free)'}>
+            <Icon.key/>{apiKey ? 'GitHub token ✓' : 'Set GitHub token'}
           </button>
           <button className="btn ghost" style={{padding:'4px 8px',fontSize:11.5,height:'auto'}} onClick={openTweaks} title="Appearance settings">
             <Icon.sliders/>
@@ -1355,7 +1360,7 @@ function App() {
               <div className="icon"><Icon.page/></div>
               <h4>Your note will appear here</h4>
               <div>Fill in session content on the left, then press Generate note.</div>
-              {!apiKey && <div style={{marginTop:16}}><button className="btn primary" onClick={()=>setShowKeyModal(true)}><Icon.key/>Set API key to begin</button></div>}
+              {!apiKey && <div style={{marginTop:16}}><button className="btn primary" onClick={()=>setShowKeyModal(true)}><Icon.key/>Set GitHub token to begin</button></div>}
             </div>
           )}
         </article>
