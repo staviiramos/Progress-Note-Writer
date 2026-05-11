@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Progress Note Writer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+/* Progress Note Writer — Calm clinical paper aesthetic */
+
+:root {
+  --bg: oklch(96% 0.012 75);
+  --bg-2: oklch(94.5% 0.014 75);
+  --paper: oklch(98.5% 0.008 80);
+  --ink: oklch(22% 0.012 60);
+  --ink-2: oklch(36% 0.012 60);
+  --muted: oklch(52% 0.012 60);
+  --line: oklch(86% 0.018 75);
+  --line-2: oklch(80% 0.022 75);
+  --accent: oklch(48% 0.085 35);
+  --accent-soft: oklch(92% 0.035 35);
+  --warn: oklch(56% 0.13 55);
+  --danger: oklch(50% 0.16 25);
+  --ok: oklch(48% 0.09 145);
+
+  --serif: 'Newsreader', 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --sans: 'Helvetica Neue', Helvetica, 'Söhne', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --pad: 16px;
+  --gap: 14px;
+  --r: 10px;
+  --r-sm: 7px;
+
+  --shadow-sm: 0 1px 0 oklch(100% 0 0 / .6) inset, 0 1px 2px oklch(20% 0 0 / .04);
+  --shadow-paper: 0 1px 0 oklch(100% 0 0 / .8) inset, 0 1px 2px oklch(20% 0 0 / .03),
+                  0 24px 60px -28px oklch(25% 0.02 60 / .35),
+                  0 8px 24px -12px oklch(25% 0.02 60 / .15);
+}
+
+html.theme-cool {
+  --bg: oklch(96% 0.012 240); --bg-2: oklch(94.5% 0.014 240);
+  --paper: oklch(98.5% 0.006 240); --line: oklch(86% 0.018 240);
+  --line-2: oklch(80% 0.022 240); --accent: oklch(46% 0.09 245);
+  --accent-soft: oklch(92% 0.035 245);
+}
+html.theme-sage {
+  --bg: oklch(95% 0.014 145); --bg-2: oklch(93.5% 0.016 145);
+  --paper: oklch(98.5% 0.008 130); --line: oklch(85% 0.02 145);
+  --line-2: oklch(80% 0.024 145); --accent: oklch(42% 0.07 155);
+  --accent-soft: oklch(92% 0.032 145);
+}
+html.theme-graphite {
+  --bg: oklch(96% 0.004 60); --bg-2: oklch(94% 0.005 60);
+  --paper: oklch(99% 0.003 60); --line: oklch(85% 0.008 60);
+  --line-2: oklch(78% 0.01 60); --accent: oklch(28% 0.012 60);
+  --accent-soft: oklch(90% 0.008 60);
+}
+
+html.density-compact { --pad: 12px; --gap: 10px; }
+html.density-comfy   { --pad: 20px; --gap: 18px; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--sans); font-size: 14px; line-height: 1.5;
+  font-feature-settings: 'ss01', 'cv11';
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+button { font-family: inherit; }
+input, textarea, select { font-family: inherit; color: inherit; }
+textarea { resize: vertical; }
+
+/* Shell */
+.app {
+  display: grid;
+  grid-template-columns: minmax(380px, 460px) 1fr;
+  grid-template-rows: auto 1fr;
+  height: 100vh; width: 100vw; overflow: hidden;
+}
+.topbar {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; background: var(--bg);
+  border-bottom: 1px solid var(--line); gap: 16px;
+}
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand .mark {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); position: relative; align-self: center;
+  box-shadow: inset 0 0 0 3px var(--paper);
+}
+.brand h1 {
+  font-family: var(--serif); font-weight: 500; font-size: 18px;
+  letter-spacing: -0.01em; margin: 0;
+}
+.brand .tag { font-size: 11.5px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.topbar .meta { display: flex; gap: 14px; align-items: center; font-size: 12px; color: var(--muted); }
+.topbar .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); display: inline-block; margin-right: 6px; vertical-align: middle; }
+
+/* Sidebar */
+.sidebar {
+  overflow-y: auto; border-right: 1px solid var(--line);
+  background: var(--bg-2); padding: var(--pad);
+  display: flex; flex-direction: column; gap: var(--gap);
+}
+.card {
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-sm);
+}
+.card h3 {
+  font-family: var(--serif); font-weight: 500; font-size: 14.5px;
+  margin: 0 0 12px; letter-spacing: -0.005em; color: var(--ink);
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+}
+.card h3 .hint {
+  font-family: var(--sans); font-size: 10.5px; font-weight: 400;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+}
+.row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.row:last-child { margin-bottom: 0; }
+.row.h { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
+.row label, .field-label { font-size: 11.5px; color: var(--muted); letter-spacing: 0.02em; font-weight: 500; }
+
+/* Controls */
+.input, .select, .textarea {
+  width: 100%; border: 1px solid var(--line-2); background: var(--paper);
+  color: var(--ink); border-radius: var(--r-sm); padding: 9px 11px;
+  font-size: 13.5px; outline: none; transition: border-color .12s, box-shadow .12s;
+}
+.input:focus, .select:focus, .textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+.textarea { min-height: 92px; line-height: 1.55; font-family: var(--sans); }
+.select {
+  appearance: none; padding-right: 28px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.45)' d='M0 0h10L5 6z'/></svg>");
+  background-repeat: no-repeat; background-position: right 11px center;
+}
+
+/* Segmented */
+.seg {
+  display: inline-flex; background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--r-sm); padding: 2px; gap: 2px; width: 100%;
+}
+.seg button {
+  flex: 1; appearance: none; border: 0; background: transparent;
+  color: var(--ink-2); padding: 6px 10px; font-size: 12.5px;
+  border-radius: 5px; cursor: pointer; transition: background .12s, color .12s;
+  font-weight: 500; letter-spacing: 0.005em;
+}
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] {
+  background: var(--paper); color: var(--ink);
+  box-shadow: 0 1px 2px oklch(20% 0 0 / .08), 0 0 0 1px var(--line);
+}
+.tone-3 .seg button { padding: 8px 6px; }
+
+/* Tone dial */
+.tone-dial { height: 50px; position: relative; user-select: none; padding: 16px 4px 0; }
+.tone-dial .track {
+  height: 4px;
+  background: linear-gradient(to right, color-mix(in oklab, var(--accent) 18%, transparent), color-mix(in oklab, var(--accent) 55%, transparent), var(--accent));
+  border-radius: 999px; position: relative;
+}
+.tone-dial .knob {
+  position: absolute; top: -7px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--paper); border: 1px solid var(--line-2);
+  box-shadow: 0 2px 6px oklch(20% 0 0 / .15); transform: translateX(-50%); cursor: grab;
+}
+.tone-dial .knob:active { cursor: grabbing; }
+.tone-dial .labels {
+  position: absolute; left: 4px; right: 4px; top: 32px;
+  display: flex; justify-content: space-between;
+  font-size: 10.5px; color: var(--muted); letter-spacing: 0.02em;
+}
+
+/* Tone stacked */
+.tone-stacked { display: flex; flex-direction: column; gap: 4px; }
+.tone-stacked button {
+  text-align: left; border: 1px solid var(--line); background: var(--paper);
+  padding: 8px 12px; border-radius: var(--r-sm);
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; font-size: 13px; color: var(--ink-2); transition: all .12s;
+}
+.tone-stacked button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+.tone-stacked button .desc { font-size: 11px; color: var(--muted); }
+
+/* Chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  appearance: none; border: 1px solid var(--line-2); background: var(--paper);
+  color: var(--ink-2); padding: 5px 11px; border-radius: 999px;
+  font-size: 12px; cursor: pointer; transition: all .12s; font-weight: 500;
+}
+.chip:hover { border-color: var(--ink-2); color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+/* Risk */
+.risk-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 8px;
+  align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line);
+}
+.risk-row:last-of-type { border-bottom: 0; }
+.risk-row .name { font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+.risk-row .tri {
+  display: inline-flex; padding: 2px; gap: 2px;
+  border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg);
+}
+.risk-row .tri button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  padding: 3px 8px; font-size: 11px; border-radius: 4px; color: var(--muted); font-weight: 500;
+}
+.risk-row .tri button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px oklch(20% 0 0 / .08); }
+.risk-row .tri button.endorsed[aria-pressed="true"] { color: var(--warn); }
+.risk-row .tri button.active[aria-pressed="true"] { color: var(--danger); }
+
+/* MSE */
+.mse { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mse .mse-cell { display: flex; flex-direction: column; gap: 4px; }
+.mse .mse-cell label { font-size: 10.5px; color: var(--muted); letter-spacing: 0.02em; }
+.mse .mse-cell select { font-size: 12px; padding: 6px 8px; }
+
+/* Tabs */
+.tabs {
+  display: flex; gap: 2px; background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--r-sm); padding: 2px; margin-bottom: 10px;
+}
+.tabs button {
+  flex: 1; appearance: none; border: 0; background: transparent;
+  color: var(--muted); padding: 7px 10px; font-size: 12.5px;
+  border-radius: 5px; cursor: pointer; font-weight: 500;
+}
+.tabs button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px oklch(20% 0 0 / .08); }
+
+/* Voice */
+.voice-detail { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; }
+.slider-row { display: flex; flex-direction: column; gap: 6px; }
+.slider { appearance: none; width: 100%; height: 4px; background: var(--line-2); border-radius: 999px; outline: none; }
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  background: var(--paper); border: 1px solid var(--line-2); border-radius: 50%;
+  box-shadow: 0 1px 3px oklch(20% 0 0 / .2); cursor: pointer;
+}
+.slider::-moz-range-thumb {
+  width: 16px; height: 16px; background: var(--paper);
+  border: 1px solid var(--line-2); border-radius: 50%; cursor: pointer;
+}
+
+/* Toggle */
+.tg {
+  position: relative; width: 36px; height: 20px; border: 0;
+  border-radius: 999px; background: var(--line-2); cursor: pointer; padding: 0; transition: background .15s;
+}
+.tg[data-on="1"] { background: var(--accent); }
+.tg i {
+  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--paper);
+  box-shadow: 0 1px 3px oklch(20% 0 0 / .25); transition: transform .15s;
+}
+.tg[data-on="1"] i { transform: translateX(16px); }
+
+/* Main output */
+.main {
+  overflow-y: auto; background: var(--bg); padding: 28px 36px 80px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.note-toolbar {
+  width: 100%; max-width: 720px; display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 18px; gap: 12px;
+}
+.note-toolbar .left { display: flex; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
+.note-toolbar .actions { display: flex; gap: 8px; }
+
+.btn {
+  appearance: none; border: 1px solid var(--line-2); background: var(--paper);
+  color: var(--ink); padding: 8px 14px; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all .12s;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.btn:hover { border-color: var(--ink-2); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn.primary { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn.ghost:hover { background: var(--paper); border-color: var(--line); color: var(--ink); }
+.btn.danger { color: var(--danger); border-color: color-mix(in oklab, var(--danger) 40%, var(--line)); }
+.btn.danger:hover { border-color: var(--danger); background: color-mix(in oklab, var(--danger) 6%, var(--paper)); }
+.btn.danger.solid { background: var(--danger); border-color: var(--danger); color: var(--paper); }
+.btn.danger.solid:hover { background: oklch(45% 0.18 25); border-color: oklch(45% 0.18 25); }
+.btn .ico { width: 14px; height: 14px; }
+
+/* Modal */
+.modal-backdrop {
+  position: fixed; inset: 0; background: oklch(20% 0.02 60 / .35);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10000; animation: fade .15s ease;
+}
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+  padding: 28px 28px 22px; max-width: 440px; width: calc(100% - 40px);
+  box-shadow: 0 24px 60px oklch(20% 0.02 60 / .25);
+  animation: modalIn .18s cubic-bezier(.3,.7,.4,1);
+}
+@keyframes modalIn { from { transform: translateY(8px) scale(.98); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal h3 { font-family: var(--serif); font-size: 19px; font-weight: 500; margin: 0 0 10px; letter-spacing: -0.01em; }
+.modal p { margin: 0 0 16px; color: var(--ink-2); font-size: 13.5px; line-height: 1.55; }
+.modal p strong { color: var(--danger); font-weight: 600; }
+.modal .row { margin-bottom: 8px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+/* Paper */
+.paper {
+  width: 100%; max-width: 720px; background: var(--paper);
+  border: 1px solid var(--line); border-radius: 14px; padding: 56px 64px;
+  box-shadow: var(--shadow-paper); font-family: var(--serif);
+  font-size: 15px; line-height: 1.65; color: var(--ink); min-height: 60vh;
+}
+.paper .meta {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid var(--line); padding-bottom: 18px; margin-bottom: 26px;
+  font-family: var(--sans); font-size: 11.5px; color: var(--muted);
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.paper .meta .fmt { color: var(--ink); font-weight: 600; }
+.paper h2.note-section {
+  font-family: var(--sans); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 26px 0 10px;
+}
+.paper h2.note-section:first-of-type { margin-top: 0; }
+.paper p { margin: 0 0 14px; font-family: var(--serif); }
+.paper p:last-child { margin-bottom: 0; }
+.paper .empty { font-family: var(--sans); color: var(--muted); font-size: 13.5px; text-align: center; padding: 64px 20px; }
+.paper .empty .icon {
+  width: 36px; height: 36px; margin: 0 auto 14px; border-radius: 50%;
+  background: var(--accent-soft); display: flex; align-items: center; justify-content: center;
+}
+.paper .empty .icon svg { width: 18px; height: 18px; color: var(--accent); }
+.paper .empty h4 { font-family: var(--serif); font-weight: 500; font-size: 16px; margin: 0 0 6px; color: var(--ink); }
+
+/* Shimmer */
+.paper.loading p { opacity: .55; }
+.paper .gen-line {
+  height: 12px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--bg-2), var(--paper), var(--bg-2));
+  background-size: 200% 100%; animation: shimmer 1.4s linear infinite; margin-bottom: 10px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Flag bar */
+.flag-bar {
+  width: 100%; max-width: 720px; margin-bottom: 14px;
+  background: color-mix(in oklab, var(--warn) 8%, var(--paper));
+  border: 1px solid color-mix(in oklab, var(--warn) 25%, var(--line));
+  border-radius: var(--r); padding: 12px 16px;
+  font-size: 12.5px; color: var(--ink-2); display: flex; gap: 12px; align-items: flex-start;
+}
+.flag-bar .lbl { font-weight: 600; color: var(--warn); letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px; }
+.flag-bar ul { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.flag-bar li {
+  background: var(--paper); border: 1px solid var(--line);
+  padding: 2px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11.5px;
+}
+
+/* HIPAA */
+.hipaa-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: color-mix(in oklab, var(--ok) 10%, var(--paper));
+  border: 1px solid color-mix(in oklab, var(--ok) 35%, var(--line));
+  color: color-mix(in oklab, var(--ok) 75%, var(--ink));
+  padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+}
+.hipaa-badge .ico { width: 12px; height: 12px; }
+.hipaa-card { border-color: color-mix(in oklab, var(--ok) 22%, var(--line)); background: color-mix(in oklab, var(--ok) 4%, var(--paper)); }
+.hipaa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; color: var(--ink-2); }
+.hipaa-cell { display: flex; flex-direction: column; gap: 2px; padding: 7px 9px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-sm); }
+.hipaa-cell b { font-weight: 600; font-size: 11px; color: var(--ink); }
+.hipaa-cell span { color: var(--muted); font-size: 10.5px; line-height: 1.35; }
+
+/* Misc */
+.api-key-note { font-size: 11.5px; color: var(--muted); line-height: 1.45; margin: 0; }
+.spin { width: 12px; height: 12px; border: 1.5px solid color-mix(in oklab, currentColor 30%, transparent); border-top-color: currentColor; border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--ink); color: var(--paper); padding: 9px 16px;
+  border-radius: 999px; font-size: 12.5px;
+  box-shadow: 0 6px 24px oklch(20% 0 0 / .25); z-index: 9999; animation: toast .25s ease;
+}
+@keyframes toast { from { transform: translate(-50%, 12px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+.muted { color: var(--muted); }
+.note-sm { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+/* Scrollbars */
+.sidebar::-webkit-scrollbar, .main::-webkit-scrollbar { width: 10px; }
+.sidebar::-webkit-scrollbar-thumb, .main::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--ink) 12%, transparent); border-radius: 999px; border: 3px solid var(--bg); }
+.sidebar::-webkit-scrollbar-thumb { border-color: var(--bg-2); }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .app { grid-template-columns: minmax(340px, 400px) 1fr; }
+  .paper { padding: 44px 48px; }
+  .main { padding: 22px 26px 80px; }
+}
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; height: auto; min-height: 100vh; }
+  .topbar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+  .topbar .brand h1 { font-size: 16px; }
+  .topbar .brand .tag { display: none; }
+  .topbar .meta { font-size: 11px; gap: 8px; flex-wrap: wrap; }
+  .hipaa-badge { padding: 3px 8px; font-size: 10.5px; }
+  .sidebar { border-right: 0; border-bottom: 1px solid var(--line); max-height: none; overflow-y: visible; padding: 14px; gap: 12px; }
+  .main { padding: 18px 14px 100px; overflow-y: visible; }
+  .paper { padding: 32px 24px; border-radius: 10px; min-height: auto; }
+  .paper .meta { font-size: 10.5px; padding-bottom: 14px; margin-bottom: 18px; }
+  .note-toolbar { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 14px; }
+  .note-toolbar .left { font-size: 11.5px; }
+  .note-toolbar .actions { width: 100%; flex-wrap: wrap; }
+  .note-toolbar .actions .btn { flex: 1; min-width: 0; justify-content: center; padding: 10px 12px; }
+  .hipaa-grid { grid-template-columns: 1fr; }
+  .jump-fab {
+    position: fixed; right: 14px; bottom: 14px; z-index: 200;
+    background: var(--ink); color: var(--paper); border: 0; padding: 10px 16px;
+    border-radius: 999px; font-size: 12.5px; font-weight: 500;
+    box-shadow: 0 8px 22px oklch(20% 0 0 / .25); cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  }
+  .jump-fab .ico { width: 13px; height: 13px; }
+}
+@media (max-width: 560px) {
+  .topbar { padding: 8px 12px; }
+  .brand .mark { width: 18px; height: 18px; }
+  .topbar .brand h1 { font-size: 15px; }
+  .sidebar { padding: 12px; gap: 10px; }
+  .card { padding: 14px; border-radius: 9px; }
+  .card h3 { font-size: 13.5px; margin-bottom: 10px; }
+  .main { padding: 14px 10px 100px; }
+  .paper { padding: 24px 18px; font-size: 14.5px; line-height: 1.6; }
+  .paper h2.note-section { margin: 20px 0 8px; }
+  .mse { grid-template-columns: 1fr; }
+  .chips { gap: 5px; }
+  .chip { padding: 6px 10px; font-size: 11.5px; }
+  .seg button { padding: 9px 8px; font-size: 12.5px; min-height: 36px; }
+  .tabs button { padding: 9px 10px; min-height: 36px; }
+  .tone-stacked button { padding: 10px 12px; }
+  .btn { padding: 10px 14px; min-height: 40px; font-size: 13px; }
+  .input, .select { padding: 11px 12px; font-size: 14px; min-height: 40px; }
+  .textarea { padding: 11px 12px; font-size: 14px; min-height: 100px; }
+  .tg { width: 40px; height: 22px; }
+  .tg i { width: 18px; height: 18px; }
+  .tg[data-on="1"] i { transform: translateX(18px); }
+  .risk-row { grid-template-columns: 1fr; gap: 6px; }
+  .risk-row .tri { width: 100%; }
+  .risk-row .tri button { flex: 1; padding: 7px 4px; min-height: 32px; font-size: 11px; }
+  .modal { padding: 22px 20px 18px; border-radius: 12px; }
+  .modal h3 { font-size: 17px; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- ═══ lib.js ═══════════════════════════════════════════════════════════════ -->
+<script>
+window.PN_LIB = (() => {
+  const FORMATS = {
+    soap: {
+      name: 'SOAP', full: 'SOAP (Subjective, Objective, Assessment, Plan)',
+      sections: ['Subjective', 'Objective', 'Assessment', 'Plan'],
+      description: 'Subjective: what the {subj} reports. Objective: Writer\'s observations, behavior, mental status. Assessment: clinical formulation, response to interventions, progress toward goals. Plan: next session focus, homework, referrals, frequency.',
+    },
+    dap: {
+      name: 'DAP', full: 'DAP (Data, Assessment, Plan)',
+      sections: ['Data', 'Assessment', 'Plan'],
+      description: 'Data: factual content from session, what was discussed, observable behavior. Assessment: clinical formulation and progress toward goals. Plan: next steps, homework, referrals.',
+    },
+    birp: {
+      name: 'BIRP', full: 'BIRP (Behavior, Intervention, Response, Plan)',
+      sections: ['Behavior', 'Intervention', 'Response', 'Plan'],
+      description: 'Behavior: what the {subj} presented with and how they engaged. Intervention: what the Writer did during session. Response: how the {subj} responded to interventions. Plan: next session focus and homework.',
+    },
+    girp: {
+      name: 'GIRP', full: 'GIRP (Goal, Intervention, Response, Plan)',
+      sections: ['Goal', 'Intervention', 'Response', 'Plan'],
+      description: 'Goal: the treatment goal addressed this session. Intervention: what the Writer did. Response: how the {subj} responded. Plan: next steps.',
+    },
+    pirp: {
+      name: 'PIRP', full: 'PIRP (Problem, Intervention, Response, Plan)',
+      sections: ['Problem', 'Intervention', 'Response', 'Plan'],
+      description: 'Problem: presenting problem or symptom addressed. Intervention: clinical actions taken. Response: {subj}\'s response. Plan: next steps.',
+    },
+    emr: {
+      name: 'EMR Paragraph', full: 'EMR One-Paragraph Note', sections: [],
+      description: 'A single concise paragraph integrating presentation, interventions, response, and plan. No headings; flowing clinical prose; 4 to 8 sentences.',
+    },
+    narrative: {
+      name: 'Narrative', full: 'Narrative / Free-form', sections: [],
+      description: 'A free-form clinical narrative with natural paragraph breaks. Focus on therapeutic process and clinical reasoning without rigid headings.',
+    },
+  };
+
+  const TONES = {
+    conversational: { label: 'Conversational', desc: 'Approachable, plain-language; minimal jargon', guidance: 'Write in a warm, plain-spoken professional voice. Avoid heavy clinical jargon. Use everyday words where possible while keeping clinical accuracy.' },
+    balanced: { label: 'Balanced', desc: 'Standard clinical documentation tone', guidance: 'Write in standard clinical documentation tone: professional, concise, and observational. Use clinical terminology where it adds precision but do not over-formalize.' },
+    clinical: { label: 'Highly Clinical', desc: 'Formal, terminology-forward, billing-ready', guidance: 'Write in a highly clinical, formal register suitable for medical records and billing review. Use precise clinical terminology, formal syntax, and third-person observational phrasing throughout.' },
+  };
+
+  const INTERVENTIONS = [
+    'CBT', 'DBT', 'ACT', 'Motivational Interviewing', 'Psychodynamic',
+    'Behavioral Activation', 'Cognitive Restructuring', 'Exposure',
+    'Mindfulness', 'Solution-Focused', 'Narrative Therapy',
+    'IFS (Parts Work)', 'EMDR Prep', 'Psychoeducation',
+    'Reflective Listening', 'Validation', 'Reframing', 'Grounding',
+    'Skills Training', 'Relapse Prevention', 'Crisis Planning',
+    'Family Systems', 'Trauma-Focused CBT',
+  ];
+
+  const MSE_FIELDS = [
+    { key: 'appearance', label: 'Appearance', options: ['', 'Well-groomed', 'Casually dressed', 'Disheveled', 'Appropriate to setting'] },
+    { key: 'behavior', label: 'Behavior', options: ['', 'Cooperative', 'Engaged', 'Guarded', 'Restless', 'Withdrawn'] },
+    { key: 'speech', label: 'Speech', options: ['', 'Normal rate/rhythm', 'Slow', 'Pressured', 'Soft', 'Tangential'] },
+    { key: 'mood', label: 'Mood', options: ['', 'Euthymic', 'Anxious', 'Depressed', 'Irritable', 'Labile', 'Dysphoric'] },
+    { key: 'affect', label: 'Affect', options: ['', 'Congruent', 'Constricted', 'Blunted', 'Flat', 'Expansive', 'Tearful'] },
+    { key: 'thoughtProcess', label: 'Thought Process', options: ['', 'Linear/Logical', 'Tangential', 'Circumstantial', 'Flight of ideas', 'Disorganized'] },
+    { key: 'thoughtContent', label: 'Thought Content', options: ['', 'WNL', 'Ruminative', 'Preoccupied', 'Hopeless', 'Paranoid'] },
+    { key: 'insight', label: 'Insight', options: ['', 'Good', 'Fair', 'Limited', 'Poor'] },
+    { key: 'judgment', label: 'Judgment', options: ['', 'Good', 'Fair', 'Limited', 'Poor'] },
+    { key: 'orientation', label: 'Orientation', options: ['', 'A&O x4', 'A&O x3', 'A&O x2'] },
+  ];
+
+  const RISK_ITEMS = [
+    { key: 'si', label: 'Suicidal Ideation' },
+    { key: 'hi', label: 'Homicidal Ideation' },
+    { key: 'selfHarm', label: 'Self-Harm' },
+    { key: 'substance', label: 'Substance Use' },
+    { key: 'aggression', label: 'Aggression' },
+  ];
+
+  const PHI_PATTERNS = [
+    { kind: 'SSN', re: /\b\d{3}-\d{2}-\d{4}\b/g },
+    { kind: 'Phone', re: /\b(?:\+?1[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g },
+    { kind: 'Email', re: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g },
+    { kind: 'URL', re: /\bhttps?:\/\/[^\s)]+/g },
+    { kind: 'IP', re: /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g },
+    { kind: 'Date', re: /\b(?:\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})\b/g },
+    { kind: 'Date', re: /\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{2,4})?\b/gi },
+    { kind: 'ZIP', re: /\b\d{5}(?:-\d{4})?\b/g },
+    { kind: 'MRN', re: /\b(?:MRN|Record\s*#|Acct\s*#|Chart\s*#)\s*[:#]?\s*\w+/gi },
+    { kind: 'Age 90+', re: /\b(?:age\s+)?(?:9\d|1[0-1]\d)\s*(?:-|to)?\s*(?:years?[- ]old|y\/o|yo)\b/gi },
+  ];
+
+  function detectPHI(text) {
+    if (!text) return [];
+    const found = [], seen = new Set();
+    PHI_PATTERNS.forEach(({ kind, re }) => {
+      (text.match(re) || []).forEach((m) => {
+        const key = kind + '::' + m.toLowerCase();
+        if (!seen.has(key)) { seen.add(key); found.push({ kind, value: m }); }
+      });
+    });
+    return found;
+  }
+
+  function redactPHI(text) {
+    if (!text) return text;
+    let out = text;
+    PHI_PATTERNS.forEach(({ kind, re }) => {
+      out = out.replace(re, `[${kind === 'Age 90+' ? 'AGE' : kind.toUpperCase()}-REDACTED]`);
+    });
+    return out;
+  }
+
+  const COMMON_WORDS = new Set([
+    'I','You','He','She','We','They','It','My','Your','His','Her','Our','Their','Its',
+    'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday',
+    'January','February','March','April','May','June','July','August','September','October','November','December',
+    'God','Jesus','Christ','Lord','Buddha','Allah',
+    'CBT','DBT','ACT','EMDR','IFS','MSE','WNL',
+    'PhD','MD','LCSW','LPC','LMFT','PsyD',
+    'Client','Patient','Writer','Therapist',
+  ]);
+
+  function detectNames(text, extraNames) {
+    if (!text) return [];
+    const found = new Set();
+    (extraNames || []).forEach((n) => { if (n && n.trim()) found.add(n.trim()); });
+    const sentences = text.split(/([.!?]\s+)/);
+    sentences.forEach((seg, idx) => {
+      if (idx % 2 !== 0) return;
+      seg.split(/\s+/).forEach((w, wIdx) => {
+        const clean = w.replace(/[^A-Za-z'\-]/g, '');
+        if (!clean || clean.length < 2) return;
+        if (!/^[A-Z][a-z'\-]+$/.test(clean)) return;
+        if (COMMON_WORDS.has(clean)) return;
+        if (wIdx === 0) return;
+        found.add(clean);
+      });
+    });
+    return Array.from(found);
+  }
+
+  function redactNames(text, names, subjectLabel) {
+    if (!text || !names || !names.length) return text;
+    let out = text;
+    [...names].sort((a, b) => b.length - a.length).forEach((n) => {
+      const re = new RegExp('\\b' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
+      out = out.replace(re, subjectLabel);
+    });
+    return out;
+  }
+
+  const AI_BUZZWORDS = [
+    /\bdelv(e|ed|es|ing)\b/gi, /\bnavigat(e|ed|es|ing)\b/gi,
+    /\btapestry\b/gi, /\bunderscore(s|d)?\b/gi,
+    /\bit\s+is\s+important\s+to\s+note\s+that\b/gi, /\bit['']s\s+important\s+to\s+note\s+that\b/gi,
+    /\bin\s+today['']s\s+(fast[- ]paced\s+)?world\b/gi,
+    /\bmoreover,?\s*/gi, /\bfurthermore,?\s*/gi, /\bin\s+conclusion,?\s*/gi,
+    /\bas\s+an?\s+(AI|language\s+model)\b/gi,
+    /\bdive\s+(into|deep\s+into)\b/gi, /\brealm\s+of\b/gi, /\blandscape\s+of\b/gi,
+    /\bplethora\s+of\b/gi, /\bmyriad\s+of\b/gi,
+    /\bharness(es|ed|ing)?\b/gi, /\bleverag(e|ed|es|ing)\b/gi,
+    /\bunpack(ed|ing|s)?\b/gi, /\bmeticulous(ly)?\b/gi,
+    /\bnuanced?\b/gi, /\bholistic(ally)?\b/gi,
+  ];
+  const BUZZWORD_REPLACE = {
+    'delv(e|ed|es|ing)': (m) => 'explor' + m.slice(4),
+    'navigat(e|ed|es|ing)': (m) => 'manag' + m.slice(7),
+    'tapestry': 'range', 'underscore(s|d)?': 'emphasiz',
+    'dive (into|deep into)': 'explore', 'realm of': 'area of',
+    'landscape of': 'area of', 'plethora of': 'many', 'myriad of': 'many',
+    'harness(es|ed|ing)?': 'use', 'leverag(e|ed|es|ing)': 'use',
+    'unpack(ed|ing|s)?': 'examine', 'meticulous(ly)?': '',
+    'nuanced?': '', 'holistic(ally)?': 'comprehensive',
+  };
+
+  function scrubText(text) {
+    if (!text) return text;
+    let out = text;
+    out = out.replace(/\s*—\s*/g, ', ');
+    out = out.replace(/(\D)\s*–\s*(\D)/g, '$1, $2');
+    out = out.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
+    AI_BUZZWORDS.forEach((re) => {
+      const srcKey = re.source.replace(/^\\b|\\b$/g, '');
+      const r = BUZZWORD_REPLACE[srcKey];
+      if (r === undefined) out = out.replace(re, '');
+      else if (typeof r === 'function') out = out.replace(re, r);
+      else out = out.replace(re, r);
+    });
+    out = out.replace(/[ \t]+/g, ' ').replace(/\s+([.,;:!?])/g, '$1')
+             .replace(/,\s*,/g, ',').replace(/\.\s*\./g, '.').replace(/\(\s+/g, '(').replace(/\s+\)/g, ')');
+    out = out.split('\n').map((l) => l.trimEnd()).join('\n');
+    out = out.replace(/\n{3,}/g, '\n\n');
+    return out.trim();
+  }
+
+  function buildPrompt({ format, tone, subject, voiceMode, voiceStrength, voiceSample, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames }) {
+    const fmt = FORMATS[format];
+    const toneInfo = TONES[tone];
+    const desc = fmt.description.replace(/\{subj\}/g, subject.toLowerCase());
+    const parts = [];
+    parts.push(`You are an experienced licensed psychotherapist documenting a session. Generate a DE-IDENTIFIED progress note in the ${fmt.full} format.`);
+    parts.push('');
+    parts.push('STRICT RULES:');
+    parts.push(`- Refer to the therapist as "Writer" (never therapist, clinician, I, or a name).`);
+    parts.push(`- Refer to the person being treated as "${subject}" (never by name, never with pronouns identifying gender unless the input is explicit).`);
+    parts.push(`- Use no proper names of any kind. Replace any name in the input with "${subject}" or omit it.`);
+    parts.push(`- Treat all input as already de-identified under HIPAA Safe Harbor (§164.514(b)). Tokens like [SSN-REDACTED], [PHONE-REDACTED], [DATE-REDACTED], [ZIP-REDACTED], [MRN-REDACTED], [URL-REDACTED], [IP-REDACTED], or [AGE-REDACTED] in the input MUST be preserved verbatim in the note.`);
+    parts.push(`- Do not invent clinical details not present in the input. If a section has no content, write "None reported." or omit the line.`);
+    parts.push(`- Do not use em-dashes (—) or en-dashes (–). Use commas, periods, or colons instead.`);
+    parts.push(`- Do not use these words: delve, navigate (use 'manage'/'address'), tapestry, underscore. Avoid generic AI phrasing.`);
+    parts.push(`- Do not say "It is important to note that", "Moreover", "Furthermore", "In conclusion", or similar AI filler.`);
+    parts.push(`- Output the note only. No preamble, no commentary, no closing line.`);
+    parts.push('');
+    parts.push(`FORMAT DETAIL: ${desc}`);
+    if (fmt.sections.length > 0) {
+      parts.push(`SECTION HEADINGS (use exactly these, each on its own line, followed by a colon):`);
+      fmt.sections.forEach((s) => parts.push(`  ${s}:`));
+    }
+    parts.push('');
+    parts.push(`TONE: ${toneInfo.label}. ${toneInfo.guidance}`);
+    if (voiceMode && voiceSample && voiceSample.trim()) {
+      parts.push('');
+      parts.push(`VOICE PRESERVATION: ${voiceStrength}% — match the cadence, sentence length, and word choice in the sample below.`);
+      parts.push('--- WRITER VOICE SAMPLE ---');
+      parts.push(voiceSample.trim());
+      parts.push('--- END SAMPLE ---');
+    }
+    parts.push('');
+    parts.push('SESSION CONTENT:');
+    if (inputMode === 'free' && freeText && freeText.trim()) {
+      parts.push(freeText.trim());
+    } else if (inputMode === 'structured') {
+      [['Presenting Issue / Focus', structured.presenting], ['Content Discussed', structured.content], ['Interventions Used (in session)', structured.interventionsText], ['Client/Patient Response', structured.response], ['Plan / Next Steps', structured.plan]]
+        .forEach(([k, v]) => { if (v && v.trim()) parts.push(`${k}: ${v.trim()}`); });
+    } else if (inputMode === 'bullets' && bullets && bullets.trim()) {
+      parts.push('Shorthand notes from session (expand these into full clinical prose):');
+      parts.push(bullets.trim());
+    }
+    const intList = interventions.filter(Boolean);
+    if (intList.length) { parts.push(''); parts.push(`INTERVENTIONS APPLIED: ${intList.join(', ')}.`); }
+    const mseEntries = Object.entries(mse || {}).filter(([_, v]) => v && v.trim());
+    if (mseEntries.length) {
+      parts.push(''); parts.push('MENTAL STATUS EXAM:');
+      mseEntries.forEach(([k, v]) => { const f = MSE_FIELDS.find((x) => x.key === k); if (f) parts.push(`  ${f.label}: ${v}`); });
+    }
+    const touchedRisk = RISK_ITEMS.map(({ key, label }) => ({ label, ...(risk || {})[key] })).filter((r) => r && (r.status || (r.note && r.note.trim())));
+    if (touchedRisk.length) {
+      parts.push(''); parts.push('RISK ASSESSMENT (include only these items in the note):');
+      touchedRisk.forEach((r) => parts.push(`  ${r.label}: ${r.status || 'endorsed'}${r.note ? ` (${r.note.trim()})` : ''}`));
+    } else {
+      parts.push(''); parts.push('RISK ASSESSMENT: not addressed in side panel — do not include a risk section in the note.');
+    }
+    if (redactedNames && redactedNames.length) { parts.push(''); parts.push(`NOTE: The following names were redacted and replaced with "${subject}": ${redactedNames.join(', ')}. Do not reintroduce them.`); }
+    parts.push(''); parts.push('Generate the progress note now.');
+    return parts.join('\n');
+  }
+
+  function parseNote(text, format) {
+    const fmt = FORMATS[format];
+    if (!fmt.sections.length) return [{ heading: null, body: text.trim() }];
+    const sections = [], headings = fmt.sections;
+    const re = new RegExp('^(' + headings.map((h) => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')\\s*:', 'im');
+    let currentHeading = null, current = '';
+    text.trim().split('\n').forEach((line) => {
+      const m = line.match(re);
+      if (m) {
+        if (currentHeading !== null || current.trim()) sections.push({ heading: currentHeading, body: current.trim() });
+        currentHeading = m[1]; current = line.slice(m[0].length).trim();
+        if (current) current += '\n';
+      } else { current += line + '\n'; }
+    });
+    if (currentHeading !== null || current.trim()) sections.push({ heading: currentHeading, body: current.trim() });
+    return sections.filter((s) => s.heading || s.body);
+  }
+
+  return { FORMATS, TONES, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, detectNames, redactNames, detectPHI, redactPHI, scrubText, buildPrompt, parseNote };
+})();
+</script>
+
+<!-- ═══ tweaks-panel.jsx ══════════════════════════════════════════════════════ -->
+<script type="text/babel">
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+  .twk-field{appearance:none;width:100%;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  select.twk-field{padding-right:22px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='rgba(0,0,0,.5)' d='M0 0h10L5 6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center}
+  .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:4px;margin:6px 0;
+    border-radius:999px;background:rgba(0,0,0,.12);outline:none}
+  .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+    background:#fff;border:.5px solid rgba(0,0,0,.12);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .twk-seg{position:relative;display:flex;padding:2px;border-radius:8px;
+    background:rgba(0,0,0,.06);user-select:none}
+  .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:6px;
+    background:rgba(255,255,255,.9);box-shadow:0 1px 2px rgba(0,0,0,.12);
+    transition:left .15s cubic-bezier(.3,.7,.4,1),width .15s}
+  .twk-seg button{appearance:none;position:relative;z-index:1;flex:1;border:0;
+    background:transparent;color:inherit;font:inherit;font-weight:500;min-height:22px;
+    border-radius:6px;cursor:default;padding:4px 6px;line-height:1.2}
+  .twk-toggle{position:relative;width:32px;height:18px;border:0;border-radius:999px;
+    background:rgba(0,0,0,.15);transition:background .15s;cursor:default;padding:0}
+  .twk-toggle[data-on="1"]{background:#34c759}
+  .twk-toggle i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+  .twk-toggle[data-on="1"] i{transform:translateX(14px)}
+`;
+
+function useTweaks(defaults) {
+  const [values, setValues] = React.useState(defaults);
+  const setTweak = React.useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+function TweaksPanel({ title = 'Appearance', children }) {
+  const [open, setOpen] = React.useState(false);
+  const dragRef = React.useRef(null);
+  const offsetRef = React.useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = React.useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    offsetRef.current = {
+      x: Math.min(Math.max(PAD, window.innerWidth - w - PAD), Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(Math.max(PAD, window.innerHeight - h - PAD), Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(clampToViewport) : null;
+    if (ro) { ro.observe(document.documentElement); return () => ro.disconnect(); }
+    window.addEventListener('resize', clampToViewport);
+    return () => window.removeEventListener('resize', clampToViewport);
+  }, [open, clampToViewport]);
+
+  React.useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => setOpen(false);
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right, startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => { offsetRef.current = { x: startRight - (ev.clientX - sx), y: startBottom - (ev.clientY - sy) }; clampToViewport(); };
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" onMouseDown={(e) => e.stopPropagation()} onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
+function TweakSection({ label, children }) {
+  return (<><div className="twk-sect">{label}</div>{children}</>);
+}
+function TweakRow({ label, value, children, inline = false }) {
+  return (
+    <div className={inline ? 'twk-row twk-row-h' : 'twk-row'}>
+      <div className="twk-lbl"><span>{label}</span>{value != null && <span className="twk-val">{value}</span>}</div>
+      {children}
+    </div>
+  );
+}
+function TweakSelect({ label, value, options, onChange }) {
+  return (
+    <TweakRow label={label}>
+      <select className="twk-field" value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((o) => { const v = typeof o === 'object' ? o.value : o; const l = typeof o === 'object' ? o.label : o; return <option key={v} value={v}>{l}</option>; })}
+      </select>
+    </TweakRow>
+  );
+}
+function TweakRadio({ label, value, options, onChange }) {
+  const trackRef = React.useRef(null);
+  const [dragging, setDragging] = React.useState(false);
+  const valueRef = React.useRef(value); valueRef.current = value;
+  const labelLen = (o) => String(typeof o === 'object' ? o.label : o).length;
+  const maxLen = options.reduce((m, o) => Math.max(m, labelLen(o)), 0);
+  const fitsAsSegments = maxLen <= ({ 2: 16, 3: 10 }[options.length] ?? 0);
+  if (!fitsAsSegments) {
+    return <TweakSelect label={label} value={value} options={options} onChange={(s) => { const m = options.find((o) => String(typeof o === 'object' ? o.value : o) === s); onChange(m === undefined ? s : typeof m === 'object' ? m.value : m); }} />;
+  }
+  const opts = options.map((o) => (typeof o === 'object' ? o : { value: o, label: o }));
+  const idx = Math.max(0, opts.findIndex((o) => o.value === value));
+  const n = opts.length;
+  const segAt = (clientX) => { const r = trackRef.current.getBoundingClientRect(); return opts[Math.max(0, Math.min(n - 1, Math.floor(((clientX - r.left - 2) / (r.width - 4)) * n)))].value; };
+  const onPointerDown = (e) => {
+    setDragging(true);
+    const v0 = segAt(e.clientX); if (v0 !== valueRef.current) onChange(v0);
+    const move = (ev) => { if (!trackRef.current) return; const v = segAt(ev.clientX); if (v !== valueRef.current) onChange(v); };
+    const up = () => { setDragging(false); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+  };
+  return (
+    <TweakRow label={label}>
+      <div ref={trackRef} role="radiogroup" onPointerDown={onPointerDown} className={dragging ? 'twk-seg dragging' : 'twk-seg'}>
+        <div className="twk-seg-thumb" style={{ left: `calc(2px + ${idx} * (100% - 4px) / ${n})`, width: `calc((100% - 4px) / ${n})` }} />
+        {opts.map((o) => <button key={o.value} type="button" role="radio" aria-checked={o.value === value}>{o.label}</button>)}
+      </div>
+    </TweakRow>
+  );
+}
+function TweakToggle({ label, value, onChange }) {
+  return (
+    <div className="twk-row twk-row-h">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <button type="button" className="twk-toggle" data-on={value ? '1' : '0'} role="switch" aria-checked={!!value} onClick={() => onChange(!value)}><i /></button>
+    </div>
+  );
+}
+
+Object.assign(window, { useTweaks, TweaksPanel, TweakSection, TweakRow, TweakSelect, TweakRadio, TweakToggle });
+</script>
+
+<!-- ═══ app.jsx ══════════════════════════════════════════════════════════════ -->
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+const L = window.PN_LIB;
+
+const TWEAK_DEFAULTS = { theme: 'warm', density: 'regular', toneStyle: 'segmented' };
+
+const Icon = {
+  copy: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>,
+  spark: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>,
+  check: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  shield: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>,
+  page: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>,
+  key: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l2 2"/></svg>,
+  sliders: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2" fill="var(--paper)"/><circle cx="15" cy="12" r="2" fill="var(--paper)"/><circle cx="9" cy="18" r="2" fill="var(--paper)"/></svg>,
+};
+
+async function callAnthropicAPI(prompt, apiKey) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-allow-browser': 'true',
+    },
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] }),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    if (resp.status === 401) throw new Error('invalid_key');
+    if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
+    throw new Error(err.error?.message || `API error (${resp.status})`);
+  }
+  const data = await resp.json();
+  return data.content[0].text;
+}
+
+function useToast() {
+  const [msg, setMsg] = useState(null);
+  const tRef = useRef(null);
+  const show = useCallback((m) => {
+    setMsg(m);
+    if (tRef.current) clearTimeout(tRef.current);
+    tRef.current = setTimeout(() => setMsg(null), 2400);
+  }, []);
+  return [msg ? <div className="toast">{msg}</div> : null, show];
+}
+
+function ToneSegmented({ value, onChange }) {
+  return (
+    <div className="seg tone-3" role="radiogroup">
+      {[['conversational','Conversational'],['balanced','Balanced'],['clinical','Highly Clinical']].map(([v,l]) => (
+        <button key={v} type="button" role="radio" aria-pressed={value===v} onClick={() => onChange(v)}>{l}</button>
+      ))}
+    </div>
+  );
+}
+function ToneDial({ value, onChange }) {
+  const order = ['conversational','balanced','clinical'];
+  const idx = Math.max(0, order.indexOf(value));
+  const trackRef = useRef(null);
+  const pick = (clientX) => { const r = trackRef.current.getBoundingClientRect(); onChange(order[Math.round(Math.max(0,Math.min(1,(clientX-r.left)/r.width))*2)]); };
+  const onDown = (e) => { pick(e.clientX); const mv=(ev)=>pick(ev.clientX); const up=()=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);}; window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up); };
+  return (
+    <div className="tone-dial" onPointerDown={onDown}>
+      <div className="track" ref={trackRef}><div className="knob" style={{left:`${(idx/2)*100}%`}}/></div>
+      <div className="labels"><span>Conversational</span><span>Balanced</span><span>Highly Clinical</span></div>
+    </div>
+  );
+}
+function ToneStacked({ value, onChange }) {
+  return (
+    <div className="tone-stacked">
+      {Object.entries(L.TONES).map(([k,t]) => (
+        <button key={k} type="button" aria-pressed={value===k} onClick={() => onChange(k)}>
+          <span><strong style={{fontWeight:500}}>{t.label}</strong></span>
+          <span className="desc">{t.desc}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ApiKeyModal({ currentKey, onSave, onCancel }) {
+  const [draft, setDraft] = useState(currentKey || '');
+  const inputRef = useRef(null);
+  useEffect(() => { const t = setTimeout(() => inputRef.current?.focus(), 80); return () => clearTimeout(t); }, []);
+  const save = () => { const k = draft.trim(); if (!k) return; onSave(k); };
+  return (
+    <div className="modal-backdrop" onClick={onCancel || undefined}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h3>Anthropic API key</h3>
+        <p>Your key is sent directly from this browser to <strong style={{color:'inherit'}}>api.anthropic.com</strong>. It is held in your session only — never written to disk and never shared with any other service.</p>
+        <div className="row">
+          <label className="field-label">API key</label>
+          <input ref={inputRef} className="input" type="password" placeholder="sk-ant-api03-…" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key==='Enter') save(); }} autoComplete="off" spellCheck={false} />
+        </div>
+        <p className="api-key-note" style={{marginBottom:0}}>Get your key at <strong>console.anthropic.com</strong>. Before using this tool with identifiable patient information, confirm your account has a HIPAA Business Associate Agreement with Anthropic. The key clears when you close this browser tab.</p>
+        <div className="modal-actions">
+          {onCancel && <button className="btn" onClick={onCancel}>Cancel</button>}
+          <button className="btn primary" disabled={!draft.trim()} onClick={save}>Save key</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    html.className = html.className.replace(/\btheme-\S+/g,'').replace(/\bdensity-\S+/g,'').trim();
+    html.classList.add(`theme-${tweaks.theme}`);
+    html.classList.add(`density-${tweaks.density}`);
+  }, [tweaks.theme, tweaks.density]);
+
+  const [apiKey, setApiKey] = useState(() => { try { return sessionStorage.getItem('pn.apikey') || ''; } catch { return ''; } });
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const saveApiKey = (key) => { setApiKey(key); try { sessionStorage.setItem('pn.apikey', key); } catch {} setShowKeyModal(false); };
+
+  const [format, setFormat] = useState('soap');
+  const [subject, setSubject] = useState('Client');
+  const [tone, setTone] = useState('balanced');
+  const [voiceOn, setVoiceOn] = useState(false);
+  const [voiceStrength, setVoiceStrength] = useState(50);
+  const [voiceSample, setVoiceSample] = useState('');
+  const [inputMode, setInputMode] = useState('free');
+  const [freeText, setFreeText] = useState('');
+  const [structured, setStructured] = useState({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
+  const [bullets, setBullets] = useState('');
+  const [interventions, setInterventions] = useState([]);
+  const [otherIntervention, setOtherIntervention] = useState('');
+  const [mse, setMse] = useState({});
+  const [risk, setRisk] = useState(L.RISK_ITEMS.reduce((acc,r) => { acc[r.key]={status:null,note:''}; return acc; }, {}));
+  const [note, setNote] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [nameFlags, setNameFlags] = useState([]);
+  const [phiFlags, setPhiFlags] = useState([]);
+  const [generatedMeta, setGeneratedMeta] = useState(null);
+  const [safeHarbor, setSafeHarbor] = useState(true);
+  const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => { try { localStorage.removeItem('pn.drafts'); } catch {} }, []);
+  const [toast, showToast] = useToast();
+
+  const rawInput = useMemo(() => {
+    if (inputMode==='free') return freeText;
+    if (inputMode==='bullets') return bullets;
+    return Object.values(structured).join(' \n');
+  }, [inputMode, freeText, bullets, structured]);
+
+  const detectedNames = useMemo(() => L.detectNames(rawInput, []), [rawInput]);
+  const detectedPHI = useMemo(() => safeHarbor ? L.detectPHI(rawInput) : [], [rawInput, safeHarbor]);
+
+  const generate = async () => {
+    if (loading) return;
+    if (!rawInput.trim()) { showToast('Add some session content first'); return; }
+    if (!apiKey) { setShowKeyModal(true); return; }
+    setLoading(true); setNameFlags(detectedNames); setPhiFlags(detectedPHI);
+    const allNames = detectedNames;
+    const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
+    const prompt = L.buildPrompt({
+      format, tone, subject, voiceMode: voiceOn, voiceStrength, voiceSample, inputMode,
+      freeText: sanitize(freeText),
+      structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,sanitize(v)])),
+      bullets: sanitize(bullets),
+      interventions: [...interventions, ...otherIntervention.split(',').map(s=>s.trim()).filter(Boolean)],
+      mse, risk, redactedNames: allNames,
+    });
+    try {
+      const raw = await callAnthropicAPI(prompt, apiKey);
+      const cleaned = L.scrubText(raw);
+      setNote(L.redactNames(cleaned, allNames, subject));
+      setGeneratedMeta({ format, subject, tone, at: new Date() });
+    } catch(err) {
+      if (err.message==='invalid_key') {
+        setApiKey(''); try { sessionStorage.removeItem('pn.apikey'); } catch {}
+        showToast('Invalid API key — please check your key');
+        setShowKeyModal(true);
+      } else {
+        showToast(err.message || 'Generation failed. Try again.');
+      }
+    } finally { setLoading(false); }
+  };
+
+  const copyNote = async () => {
+    if (!note) return;
+    try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
+    catch { showToast('Copy failed — please select and copy manually'); }
+  };
+
+  const wipeAll = () => {
+    setNote(''); setGeneratedMeta(null); setNameFlags([]); setPhiFlags([]);
+    setFreeText(''); setBullets('');
+    setStructured({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
+    setVoiceSample(''); setVoiceOn(false); setInterventions([]); setOtherIntervention('');
+    setMse({}); setRisk(L.RISK_ITEMS.reduce((acc,r)=>{ acc[r.key]={status:null,note:''}; return acc; },{}));
+    setConfirming(false); try { localStorage.removeItem('pn.drafts'); } catch {}
+    showToast('Note erased');
+  };
+
+  const sections = useMemo(() => { if (!note) return []; return L.parseNote(note, generatedMeta?.format || format); }, [note, format, generatedMeta]);
+  const toggleIntervention = (name) => setInterventions(prev => prev.includes(name) ? prev.filter(x=>x!==name) : [...prev,name]);
+  const ToneControl = tweaks.toneStyle==='dial' ? ToneDial : tweaks.toneStyle==='stacked' ? ToneStacked : ToneSegmented;
+  const openTweaks = () => window.postMessage({ type: '__activate_edit_mode' }, '*');
+  const totalInterventions = interventions.length + otherIntervention.split(',').map(s=>s.trim()).filter(Boolean).length;
+
+  return (
+    <div className="app">
+      <header className="topbar">
+        <div className="brand">
+          <div className="mark"/>
+          <h1>Progress Note Writer</h1>
+          <span className="tag">De-identified · for Writers</span>
+        </div>
+        <div className="meta">
+          <span className="hipaa-badge" title="HIPAA Safe Harbor de-identification runs on-device before any content is sent to the AI.">
+            <Icon.shield/>HIPAA Safe Harbor
+          </span>
+          <span><span className="dot"/>Nothing saved · in-memory only</span>
+          <button className={apiKey ? 'btn ghost' : 'btn'} style={{padding:'4px 10px',fontSize:11.5,height:'auto'}} onClick={() => setShowKeyModal(true)} title={apiKey ? 'API key configured — click to update' : 'Enter your Anthropic API key'}>
+            <Icon.key/>{apiKey ? 'API key ✓' : 'Set API key'}
+          </button>
+          <button className="btn ghost" style={{padding:'4px 8px',fontSize:11.5,height:'auto'}} onClick={openTweaks} title="Appearance settings">
+            <Icon.sliders/>
+          </button>
+        </div>
+      </header>
+
+      <aside className="sidebar">
+        <div className="card hipaa-card">
+          <h3>Privacy <span className="hint">HIPAA Safe Harbor</span></h3>
+          <div className="hipaa-grid">
+            <div className="hipaa-cell"><b>Names</b><span>auto-detected, replaced with {subject}</span></div>
+            <div className="hipaa-cell"><b>SSNs · Phones · Emails</b><span>regex-redacted before send</span></div>
+            <div className="hipaa-cell"><b>Dates · ZIPs · MRNs</b><span>tokenized as [TYPE-REDACTED]</span></div>
+            <div className="hipaa-cell"><b>Ages 90+ · IPs · URLs</b><span>removed per §164.514(b)</span></div>
+          </div>
+          <div className="row h" style={{marginTop:12,marginBottom:0}}>
+            <label style={{margin:0}}>Safe Harbor de-identification</label>
+            <button className="tg" data-on={safeHarbor?'1':'0'} onClick={()=>setSafeHarbor(!safeHarbor)}><i/></button>
+          </div>
+          <div className="note-sm" style={{marginTop:8}}>Notes are never stored by this tool. Use "Note completed" to permanently erase when done. Confirm your AI provider's Business Associate Agreement before entering identifiable PHI.</div>
+        </div>
+
+        <div className="card">
+          <h3>Note settings <span className="hint">Format & voice</span></h3>
+          <div className="row">
+            <label>Format</label>
+            <select className="select" value={format} onChange={(e)=>setFormat(e.target.value)}>
+              {Object.entries(L.FORMATS).map(([k,f]) => <option key={k} value={k}>{f.full}</option>)}
+            </select>
+          </div>
+          <div className="row">
+            <label>Refer to subject as</label>
+            <div className="seg" role="radiogroup">
+              <button type="button" aria-pressed={subject==='Client'} onClick={()=>setSubject('Client')}>Client</button>
+              <button type="button" aria-pressed={subject==='Patient'} onClick={()=>setSubject('Patient')}>Patient</button>
+            </div>
+          </div>
+          <div className="row">
+            <label>Clinical tone</label>
+            <ToneControl value={tone} onChange={setTone}/>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Writer's voice <span className="hint">Optional</span></h3>
+          <div className="row h">
+            <label style={{margin:0}}>Preserve my voice</label>
+            <button className="tg" data-on={voiceOn?'1':'0'} onClick={()=>setVoiceOn(!voiceOn)}><i/></button>
+          </div>
+          {voiceOn && (
+            <div className="voice-detail">
+              <div className="slider-row">
+                <div className="row h" style={{margin:0}}>
+                  <label style={{margin:0}}>Preservation strength</label>
+                  <span className="muted" style={{fontSize:12,fontVariantNumeric:'tabular-nums'}}>{voiceStrength}%</span>
+                </div>
+                <input type="range" className="slider" min="0" max="100" step="5" value={voiceStrength} onChange={(e)=>setVoiceStrength(Number(e.target.value))}/>
+              </div>
+              <div className="row" style={{margin:0}}>
+                <label>Voice sample (paste a past note)</label>
+                <textarea className="textarea" rows="4" placeholder="Paste 1–2 of your prior notes so the tool can mirror your phrasing. Names are stripped before generation." value={voiceSample} onChange={(e)=>setVoiceSample(e.target.value)}/>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="card">
+          <h3>Session content <span className="hint">Required</span></h3>
+          <div className="tabs">
+            <button aria-pressed={inputMode==='free'} onClick={()=>setInputMode('free')}>Free text</button>
+            <button aria-pressed={inputMode==='structured'} onClick={()=>setInputMode('structured')}>Structured</button>
+            <button aria-pressed={inputMode==='bullets'} onClick={()=>setInputMode('bullets')}>Bullets</button>
+          </div>
+          {inputMode==='free' && <textarea className="textarea" rows="8" placeholder={`Describe the session in your own words. Mention themes, what the ${subject.toLowerCase()} discussed, interventions you used, and how they responded.`} value={freeText} onChange={(e)=>setFreeText(e.target.value)}/>}
+          {inputMode==='structured' && (
+            <>{[['presenting','Presenting issue / focus'],['content','Content discussed'],['interventionsText','Interventions used in session'],['response',`${subject}'s response`],['plan','Plan / next steps']].map(([k,label]) => (
+              <div className="row" key={k}>
+                <label>{label}</label>
+                <textarea className="textarea" rows="2" value={structured[k]} onChange={(e)=>setStructured(s=>({...s,[k]:e.target.value}))}/>
+              </div>
+            ))}</>
+          )}
+          {inputMode==='bullets' && <textarea className="textarea" rows="8" placeholder={`- ${subject.toLowerCase()} reported low mood this week\n- explored cognitive distortions around work\n- reviewed thought record`} value={bullets} onChange={(e)=>setBullets(e.target.value)}/>}
+          <div className="note-sm" style={{marginTop:10}}>Names in your input are auto-detected and replaced with {subject} before generation. Dates, places, and other context remain unless you remove them.</div>
+        </div>
+
+        <div className="card">
+          <h3>Interventions <span className="hint">{totalInterventions||'none'} selected</span></h3>
+          <div className="chips">
+            {L.INTERVENTIONS.map(i => <button key={i} className="chip" aria-pressed={interventions.includes(i)} onClick={()=>toggleIntervention(i)}>{i}</button>)}
+          </div>
+          <div className="row" style={{marginTop:10,marginBottom:0}}>
+            <label>Other (not listed)</label>
+            <input className="input" type="text" placeholder="e.g. Somatic Experiencing, Gestalt chair work (comma-separated)" value={otherIntervention} onChange={(e)=>setOtherIntervention(e.target.value)}/>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Risk assessment</h3>
+          {L.RISK_ITEMS.map(({key,label}) => {
+            const r = risk[key];
+            const setStatus = (s) => setRisk(x=>({...x,[key]:{...x[key],status:s}}));
+            const setRNote = (n) => setRisk(x=>({...x,[key]:{...x[key],note:n}}));
+            return (
+              <div className="risk-row" key={key}>
+                <div>
+                  <div className="name">{label}</div>
+                  {(r.status==='endorsed'||r.status==='active') && <input className="input" style={{marginTop:6,fontSize:12,padding:'6px 9px'}} placeholder="Detail (optional)" value={r.note} onChange={(e)=>setRNote(e.target.value)}/>}
+                </div>
+                <div className="tri">
+                  <button aria-pressed={r.status==='denied'} onClick={()=>setStatus('denied')}>Denied</button>
+                  <button className="endorsed" aria-pressed={r.status==='endorsed'} onClick={()=>setStatus('endorsed')}>Endorsed</button>
+                  <button className="active" aria-pressed={r.status==='active'} onClick={()=>setStatus('active')}>Active</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="card">
+          <h3>Mental status exam <span className="hint">Quick fill</span></h3>
+          <div className="mse">
+            {L.MSE_FIELDS.map(f => (
+              <div className="mse-cell" key={f.key}>
+                <label>{f.label}</label>
+                <select className="select" value={mse[f.key]||''} onChange={(e)=>setMse(m=>({...m,[f.key]:e.target.value}))}>
+                  {f.options.map(o => <option key={o} value={o}>{o||'—'}</option>)}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      <main className="main" id="note-pane">
+        <div className="note-toolbar">
+          <div className="left">
+            {generatedMeta && <span style={{fontSize:12}}>Generated {generatedMeta.at.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})}</span>}
+          </div>
+          <div className="actions">
+            <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
+            <button className="btn danger" disabled={!note||loading} onClick={()=>setConfirming(true)}><Icon.check/>Note completed</button>
+            <button className="btn primary" disabled={loading||!!note} onClick={generate} title={note?'Mark the current note completed before starting a new one':''}>
+              {loading ? <span className="spin"/> : <Icon.spark/>}
+              {loading ? 'Generating…' : 'Generate note'}
+            </button>
+          </div>
+        </div>
+
+        {(nameFlags.length>0||phiFlags.length>0) && (
+          <div className="flag-bar">
+            <div style={{flex:1}}>
+              <div className="lbl">De-identified before generation</div>
+              <ul>
+                {nameFlags.map(n=><li key={'n-'+n}>Name: {n}</li>)}
+                {phiFlags.map((p,i)=><li key={'p-'+i}>{p.kind}: {p.value}</li>)}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        <article className={`paper ${loading?'loading':''}`}>
+          {note ? (
+            <>
+              <div className="meta">
+                <span className="fmt">{L.FORMATS[generatedMeta?.format||format].full}</span>
+                <span>Writer · De-identified</span>
+              </div>
+              {sections.map((s,i) => (
+                <div key={i}>
+                  {s.heading && <h2 className="note-section">{s.heading}</h2>}
+                  {s.body.split(/\n{2,}/).map((para,j) => (
+                    <p key={j}>{para.split('\n').map((line,k) => (
+                      <React.Fragment key={k}>{line}{k<para.split('\n').length-1&&<br/>}</React.Fragment>
+                    ))}</p>
+                  ))}
+                </div>
+              ))}
+            </>
+          ) : loading ? (
+            <>
+              <div className="meta"><span className="fmt">Drafting…</span><span>Writer</span></div>
+              {[0,1,2,3,4,5].map(i=><div className="gen-line" key={i} style={{width:`${65+(i*7)%30}%`}}/>)}
+            </>
+          ) : (
+            <div className="empty">
+              <div className="icon"><Icon.page/></div>
+              <h4>Your note will appear here</h4>
+              <div>Fill in session content on the left, then press Generate note.</div>
+              {!apiKey && <div style={{marginTop:16}}><button className="btn primary" onClick={()=>setShowKeyModal(true)}><Icon.key/>Set API key to begin</button></div>}
+            </div>
+          )}
+        </article>
+      </main>
+
+      <TweaksPanel title="Appearance">
+        <TweakSection label="Color theme">
+          <TweakSelect label="Theme" value={tweaks.theme} options={[{value:'warm',label:'Warm (default)'},{value:'cool',label:'Cool'},{value:'sage',label:'Sage'},{value:'graphite',label:'Graphite'}]} onChange={v=>setTweak('theme',v)}/>
+        </TweakSection>
+        <TweakSection label="Layout">
+          <TweakRadio label="Density" value={tweaks.density} options={['compact','regular','comfy']} onChange={v=>setTweak('density',v)}/>
+        </TweakSection>
+        <TweakSection label="Tone scale style">
+          <TweakSelect label="Control" value={tweaks.toneStyle} options={[{value:'segmented',label:'Segmented (default)'},{value:'dial',label:'Slider dial'},{value:'stacked',label:'Stacked cards'}]} onChange={v=>setTweak('toneStyle',v)}/>
+        </TweakSection>
+      </TweaksPanel>
+
+      {toast}
+
+      <a className="jump-fab" href="#note-pane" style={{display:'none'}} ref={(el)=>{if(!el)return;const sync=()=>{el.style.display=window.innerWidth<=900?'inline-flex':'none'};sync();window.addEventListener('resize',sync);}}>
+        <Icon.page/>Jump to note
+      </a>
+
+      {confirming && (
+        <div className="modal-backdrop" onClick={()=>setConfirming(false)}>
+          <div className="modal" onClick={e=>e.stopPropagation()}>
+            <h3>Erase this note?</h3>
+            <p>This permanently wipes the note, the session content you entered, and every side-panel selection. <strong>It cannot be recovered.</strong> Make sure you have already copied the note into your record before continuing.</p>
+            <div className="modal-actions">
+              <button className="btn" onClick={()=>setConfirming(false)}>Cancel</button>
+              <button className="btn danger solid" onClick={wipeAll}>Yes, erase permanently</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showKeyModal && <ApiKeyModal currentKey={apiKey} onSave={saveApiKey} onCancel={apiKey?()=>setShowKeyModal(false):null}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
