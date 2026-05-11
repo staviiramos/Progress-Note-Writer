@@ -665,62 +665,87 @@ window.PN_LIB = (() => {
     return out.trim();
   }
 
-  function buildPrompt({ format, tone, subject, voiceMode, voiceStrength, voiceSample, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames }) {
+  const CONCISENESS = {
+    brief:    { label: 'Brief',    words: '80-160',  guidance: 'Write 80-160 words total. One sentence per section maximum. Include only the most clinically essential information: chief concern, primary intervention used, client response, and next step. Omit elaboration.' },
+    standard: { label: 'Standard', words: '160-300', guidance: 'Write 160-300 words total. One to three sentences per section. Cover all sections that have clinical content without repetition. This is the standard length for a 50-minute outpatient psychotherapy session note.' },
+    detailed: { label: 'Detailed', words: '300-500', guidance: 'Write 300-500 words total. Three to five sentences per section where clinically warranted. Include clinical reasoning, functional status, treatment trajectory, and any relevant history context raised this session.' },
+  };
+
+  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames }) {
     const fmt = FORMATS[format];
     const toneInfo = TONES[tone];
+    const conc = CONCISENESS[conciseness] || CONCISENESS.standard;
     const desc = fmt.description.replace(/\{subj\}/g, subject.toLowerCase());
     const parts = [];
-    parts.push(`You are an experienced licensed psychotherapist documenting a session. Generate a DE-IDENTIFIED progress note in the ${fmt.full} format.`);
+
+    parts.push(`You are a licensed psychotherapist writing a clinical progress note. Your job is to SUBSTANTIALLY TRANSFORM the raw session notes below into polished, professional clinical documentation — not lightly paraphrase them. Rewrite, restructure, and elevate the language to meet evidence-based documentation standards.`);
     parts.push('');
-    parts.push('STRICT RULES:');
-    parts.push(`- Refer to the therapist as "Writer" (never therapist, clinician, I, or a name).`);
-    parts.push(`- Refer to the person being treated as "${subject}" (never by name, never with pronouns identifying gender unless the input is explicit).`);
-    parts.push(`- Use no proper names of any kind. Replace any name in the input with "${subject}" or omit it.`);
-    parts.push(`- Treat all input as already de-identified under HIPAA Safe Harbor (§164.514(b)). Tokens like [SSN-REDACTED], [PHONE-REDACTED], [DATE-REDACTED], [ZIP-REDACTED], [MRN-REDACTED], [URL-REDACTED], [IP-REDACTED], or [AGE-REDACTED] in the input MUST be preserved verbatim in the note.`);
-    parts.push(`- Do not invent clinical details not present in the input. If a section has no content, write "None reported." or omit the line.`);
-    parts.push(`- Do not use em-dashes (—) or en-dashes (–). Use commas, periods, or colons instead.`);
-    parts.push(`- Do not use these words: delve, navigate (use 'manage'/'address'), tapestry, underscore. Avoid generic AI phrasing.`);
-    parts.push(`- Do not say "It is important to note that", "Moreover", "Furthermore", "In conclusion", or similar AI filler.`);
-    parts.push(`- Output the note only. No preamble, no commentary, no closing line.`);
+    parts.push('CLINICAL DOCUMENTATION STANDARDS (based on APA, NASW, and AMHCA psychotherapy documentation guidelines):');
+    parts.push('- Write in past tense throughout: "Client reported...", "Writer utilized...", "Intervention consisted of..."');
+    parts.push('- Use behavioral and measurable language. BAD: "client seemed anxious." GOOD: "Client reported anxiety symptoms including racing thoughts and difficulty concentrating."');
+    parts.push('- BAD: "explored feelings about family." GOOD: "Client identified ambivalence toward family-of-origin relationships and connected this pattern to current interpersonal difficulties."');
+    parts.push('- BAD: "did CBT." GOOD: "Writer guided client through cognitive restructuring, targeting catastrophic thinking related to occupational stressors."');
+    parts.push('- Each sentence must add distinct clinical information. No filler, no repetition across sections.');
+    parts.push('- Functional language where relevant: describe how symptoms affect daily functioning, work, or relationships.');
+    parts.push('- Assessment section must contain clinical reasoning, not just a summary of what happened.');
+    parts.push('- Plan must be concrete and action-oriented: specific homework, next session focus, referrals, or frequency changes.');
     parts.push('');
-    parts.push(`FORMAT DETAIL: ${desc}`);
+    parts.push(`LENGTH TARGET: ${conc.guidance}`);
+    parts.push('');
+    parts.push('DE-IDENTIFICATION RULES:');
+    parts.push(`- Refer to the clinician only as "Writer". Never use "therapist", "clinician", "I", or any name.`);
+    parts.push(`- Refer to the person receiving treatment only as "${subject}". Never use names or gendered pronouns unless the input explicitly states a pronoun preference.`);
+    parts.push(`- Preserve HIPAA Safe Harbor tokens verbatim: [SSN-REDACTED], [PHONE-REDACTED], [DATE-REDACTED], [ZIP-REDACTED], [MRN-REDACTED], [URL-REDACTED], [IP-REDACTED], [AGE-REDACTED].`);
+    parts.push('- Do not invent clinical details absent from the input.');
+    parts.push('- Do not use em-dashes or en-dashes. Use commas, periods, or colons.');
+    parts.push('- No AI filler: no "It is important to note that", "Moreover", "Furthermore", "In conclusion", "delve", "tapestry", "underscore".');
+    parts.push('- Output the note only. No preamble, no closing remarks.');
+    parts.push('');
+    parts.push(`FORMAT: ${fmt.full}`);
+    parts.push(`${desc}`);
     if (fmt.sections.length > 0) {
-      parts.push(`SECTION HEADINGS (use exactly these, each on its own line, followed by a colon):`);
+      parts.push('');
+      parts.push('USE EXACTLY THESE SECTION HEADINGS, each on its own line followed by a colon:');
       fmt.sections.forEach((s) => parts.push(`  ${s}:`));
     }
     parts.push('');
-    parts.push(`TONE: ${toneInfo.label}. ${toneInfo.guidance}`);
+    parts.push(`CLINICAL TONE: ${toneInfo.label}. ${toneInfo.guidance}`);
     if (voiceMode) {
       parts.push('');
-      parts.push(`VOICE PRESERVATION: ${voiceStrength}% — infer the writer's natural voice directly from the session content provided above. Mirror their sentence length, vocabulary, phrasing patterns, and level of formality in the generated note. Do not impose a different register.`);
+      parts.push(`VOICE: Preservation strength ${voiceStrength}%. Infer the writer's voice from the session content below — mirror their sentence rhythm, vocabulary level, and degree of formality. Do not impose a more clinical or more casual register than what is evident in their writing.`);
     }
     parts.push('');
-    parts.push('SESSION CONTENT:');
+    parts.push('--- SESSION NOTES (transform these into the progress note) ---');
     if (inputMode === 'free' && freeText && freeText.trim()) {
       parts.push(freeText.trim());
     } else if (inputMode === 'structured') {
-      [['Presenting Issue / Focus', structured.presenting], ['Content Discussed', structured.content], ['Interventions Used (in session)', structured.interventionsText], ['Client/Patient Response', structured.response], ['Plan / Next Steps', structured.plan]]
+      [['Presenting concern', structured.presenting], ['Session content', structured.content], ['Interventions used', structured.interventionsText], [`${subject} response`, structured.response], ['Plan', structured.plan]]
         .forEach(([k, v]) => { if (v && v.trim()) parts.push(`${k}: ${v.trim()}`); });
     } else if (inputMode === 'bullets' && bullets && bullets.trim()) {
-      parts.push('Shorthand notes from session (expand these into full clinical prose):');
       parts.push(bullets.trim());
     }
     const intList = interventions.filter(Boolean);
-    if (intList.length) { parts.push(''); parts.push(`INTERVENTIONS APPLIED: ${intList.join(', ')}.`); }
+    if (intList.length) { parts.push(''); parts.push(`Interventions: ${intList.join(', ')}.`); }
     const mseEntries = Object.entries(mse || {}).filter(([_, v]) => v && v.trim());
     if (mseEntries.length) {
-      parts.push(''); parts.push('MENTAL STATUS EXAM:');
+      parts.push('');
+      parts.push('Mental status:');
       mseEntries.forEach(([k, v]) => { const f = MSE_FIELDS.find((x) => x.key === k); if (f) parts.push(`  ${f.label}: ${v}`); });
     }
     const touchedRisk = RISK_ITEMS.map(({ key, label }) => ({ label, ...(risk || {})[key] })).filter((r) => r && (r.status || (r.note && r.note.trim())));
     if (touchedRisk.length) {
-      parts.push(''); parts.push('RISK ASSESSMENT (include only these items in the note):');
+      parts.push('');
+      parts.push('Risk assessment:');
       touchedRisk.forEach((r) => parts.push(`  ${r.label}: ${r.status || 'endorsed'}${r.note ? ` (${r.note.trim()})` : ''}`));
     } else {
-      parts.push(''); parts.push('RISK ASSESSMENT: not addressed in side panel — do not include a risk section in the note.');
+      parts.push('');
+      parts.push('Risk: not assessed this session — omit from note.');
     }
-    if (redactedNames && redactedNames.length) { parts.push(''); parts.push(`NOTE: The following names were redacted and replaced with "${subject}": ${redactedNames.join(', ')}. Do not reintroduce them.`); }
-    parts.push(''); parts.push('Generate the progress note now.');
+    if (redactedNames && redactedNames.length) { parts.push(''); parts.push(`Names redacted and replaced with "${subject}": ${redactedNames.join(', ')}. Do not reintroduce them.`); }
+    parts.push('');
+    parts.push('--- END SESSION NOTES ---');
+    parts.push('');
+    parts.push('Now write the progress note:');
     return parts.join('\n');
   }
 
@@ -742,7 +767,7 @@ window.PN_LIB = (() => {
     return sections.filter((s) => s.heading || s.body);
   }
 
-  return { FORMATS, TONES, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, detectNames, redactNames, detectPHI, redactPHI, scrubText, buildPrompt, parseNote };
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, detectNames, redactNames, detectPHI, redactPHI, scrubText, buildPrompt, parseNote };
 })();
 </script>
 
@@ -1068,6 +1093,7 @@ function App() {
   const [format, setFormat] = useState('soap');
   const [subject, setSubject] = useState('Client');
   const [tone, setTone] = useState('balanced');
+  const [conciseness, setConciseness] = useState('standard');
   const [voiceOn, setVoiceOn] = useState(false);
   const [voiceStrength, setVoiceStrength] = useState(50);
   const [inputMode, setInputMode] = useState('free');
@@ -1106,7 +1132,7 @@ function App() {
     const allNames = detectedNames;
     const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
     const prompt = L.buildPrompt({
-      format, tone, subject, voiceMode: voiceOn, voiceStrength, inputMode,
+      format, tone, subject, conciseness, voiceMode: voiceOn, voiceStrength, inputMode,
       freeText: sanitize(freeText),
       structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,sanitize(v)])),
       bullets: sanitize(bullets),
@@ -1207,6 +1233,16 @@ function App() {
           <div className="row">
             <label>Clinical tone</label>
             <ToneControl value={tone} onChange={setTone}/>
+          </div>
+          <div className="row">
+            <label>Note length</label>
+            <div className="seg" role="radiogroup">
+              {Object.entries(L.CONCISENESS).map(([k,v]) => (
+                <button key={k} type="button" aria-pressed={conciseness===k} onClick={()=>setConciseness(k)}>
+                  {v.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
