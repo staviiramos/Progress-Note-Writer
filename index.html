@@ -995,8 +995,9 @@ async function callGitHubModels(prompt, token) {
     }),
   });
   if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    const detail = err.error?.message || err.message || '';
+    const body = await resp.text().catch(() => '');
+    let err = {}; try { err = JSON.parse(body); } catch {}
+    const detail = err.error?.message || err.message || err.detail || (body.length < 200 ? body : body.slice(0,200)) || '';
     if (resp.status === 401) throw new Error('invalid_key:' + detail);
     if (resp.status === 403) throw new Error('GitHub Models access denied (403). Make sure you have accepted the GitHub Models terms at github.com/marketplace/models, then try again.');
     if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
