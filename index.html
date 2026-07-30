@@ -1050,7 +1050,7 @@ function ToneStacked({ value, onChange }) {
   );
 }
 
-function ApiKeyModal({ currentKey, onSave, onCancel }) {
+function ApiKeyModal({ currentKey, onSave, onCancel, onRemove }) {
   const [draft, setDraft] = useState(currentKey || '');
   const inputRef = useRef(null);
   useEffect(() => { const t = setTimeout(() => inputRef.current?.focus(), 80); return () => clearTimeout(t); }, []);
@@ -1065,9 +1065,10 @@ function ApiKeyModal({ currentKey, onSave, onCancel }) {
           <input ref={inputRef} className="input" type="password" placeholder="ghp_…" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key==='Enter') save(); }} autoComplete="off" spellCheck={false} />
         </div>
         <p className="api-key-note" style={{marginBottom:0}}>
-          Create a token at <strong>github.com/settings/tokens</strong> — click "Generate new token (classic)" and no special permissions are required. The token is held in your browser session only and clears when you close this tab.
+          Create a token at <strong>github.com/settings/tokens</strong> — click "Generate new token (classic)" and no special permissions are required. Your token is saved in this browser and remembered across visits.
         </p>
         <div className="modal-actions">
+          {currentKey && <button className="btn danger" style={{marginRight:'auto'}} onClick={onRemove}>Remove token</button>}
           {onCancel && <button className="btn" onClick={onCancel}>Cancel</button>}
           <button className="btn primary" disabled={!draft.trim()} onClick={save}>Save token</button>
         </div>
@@ -1086,9 +1087,10 @@ function App() {
     html.classList.add(`density-${tweaks.density}`);
   }, [tweaks.theme, tweaks.density]);
 
-  const [apiKey, setApiKey] = useState(() => { try { return sessionStorage.getItem('pn.apikey') || ''; } catch { return ''; } });
+  const [apiKey, setApiKey] = useState(() => { try { return localStorage.getItem('pn.apikey') || ''; } catch { return ''; } });
   const [showKeyModal, setShowKeyModal] = useState(false);
-  const saveApiKey = (key) => { setApiKey(key); try { sessionStorage.setItem('pn.apikey', key); } catch {} setShowKeyModal(false); };
+  const saveApiKey = (key) => { setApiKey(key); try { localStorage.setItem('pn.apikey', key); } catch {} setShowKeyModal(false); };
+  const removeApiKey = () => { setApiKey(''); try { localStorage.removeItem('pn.apikey'); } catch {} setShowKeyModal(false); };
 
   const [format, setFormat] = useState('soap');
   const [subject, setSubject] = useState('Client');
@@ -1146,7 +1148,7 @@ function App() {
       setGeneratedMeta({ format, subject, tone, at: new Date() });
     } catch(err) {
       if (err.message==='invalid_key') {
-        setApiKey(''); try { sessionStorage.removeItem('pn.apikey'); } catch {}
+        setApiKey(''); try { localStorage.removeItem('pn.apikey'); } catch {}
         showToast('Invalid token — please check your GitHub token');
         setShowKeyModal(true);
       } else {
@@ -1426,7 +1428,7 @@ function App() {
         </div>
       )}
 
-      {showKeyModal && <ApiKeyModal currentKey={apiKey} onSave={saveApiKey} onCancel={apiKey?()=>setShowKeyModal(false):null}/>}
+      {showKeyModal && <ApiKeyModal currentKey={apiKey} onSave={saveApiKey} onRemove={removeApiKey} onCancel={apiKey?()=>setShowKeyModal(false):null}/>}
     </div>
   );
 }
