@@ -1151,10 +1151,7 @@ function App() {
       setGeneratedMeta({ format, subject, tone, at: new Date() });
     } catch(err) {
       if (err.message === 'invalid_key') {
-        setApiKey(''); try { localStorage.removeItem('pn.apikey'); } catch {}
-        pendingGenRef.current = true;
-        showToast('Token rejected — please re-enter your GitHub token');
-        setShowKeyModal(true);
+        showToast('GitHub rejected the token (401) — click "GitHub token ✓" in the toolbar to update it');
       } else {
         showToast(err.message || 'Generation failed. Try again.');
       }
