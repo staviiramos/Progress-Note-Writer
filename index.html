@@ -996,7 +996,8 @@ async function callGitHubModels(prompt, token) {
   });
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
-    if (resp.status === 401 || resp.status === 403) throw new Error('invalid_key');
+    if (resp.status === 401) throw new Error('invalid_key');
+    if (resp.status === 403) throw new Error('GitHub Models returned access denied (403). Your token may not have access to GitHub Models — try generating a new token, or check that GitHub Models is available on your account.');
     if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
     throw new Error(err.error?.message || `API error (${resp.status})`);
   }
@@ -1089,6 +1090,7 @@ function App() {
 
   const [apiKey, setApiKey] = useState(() => { try { return localStorage.getItem('pn.apikey') || ''; } catch { return ''; } });
   const [showKeyModal, setShowKeyModal] = useState(false);
+  const pendingGenRef = useRef(false);
   const saveApiKey = (key) => { setApiKey(key); try { localStorage.setItem('pn.apikey', key); } catch {} setShowKeyModal(false); };
   const removeApiKey = () => { setApiKey(''); try { localStorage.removeItem('pn.apikey'); } catch {} setShowKeyModal(false); };
 
@@ -1129,7 +1131,8 @@ function App() {
   const generate = async () => {
     if (loading) return;
     if (!rawInput.trim()) { showToast('Add some session content first'); return; }
-    if (!apiKey) { setShowKeyModal(true); return; }
+    if (!apiKey) { pendingGenRef.current = true; setShowKeyModal(true); return; }
+    pendingGenRef.current = false;
     setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(detectedNames); setPhiFlags(detectedPHI);
     const allNames = detectedNames;
     const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
@@ -1147,15 +1150,23 @@ function App() {
       setNote(L.redactNames(cleaned, allNames, subject));
       setGeneratedMeta({ format, subject, tone, at: new Date() });
     } catch(err) {
-      if (err.message==='invalid_key') {
+      if (err.message === 'invalid_key') {
         setApiKey(''); try { localStorage.removeItem('pn.apikey'); } catch {}
-        showToast('Invalid token — please check your GitHub token');
+        pendingGenRef.current = true;
+        showToast('Token rejected — please re-enter your GitHub token');
         setShowKeyModal(true);
       } else {
         showToast(err.message || 'Generation failed. Try again.');
       }
     } finally { setLoading(false); }
   };
+
+  // Auto-trigger generation once a token is saved (when Generate prompted for it)
+  useEffect(() => {
+    if (apiKey && pendingGenRef.current && rawInput.trim() && !loading) {
+      generate();
+    }
+  }, [apiKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const copyNote = async () => {
     if (!note) return;
