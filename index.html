@@ -1009,13 +1009,18 @@ async function callGitHubModels(prompt, token) {
 
 function useToast() {
   const [msg, setMsg] = useState(null);
+  const [isError, setIsError] = useState(false);
   const tRef = useRef(null);
-  const show = useCallback((m) => {
+  const show = useCallback((m, error = false) => {
+    if (error) console.error('[ProgressNote]', m);
     setMsg(m);
+    setIsError(error);
     if (tRef.current) clearTimeout(tRef.current);
-    tRef.current = setTimeout(() => setMsg(null), 2400);
+    const delay = error ? 12000 : 2400;
+    tRef.current = setTimeout(() => setMsg(null), delay);
   }, []);
-  return [msg ? <div className="toast">{msg}</div> : null, show];
+  const dismiss = useCallback(() => { if (tRef.current) clearTimeout(tRef.current); setMsg(null); }, []);
+  return [msg ? <div className="toast" style={isError ? {background:'#c0392b',cursor:'pointer',maxWidth:'420px',whiteSpace:'normal',lineHeight:'1.4'} : {}} onClick={isError ? dismiss : undefined}>{msg}{isError && <span style={{marginLeft:'8px',opacity:.7,fontSize:'0.85em'}}>(click to dismiss)</span>}</div> : null, show];
 }
 
 function ToneSegmented({ value, onChange }) {
@@ -1164,9 +1169,9 @@ function App() {
     } catch(err) {
       if (err.message.startsWith('invalid_key')) {
         const detail = err.message.slice('invalid_key:'.length);
-        showToast('GitHub rejected the token (401)' + (detail ? ': ' + detail : '') + ' — use a Classic PAT (not Fine-grained) at github.com/settings/tokens. No scopes required.');
+        showToast('GitHub rejected the token (401)' + (detail ? ': ' + detail : '') + ' — use a Classic PAT (not Fine-grained) at github.com/settings/tokens. No scopes required.', true);
       } else {
-        showToast(err.message || 'Generation failed. Try again.');
+        showToast(err.message || 'Generation failed. Try again.', true);
       }
     } finally { setLoading(false); }
   };
