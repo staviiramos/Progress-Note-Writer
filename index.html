@@ -980,15 +980,15 @@ const Icon = {
   sliders: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2" fill="var(--paper)"/><circle cx="15" cy="12" r="2" fill="var(--paper)"/><circle cx="9" cy="18" r="2" fill="var(--paper)"/></svg>,
 };
 
-async function callGitHubModels(prompt, token) {
-  const resp = await fetch('https://models.inference.ai.azure.com/chat/completions', {
+async function callGroq(prompt, token) {
+  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 2000,
       temperature: 0.3,
@@ -999,7 +999,6 @@ async function callGitHubModels(prompt, token) {
     let err = {}; try { err = JSON.parse(body); } catch {}
     const detail = err.error?.message || err.message || err.detail || (body.length < 200 ? body : body.slice(0,200)) || '';
     if (resp.status === 401) throw new Error('invalid_key:' + detail);
-    if (resp.status === 403) throw new Error('GitHub Models access denied (403). Make sure you have accepted the GitHub Models terms at github.com/marketplace/models, then try again.');
     if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
     throw new Error(detail || `API error (${resp.status})`);
   }
@@ -1067,13 +1066,13 @@ function ApiKeyModal({ currentKey, onSave, onCancel, onRemove }) {
     <div className="modal-backdrop" onClick={onCancel || undefined}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>GitHub Personal Access Token</h3>
-        <p>This app uses <strong style={{color:'inherit'}}>GitHub Models</strong> — a free AI service included with your GitHub account. Paste a Personal Access Token below to get started.</p>
+        <p>This app uses <strong style={{color:'inherit'}}>Groq</strong> — a free AI service. Get a free API key at <strong>console.groq.com</strong> → API Keys (no credit card required). Paste it below to get started.</p>
         <div className="row">
           <label className="field-label">Personal Access Token</label>
-          <input ref={inputRef} className="input" type="password" placeholder="ghp_…" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key==='Enter') save(); }} autoComplete="off" spellCheck={false} />
+          <input ref={inputRef} className="input" type="password" placeholder="gsk_…" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key==='Enter') save(); }} autoComplete="off" spellCheck={false} />
         </div>
         <p className="api-key-note" style={{marginBottom:0}}>
-          Go to <strong>github.com/settings/tokens</strong> → <strong>"Generate new token (classic)"</strong> (not Fine-grained). No scopes need to be checked. Copy the token and paste it above — it's saved in this browser and remembered across visits.
+          Sign up free at <strong>console.groq.com</strong>, go to <strong>API Keys</strong>, and click "Create API Key". Copy the key and paste it above — it's saved in this browser and remembered across visits.
         </p>
         <div className="modal-actions">
           {currentKey && <button className="btn danger" style={{marginRight:'auto'}} onClick={onRemove}>Remove token</button>}
@@ -1162,14 +1161,14 @@ function App() {
       mse, risk, redactedNames: allNames,
     });
     try {
-      const raw = await callGitHubModels(prompt, key);
+      const raw = await callGroq(prompt, key);
       const cleaned = L.scrubText(raw);
       setNote(L.redactNames(cleaned, allNames, subject));
       setGeneratedMeta({ format, subject, tone, at: new Date() });
     } catch(err) {
       if (err.message.startsWith('invalid_key')) {
         const detail = err.message.slice('invalid_key:'.length);
-        showToast('GitHub rejected the token (401)' + (detail ? ': ' + detail : '') + ' — use a Classic PAT (not Fine-grained) at github.com/settings/tokens. No scopes required.', true);
+        showToast('Groq rejected the key (401)' + (detail ? ': ' + detail : '') + ' — get a free API key at console.groq.com → API Keys.', true);
       } else {
         showToast(err.message || 'Generation failed. Try again.', true);
       }
@@ -1212,8 +1211,8 @@ function App() {
             <Icon.shield/>HIPAA Safe Harbor
           </span>
           <span><span className="dot"/>Nothing saved · in-memory only</span>
-          <button className={apiKey ? 'btn ghost' : 'btn'} style={{padding:'4px 10px',fontSize:11.5,height:'auto'}} onClick={() => setShowKeyModal(true)} title={apiKey ? 'GitHub token configured — click to update' : 'Enter your GitHub Personal Access Token (free)'}>
-            <Icon.key/>{apiKey ? 'GitHub token ✓' : 'Set GitHub token'}
+          <button className={apiKey ? 'btn ghost' : 'btn'} style={{padding:'4px 10px',fontSize:11.5,height:'auto'}} onClick={() => setShowKeyModal(true)} title={apiKey ? 'Groq API key configured — click to update' : 'Enter your free Groq API key'}>
+            <Icon.key/>{apiKey ? 'Groq key ✓' : 'Set Groq key'}
           </button>
           <button className="btn ghost" style={{padding:'4px 8px',fontSize:11.5,height:'auto'}} onClick={openTweaks} title="Appearance settings">
             <Icon.sliders/>
@@ -1411,7 +1410,7 @@ function App() {
               <div className="icon"><Icon.page/></div>
               <h4>Your note will appear here</h4>
               <div>Fill in session content on the left, then press Generate note.</div>
-              {!apiKey && <div style={{marginTop:16}}><button className="btn primary" onClick={()=>setShowKeyModal(true)}><Icon.key/>Set GitHub token to begin</button></div>}
+              {!apiKey && <div style={{marginTop:16}}><button className="btn primary" onClick={()=>setShowKeyModal(true)}><Icon.key/>Set Groq key to begin</button></div>}
             </div>
           )}
         </article>
