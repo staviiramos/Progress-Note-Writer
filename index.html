@@ -1067,7 +1067,7 @@ function ApiKeyModal({ currentKey, onSave, onCancel, onRemove }) {
           <input ref={inputRef} className="input" type="password" placeholder="ghp_…" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key==='Enter') save(); }} autoComplete="off" spellCheck={false} />
         </div>
         <p className="api-key-note" style={{marginBottom:0}}>
-          <strong>Step 1:</strong> Visit <strong>github.com/marketplace/models</strong> and accept the GitHub Models terms (one-time).<br/><br/><strong>Step 2:</strong> Go to <strong>github.com/settings/tokens</strong>, click "Generate new token (classic)" — no scopes required. Paste it above. Your token is saved in this browser and remembered across visits.
+          Go to <strong>github.com/settings/tokens</strong> → <strong>"Generate new token (classic)"</strong> (not Fine-grained). No scopes need to be checked. Copy the token and paste it above — it's saved in this browser and remembered across visits.
         </p>
         <div className="modal-actions">
           {currentKey && <button className="btn danger" style={{marginRight:'auto'}} onClick={onRemove}>Remove token</button>}
@@ -1163,7 +1163,7 @@ function App() {
     } catch(err) {
       if (err.message.startsWith('invalid_key')) {
         const detail = err.message.slice('invalid_key:'.length);
-        showToast('GitHub rejected the token (401)' + (detail ? ': ' + detail : '') + ' — make sure you visited github.com/marketplace/models to enable access, then re-enter your token.');
+        showToast('GitHub rejected the token (401)' + (detail ? ': ' + detail : '') + ' — use a Classic PAT (not Fine-grained) at github.com/settings/tokens. No scopes required.');
       } else {
         showToast(err.message || 'Generation failed. Try again.');
       }
