@@ -1089,10 +1089,19 @@ function App() {
   }, [tweaks.theme, tweaks.density]);
 
   const [apiKey, setApiKey] = useState(() => { try { return localStorage.getItem('pn.apikey') || ''; } catch { return ''; } });
+  const apiKeyRef = useRef('');
+  useEffect(() => { apiKeyRef.current = apiKey; }, [apiKey]);
   const [showKeyModal, setShowKeyModal] = useState(false);
   const pendingGenRef = useRef(false);
-  const saveApiKey = (key) => { setApiKey(key); try { localStorage.setItem('pn.apikey', key); } catch {} setShowKeyModal(false); };
-  const removeApiKey = () => { setApiKey(''); try { localStorage.removeItem('pn.apikey'); } catch {} setShowKeyModal(false); };
+  const saveApiKey = (key) => {
+    apiKeyRef.current = key;
+    setApiKey(key);
+    try { localStorage.setItem('pn.apikey', key); } catch {}
+    setShowKeyModal(false);
+    if (pendingGenRef.current) { pendingGenRef.current = false; setTimeout(() => generateRef.current(), 0); }
+  };
+  const removeApiKey = () => { apiKeyRef.current = ''; setApiKey(''); try { localStorage.removeItem('pn.apikey'); } catch {} setShowKeyModal(false); };
+  const generateRef = useRef(null);
 
   const [format, setFormat] = useState('soap');
   const [subject, setSubject] = useState('Client');
@@ -1131,7 +1140,8 @@ function App() {
   const generate = async () => {
     if (loading) return;
     if (!rawInput.trim()) { showToast('Add some session content first'); return; }
-    if (!apiKey) { pendingGenRef.current = true; setShowKeyModal(true); return; }
+    const key = apiKeyRef.current;
+    if (!key) { pendingGenRef.current = true; setShowKeyModal(true); return; }
     pendingGenRef.current = false;
     setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(detectedNames); setPhiFlags(detectedPHI);
     const allNames = detectedNames;
@@ -1145,25 +1155,19 @@ function App() {
       mse, risk, redactedNames: allNames,
     });
     try {
-      const raw = await callGitHubModels(prompt, apiKey);
+      const raw = await callGitHubModels(prompt, key);
       const cleaned = L.scrubText(raw);
       setNote(L.redactNames(cleaned, allNames, subject));
       setGeneratedMeta({ format, subject, tone, at: new Date() });
     } catch(err) {
       if (err.message === 'invalid_key') {
-        showToast('GitHub rejected the token (401) — click "GitHub token ✓" in the toolbar to update it');
+        showToast('GitHub rejected the token — it may have expired. Click the key icon in the toolbar to update it.');
       } else {
         showToast(err.message || 'Generation failed. Try again.');
       }
     } finally { setLoading(false); }
   };
-
-  // Auto-trigger generation once a token is saved (when Generate prompted for it)
-  useEffect(() => {
-    if (apiKey && pendingGenRef.current && rawInput.trim() && !loading) {
-      generate();
-    }
-  }, [apiKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { generateRef.current = generate; });
 
   const copyNote = async () => {
     if (!note) return;
