@@ -397,6 +397,34 @@ textarea { resize: vertical; }
 .muted { color: var(--muted); }
 .note-sm { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
 
+/* Allowlist chip editor */
+.allowlist-wrap { margin-top: 10px; }
+.allowlist-label { font-size: 11px; color: var(--ink-2); margin-bottom: 5px; font-weight: 500; letter-spacing: 0.02em; }
+.allowlist-chips {
+  display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+  padding: 5px 8px; min-height: 34px; cursor: text;
+}
+.al-chip {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: color-mix(in oklab, var(--ok) 14%, var(--paper));
+  border: 1px solid color-mix(in oklab, var(--ok) 28%, var(--line));
+  color: var(--ink); border-radius: 999px; padding: 2px 4px 2px 9px;
+  font-size: 11.5px; line-height: 1.4; white-space: nowrap;
+}
+.al-rm {
+  background: none; border: none; cursor: pointer; color: var(--ink-2);
+  font-size: 14px; line-height: 1; padding: 0 3px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.al-rm:hover { background: color-mix(in oklab, var(--ok) 30%, var(--paper)); color: var(--ink); }
+.al-input {
+  border: none; outline: none; background: transparent;
+  font-size: 12px; color: var(--ink); min-width: 90px; padding: 2px 2px;
+  flex: 1;
+}
+.al-input::placeholder { color: var(--muted); }
+
 /* Scrollbars */
 .sidebar::-webkit-scrollbar, .main::-webkit-scrollbar { width: 10px; }
 .sidebar::-webkit-scrollbar-thumb, .main::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--ink) 12%, transparent); border-radius: 999px; border: 3px solid var(--bg); }
@@ -584,18 +612,23 @@ window.PN_LIB = (() => {
 
   const COMMON_WORDS = new Set([
     'I','You','He','She','We','They','It','My','Your','His','Her','Our','Their','Its',
+    'The','An','And','Or','But','So','Yet','Nor',
+    'This','That','These','Those','Here','There',
     'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday',
     'January','February','March','April','May','June','July','August','September','October','November','December',
     'God','Jesus','Christ','Lord','Buddha','Allah',
-    'CBT','DBT','ACT','EMDR','IFS','MSE','WNL',
-    'PhD','MD','LCSW','LPC','LMFT','PsyD',
-    'Client','Patient','Writer','Therapist',
+    'CBT','DBT','ACT','EMDR','IFS','MSE','WNL','PHQ','GAD',
+    'PhD','MD','LCSW','LPC','LMFT','PsyD','NP','RN',
+    'Client','Patient','Writer','Therapist','Clinician','Counselor',
+    'Session','Treatment','Assessment','Diagnosis','Referral','Intake','Discharge','Telehealth',
+    'North','South','East','West','Central',
   ]);
 
-  function detectNames(text, extraNames) {
+  function detectNames(text, extraNames, allowlist) {
     if (!text) return [];
     const found = new Set();
     (extraNames || []).forEach((n) => { if (n && n.trim()) found.add(n.trim()); });
+    const allowSet = new Set((allowlist || []).map(w => w.toLowerCase()));
     const sentences = text.split(/([.!?]\s+)/);
     sentences.forEach((seg, idx) => {
       if (idx % 2 !== 0) return;
@@ -604,6 +637,7 @@ window.PN_LIB = (() => {
         if (!clean || clean.length < 2) return;
         if (!/^[A-Z][a-z'\-]+$/.test(clean)) return;
         if (COMMON_WORDS.has(clean)) return;
+        if (allowSet.has(clean.toLowerCase())) return;
         if (wIdx === 0) return;
         found.add(clean);
       });
@@ -1084,6 +1118,36 @@ function ApiKeyModal({ currentKey, onSave, onCancel, onRemove }) {
   );
 }
 
+function AllowlistEditor({ words, onAdd, onRemove }) {
+  const [draft, setDraft] = useState('');
+  const commit = () => {
+    draft.split(',').map(w => w.trim()).filter(Boolean).forEach(w => {
+      if (w && !words.some(x => x.toLowerCase() === w.toLowerCase())) onAdd(w);
+    });
+    setDraft('');
+  };
+  return (
+    <div className="allowlist-wrap">
+      <div className="allowlist-label">Allowed words <span className="hint">won't be redacted as names</span></div>
+      <div className="allowlist-chips">
+        {words.map(w => (
+          <span key={w} className="al-chip">
+            {w}<button className="al-rm" onClick={() => onRemove(w)} title={'Remove ' + w}>×</button>
+          </span>
+        ))}
+        <input
+          className="al-input"
+          placeholder={words.length ? 'Add word…' : 'Type a word, press Enter…'}
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }}
+          onBlur={commit}
+        />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
@@ -1129,6 +1193,9 @@ function App() {
   const [phiFlags, setPhiFlags] = useState([]);
   const [generatedMeta, setGeneratedMeta] = useState(null);
   const [safeHarbor, setSafeHarbor] = useState(true);
+  const [allowlist, setAllowlist] = useState(() => { try { return JSON.parse(localStorage.getItem('pn.allowlist') || '[]'); } catch { return []; } });
+  const addAllowedWord = (w) => { const next = [...allowlist, w]; setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
+  const removeAllowedWord = (w) => { const next = allowlist.filter(x => x !== w); setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => { try { localStorage.removeItem('pn.drafts'); } catch {} }, []);
@@ -1140,7 +1207,7 @@ function App() {
     return Object.values(structured).join(' \n');
   }, [inputMode, freeText, bullets, structured]);
 
-  const detectedNames = useMemo(() => L.detectNames(rawInput, []), [rawInput]);
+  const detectedNames = useMemo(() => L.detectNames(rawInput, [], allowlist), [rawInput, allowlist]);
   const detectedPHI = useMemo(() => safeHarbor ? L.detectPHI(rawInput) : [], [rawInput, safeHarbor]);
 
   const generate = async () => {
@@ -1233,6 +1300,7 @@ function App() {
             <label style={{margin:0}}>Safe Harbor de-identification</label>
             <button className="tg" data-on={safeHarbor?'1':'0'} onClick={()=>setSafeHarbor(!safeHarbor)}><i/></button>
           </div>
+          {safeHarbor && <AllowlistEditor words={allowlist} onAdd={addAllowedWord} onRemove={removeAllowedWord}/>}
           <div className="note-sm" style={{marginTop:8}}>Notes are never stored by this tool. Use "Note completed" to permanently erase when done. Confirm your AI provider's Business Associate Agreement before entering identifiable PHI.</div>
         </div>
 
