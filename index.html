@@ -1022,8 +1022,8 @@ async function pickGroqModel(token) {
   const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${token}` } });
   if (!r.ok) throw new Error('Could not fetch Groq model list — check your API key.');
   const { data = [] } = await r.json();
-  const SKIP = /whisper|distil|guard|tts|vision/i;
-  const PREFER = /llama|mixtral|gemma|qwen/i;
+  const SKIP = /whisper|distil|guard|tts|vision|r1|qwq|deepseek|reasoning/i;
+  const PREFER = /llama|mixtral|gemma/i;
   const picks = data.filter(m => PREFER.test(m.id) && !SKIP.test(m.id)).sort((a, b) => (b.context_window || 0) - (a.context_window || 0));
   if (!picks.length) throw new Error('No compatible chat models found on your Groq account.');
   const model = picks[0].id;
@@ -1051,7 +1051,8 @@ async function callGroq(prompt, token) {
     throw new Error(detail || `API error (${resp.status})`);
   }
   const data = await resp.json();
-  return data.choices[0].message.content;
+  const content = data.choices[0].message.content || '';
+  return content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 }
 
 function useToast() {
@@ -1214,8 +1215,8 @@ function App() {
 
   useEffect(() => {
     try { localStorage.removeItem('pn.drafts'); } catch {}
-    const m = localStorage.getItem('pn.groqmodel');
-    if (m === 'llama-3.3-70b-versatile' || m === 'llama-3.1-8b-instant') {
+    const m = localStorage.getItem('pn.groqmodel') || '';
+    if (STALE_MODELS.has(m) || /r1|qwq|deepseek|reasoning/i.test(m)) {
       try { localStorage.removeItem('pn.groqmodel'); } catch {}
     }
   }, []);
