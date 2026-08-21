@@ -1024,7 +1024,7 @@ async function pickGroqModel(token) {
   const SKIP = /whisper|guard|tts|vision|r1\b|qwq|deepseek|reasoning|specul/i;
   const picks = data.filter(m => !SKIP.test(m.id))
                      .sort((a, b) => (b.context_window || 0) - (a.context_window || 0));
-  if (!picks.length) throw new Error('No compatible chat models found on your Groq account.');
+  if (!picks.length) throw new Error('No compatible models found. Available: ' + data.map(m => m.id).join(', '));
   _groqModelCache = picks[0].id;
   return _groqModelCache;
 }
