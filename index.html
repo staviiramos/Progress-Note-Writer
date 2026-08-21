@@ -1014,24 +1014,36 @@ const Icon = {
   sliders: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2" fill="var(--paper)"/><circle cx="15" cy="12" r="2" fill="var(--paper)"/><circle cx="9" cy="18" r="2" fill="var(--paper)"/></svg>,
 };
 
+async function pickGroqModel(token) {
+  const cached = (() => { try { return localStorage.getItem('pn.groqmodel') || ''; } catch { return ''; } })();
+  if (cached) return cached;
+  const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${token}` } });
+  if (!r.ok) throw new Error('Could not fetch Groq model list — check your API key.');
+  const { data = [] } = await r.json();
+  const SKIP = /whisper|distil|guard|tts|vision/i;
+  const PREFER = /llama|mixtral|gemma|qwen/i;
+  const picks = data.filter(m => PREFER.test(m.id) && !SKIP.test(m.id)).sort((a, b) => (b.context_window || 0) - (a.context_window || 0));
+  if (!picks.length) throw new Error('No compatible chat models found on your Groq account.');
+  const model = picks[0].id;
+  try { localStorage.setItem('pn.groqmodel', model); } catch {}
+  return model;
+}
+
 async function callGroq(prompt, token) {
+  const model = await pickGroqModel(token);
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 2000,
-      temperature: 0.3,
-    }),
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 2000, temperature: 0.3 }),
   });
   if (!resp.ok) {
     const body = await resp.text().catch(() => '');
     let err = {}; try { err = JSON.parse(body); } catch {}
     const detail = err.error?.message || err.message || err.detail || (body.length < 200 ? body : body.slice(0,200)) || '';
+    if (detail.toLowerCase().includes('does not exist')) {
+      try { localStorage.removeItem('pn.groqmodel'); } catch {}
+      throw new Error('Groq model "' + model + '" is unavailable. Please try generating again — the app will pick a new model automatically.');
+    }
     if (resp.status === 401) throw new Error('invalid_key:' + detail);
     if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
     throw new Error(detail || `API error (${resp.status})`);
@@ -1198,7 +1210,13 @@ function App() {
   const removeAllowedWord = (w) => { const next = allowlist.filter(x => x !== w); setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
   const [confirming, setConfirming] = useState(false);
 
-  useEffect(() => { try { localStorage.removeItem('pn.drafts'); } catch {} }, []);
+  useEffect(() => {
+    try { localStorage.removeItem('pn.drafts'); } catch {}
+    const m = localStorage.getItem('pn.groqmodel');
+    if (m === 'llama-3.3-70b-versatile' || m === 'llama-3.1-8b-instant') {
+      try { localStorage.removeItem('pn.groqmodel'); } catch {}
+    }
+  }, []);
   const [toast, showToast] = useToast();
 
   const rawInput = useMemo(() => {
