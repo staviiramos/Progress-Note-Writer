@@ -1237,9 +1237,9 @@ function App() {
     const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
     const prompt = L.buildPrompt({
       format, tone, subject, conciseness, voiceMode: voiceOn, voiceStrength, inputMode,
-      freeText: sanitize(freeText),
-      structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,sanitize(v)])),
-      bullets: sanitize(bullets),
+      freeText: sanitize(freeText).slice(0, 4000),
+      structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,sanitize(v).slice(0,1000)])),
+      bullets: sanitize(bullets).slice(0, 4000),
       interventions: [...interventions, ...otherIntervention.split(',').map(s=>s.trim()).filter(Boolean)],
       mse, risk, redactedNames: allNames,
     });
