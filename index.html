@@ -1050,7 +1050,7 @@ async function callGroq(prompt, token) {
   }
   const data = await resp.json();
   const content = data.choices[0].message.content || '';
-  return content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+  return content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*/i, '').trim();
 }
 
 function useToast() {
