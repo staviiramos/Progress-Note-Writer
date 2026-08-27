@@ -507,17 +507,17 @@ window.PN_LIB = (() => {
     soap: {
       name: 'SOAP', full: 'SOAP (Subjective, Objective, Assessment, Plan)',
       sections: ['Subjective', 'Objective', 'Assessment', 'Plan'],
-      description: 'Subjective: what the {subj} reports. Objective: Writer\'s observations, behavior, mental status. Assessment: clinical formulation, response to interventions, progress toward goals. Plan: next session focus, homework, referrals, frequency.',
+      description: 'Subjective: what the {subj} reports. Objective: Writer\'s observations, behavior, mental status. Assessment: clinical formulation, response to interventions, progress toward goals. Plan: only what was explicitly discussed or agreed upon in this session. Do not add homework, referrals, or future goals unless specifically mentioned in the session notes.',
     },
     dap: {
       name: 'DAP', full: 'DAP (Data, Assessment, Plan)',
       sections: ['Data', 'Assessment', 'Plan'],
-      description: 'Data: factual content from session, what was discussed, observable behavior. Assessment: clinical formulation and progress toward goals. Plan: next steps, homework, referrals.',
+      description: 'Data: factual content from session, what was discussed, observable behavior. Assessment: clinical formulation and progress toward goals. Plan: only next steps explicitly discussed in this session. Do not add homework or referrals unless mentioned in the notes.',
     },
     birp: {
       name: 'BIRP', full: 'BIRP (Behavior, Intervention, Response, Plan)',
       sections: ['Behavior', 'Intervention', 'Response', 'Plan'],
-      description: 'Behavior: what the {subj} presented with and how they engaged. Intervention: what the Writer did during session. Response: how the {subj} responded to interventions. Plan: next session focus and homework.',
+      description: 'Behavior: what the {subj} presented with and how they engaged. Intervention: what the Writer did during session. Response: how the {subj} responded to interventions. Plan: only what was explicitly discussed or agreed upon. Do not invent homework or next session focus.',
     },
     girp: {
       name: 'GIRP', full: 'GIRP (Goal, Intervention, Response, Plan)',
@@ -712,7 +712,7 @@ window.PN_LIB = (() => {
     const desc = fmt.description.replace(/\{subj\}/g, subject.toLowerCase());
     const parts = [];
 
-    parts.push(`You are a licensed psychotherapist writing a clinical progress note. Your job is to transform the raw session notes below into polished, professional clinical documentation — not lightly paraphrase them. Rewrite, restructure, and elevate the language to meet evidence-based documentation standards.`);
+    parts.push(`STRICT RULE — NO INVENTED CONTENT: - ONLY document what is explicitly stated in the session notes below. - Do NOT add interventions, modalities, homework, diagnoses, observations, or plans that are not mentioned in the input. - If a section has no corresponding content in the notes, omit it or write one sentence acknowledging it was not documented. - Do NOT infer or assume clinical details. If the notes say "discussed self-care," do not expand that into specific CBT techniques unless CBT is mentioned. Your job is to transform the raw session notes below into polished, professional clinical documentation — not lightly paraphrase them. Rewrite, restructure, and elevate the language to meet evidence-based documentation standards.`);
     parts.push('');
     parts.push('CLINICAL DOCUMENTATION STANDARDS (based on APA, NASW, and AMHCA psychotherapy documentation guidelines):');
     parts.push('- Write in past tense throughout: "Client reported...", "Writer utilized...", "Intervention consisted of..."');
