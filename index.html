@@ -98,8 +98,6 @@ textarea { resize: vertical; }
   letter-spacing: -0.01em; margin: 0;
 }
 .brand .tag { font-size: 11.5px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
-.topbar .meta { display: flex; gap: 14px; align-items: center; font-size: 12px; color: var(--muted); }
-.topbar .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); display: inline-block; margin-right: 6px; vertical-align: middle; }
 
 /* Sidebar */
 .sidebar {
@@ -236,6 +234,26 @@ textarea { resize: vertical; }
   border-radius: 5px; cursor: pointer; font-weight: 500;
 }
 .tabs button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px oklch(20% 0 0 / .08); }
+
+/* Top-level mode switcher */
+.mode-sel { display: flex; gap: 2px; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 3px; flex-shrink: 0; }
+.mode-sel button { flex: 0 0 auto; appearance: none; border: 0; background: transparent; padding: 6px 14px; border-radius: 5px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; white-space: nowrap; font-family: inherit; transition: color .12s; }
+.mode-sel button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px oklch(20% 0 0 / .1); }
+.topbar .brand { flex: 1; }
+.topbar .meta { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 14px; font-size: 12px; color: var(--muted); }
+.topbar .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); display: inline-block; margin-right: 6px; vertical-align: middle; }
+
+/* Intake & Dx helpers */
+.tri-seg { display: flex; gap: 2px; }
+.tri-seg button { flex: 1; appearance: none; border: 1px solid var(--line); background: transparent; padding: 5px 6px; border-radius: 5px; font-size: 11.5px; color: var(--muted); cursor: pointer; font-family: inherit; transition: background .1s, color .1s; }
+.tri-seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 500; }
+.chk-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chk-btn { appearance: none; border: 1px solid var(--line); background: transparent; padding: 5px 10px; border-radius: 20px; font-size: 12px; color: var(--muted); cursor: pointer; font-family: inherit; }
+.chk-btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.inline-detail { margin-top: 5px; }
+.note-output { padding: var(--pad) 0; font-family: var(--serif); font-size: 15.5px; line-height: 1.8; color: var(--ink); max-width: 660px; }
+.note-output h2.note-section { font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin: 1.6em 0 0.5em; }
+.note-output p { margin: 0 0 0.85em; }
 
 /* Voice */
 .voice-detail { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; }
@@ -507,17 +525,17 @@ window.PN_LIB = (() => {
     soap: {
       name: 'SOAP', full: 'SOAP (Subjective, Objective, Assessment, Plan)',
       sections: ['Subjective', 'Objective', 'Assessment', 'Plan'],
-      description: 'Subjective: what the {subj} reports. Objective: Writer\'s observations, behavior, mental status. Assessment: clinical formulation, response to interventions, progress toward goals. Plan: only what was explicitly discussed or agreed upon in this session. Do not add homework, referrals, or future goals unless specifically mentioned in the session notes.',
+      description: 'Subjective: what the {subj} reports. Objective: Writer\'s observations, behavior, mental status. Assessment: clinical formulation, response to interventions, progress toward goals. Plan: next session focus, homework, referrals, frequency.',
     },
     dap: {
       name: 'DAP', full: 'DAP (Data, Assessment, Plan)',
       sections: ['Data', 'Assessment', 'Plan'],
-      description: 'Data: factual content from session, what was discussed, observable behavior. Assessment: clinical formulation and progress toward goals. Plan: only next steps explicitly discussed in this session. Do not add homework or referrals unless mentioned in the notes.',
+      description: 'Data: factual content from session, what was discussed, observable behavior. Assessment: clinical formulation and progress toward goals. Plan: next steps, homework, referrals.',
     },
     birp: {
       name: 'BIRP', full: 'BIRP (Behavior, Intervention, Response, Plan)',
       sections: ['Behavior', 'Intervention', 'Response', 'Plan'],
-      description: 'Behavior: what the {subj} presented with and how they engaged. Intervention: what the Writer did during session. Response: how the {subj} responded to interventions. Plan: only what was explicitly discussed or agreed upon. Do not invent homework or next session focus.',
+      description: 'Behavior: what the {subj} presented with and how they engaged. Intervention: what the Writer did during session. Response: how the {subj} responded to interventions. Plan: next session focus and homework.',
     },
     girp: {
       name: 'GIRP', full: 'GIRP (Goal, Intervention, Response, Plan)',
@@ -712,17 +730,22 @@ window.PN_LIB = (() => {
     const desc = fmt.description.replace(/\{subj\}/g, subject.toLowerCase());
     const parts = [];
 
-    parts.push(`STRICT RULE — NO INVENTED CONTENT: - ONLY document what is explicitly stated in the session notes below. - Do NOT add interventions, modalities, homework, diagnoses, observations, or plans that are not mentioned in the input. - If a section has no corresponding content in the notes, omit it or write one sentence acknowledging it was not documented. - Do NOT infer or assume clinical details. If the notes say "discussed self-care," do not expand that into specific CBT techniques unless CBT is mentioned. Your job is to transform the raw session notes below into polished, professional clinical documentation — not lightly paraphrase them. Rewrite, restructure, and elevate the language to meet evidence-based documentation standards.`);
+    parts.push(`You are a licensed psychotherapist writing a clinical progress note. Transform the raw session notes below into polished, professional clinical documentation using only the information provided. Never add clinical content not explicitly present in the notes.`);
     parts.push('');
-    parts.push('CLINICAL DOCUMENTATION STANDARDS (based on APA, NASW, and AMHCA psychotherapy documentation guidelines):');
+    parts.push('STRICT RULE — NO INVENTED CONTENT:');
+    parts.push('- ONLY document what is explicitly stated in the session notes below.');
+    parts.push('- Do NOT add interventions, modalities, homework, diagnoses, observations, or plans that are not mentioned in the input.');
+    parts.push('- If a section has no corresponding content in the notes, omit it or write one sentence acknowledging it was not documented.');
+    parts.push('- Do NOT infer or assume clinical details. If the notes say "discussed self-care," do not expand that into specific CBT techniques unless CBT is mentioned.');
+    parts.push('');
+    parts.push('CLINICAL DOCUMENTATION STANDARDS (APA, NASW, AMHCA guidelines):');
     parts.push('- Write in past tense throughout: "Client reported...", "Writer utilized...", "Intervention consisted of..."');
     parts.push('- Use behavioral and measurable language. BAD: "client seemed anxious." GOOD: "Client reported anxiety symptoms including racing thoughts and difficulty concentrating."');
     parts.push('- BAD: "explored feelings about family." GOOD: "Client identified ambivalence toward family-of-origin relationships and connected this pattern to current interpersonal difficulties."');
-    parts.push('- BAD: "did CBT." GOOD: "Writer guided client through cognitive restructuring, targeting catastrophic thinking related to occupational stressors."');
     parts.push('- Each sentence must add distinct clinical information. No filler, no repetition across sections.');
     parts.push('- Functional language where relevant: describe how symptoms affect daily functioning, work, or relationships.');
-    parts.push('- Assessment section must contain clinical reasoning, not just a summary of what happened.');
-    parts.push('- Plan must be concrete and action-oriented: specific homework, next session focus, referrals, or frequency changes.');
+    parts.push('- Assessment must contain clinical reasoning about what was observed, not invented content.');
+    parts.push('- Plan must reflect only what was actually discussed or decided in the session.');
     parts.push('');
     parts.push(`LENGTH TARGET: ${conc.guidance}`);
     parts.push('');
@@ -801,7 +824,97 @@ window.PN_LIB = (() => {
     return sections.filter((s) => s.heading || s.body);
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, detectNames, redactNames, detectPHI, redactPHI, scrubText, buildPrompt, parseNote };
+  function buildIntakePrompt({ subject, sessionDate, duration, location, therapistCredentials,
+    chiefComplaint, onset, severity, stressors, functioning, safety, history,
+    mseData, primaryDx, secondaryDx, zCodes, conceptualization, treatmentModality, frequency, txDuration }) {
+    const parts = [];
+    parts.push(`You are a licensed psychotherapist completing a psychiatric diagnostic evaluation (CPT 90791). Using only the information provided below, write a professional narrative clinical intake assessment note. Do not add clinical content not present in the intake data.`);
+    parts.push('');
+    parts.push('STRICT RULE — NO INVENTED CONTENT:');
+    parts.push('- ONLY document what is explicitly provided below.');
+    parts.push('- Do NOT add symptoms, history, observations, impressions, or diagnoses not stated in the input.');
+    parts.push('- If a field is blank or not applicable, omit that element entirely.');
+    parts.push('- Do NOT use em-dashes or en-dashes. No AI filler phrases.');
+    parts.push('');
+    parts.push('DOCUMENTATION STANDARDS:');
+    parts.push('- Write in past tense: "Client reported…", "Writer observed…"');
+    parts.push(`- Refer to clinician only as "Writer". Refer to person as "${subject}".`);
+    parts.push('- Use behavioral, measurable language. Avoid vague phrases.');
+    parts.push('- Output the note only. No preamble.');
+    parts.push('');
+    parts.push('USE EXACTLY THESE SECTION HEADINGS, each on its own line followed by a colon:');
+    ['Identifying Information','Chief Complaint','History of Presenting Illness','Safety Assessment','Medical and Psychiatric History','Mental Status Examination','Clinical Impressions and Diagnosis','Treatment Recommendations'].forEach(h => parts.push(`  ${h}:`));
+    parts.push('');
+    parts.push('--- INTAKE DATA ---');
+    if (sessionDate) parts.push(`Session date: ${sessionDate}`);
+    if (duration) parts.push(`Session duration: ${duration}`);
+    if (location) parts.push(`Location/modality: ${location}`);
+    if (therapistCredentials) parts.push(`Clinician credentials: ${therapistCredentials}`);
+    parts.push('');
+    if (chiefComplaint) parts.push(`Chief complaint: ${chiefComplaint}`);
+    if (onset) parts.push(`Onset and duration: ${onset}`);
+    if (severity) parts.push(`Frequency and severity: ${severity}`);
+    if (stressors) parts.push(`Precipitating stressors: ${stressors}`);
+    parts.push('');
+    if (functioning) {
+      const fl = [functioning.occupational && `Occupational/educational: ${functioning.occupational}`, functioning.social && `Social/interpersonal: ${functioning.social}`, functioning.adl && `Activities of daily living: ${functioning.adl}`].filter(Boolean);
+      if (fl.length) { parts.push('Functional impact:'); fl.forEach(x => parts.push('  ' + x)); }
+    }
+    parts.push('');
+    if (safety) {
+      const sl = [safety.si && `Suicidal ideation: ${safety.si}`, safety.hi && `Homicidal ideation: ${safety.hi}`, safety.selfHarm && `Self-harm history: ${safety.selfHarm}`, safety.safetyPlan && `Safety plan: ${safety.safetyPlan}`].filter(Boolean);
+      if (sl.length) { parts.push('Safety:'); sl.forEach(x => parts.push('  ' + x)); }
+    }
+    parts.push('');
+    if (history) {
+      const hl = [history.prevTherapy && `Previous therapy/psychiatric care: ${history.prevTherapy}`, history.medications && `Current psychiatric medications: ${history.medications}`, history.medConditions && `Relevant medical conditions: ${history.medConditions}`, history.substance && `Substance use: ${history.substance}`].filter(Boolean);
+      if (hl.length) { parts.push('Medical and psychiatric history:'); hl.forEach(x => parts.push('  ' + x)); }
+    }
+    parts.push('');
+    if (mseData) {
+      const lm = { appearance:'Appearance', behavior:'Behavior/Psychomotor', speech:'Speech', mood:'Mood', affect:'Affect', thoughtProcess:'Thought process', thoughtContent:'Thought content', insight:'Insight', judgment:'Judgment', orientation:'Orientation/Cognition' };
+      const entries = Object.entries(mseData).filter(([,v]) => v && v.trim());
+      if (entries.length) { parts.push('Mental status:'); entries.forEach(([k,v]) => parts.push(`  ${lm[k]||k}: ${v}`)); }
+    }
+    parts.push('');
+    if (primaryDx) parts.push(`Primary diagnosis (DSM-5-TR/ICD-10): ${primaryDx}`);
+    if (secondaryDx) parts.push(`Secondary diagnosis: ${secondaryDx}`);
+    if (zCodes) parts.push(`Z-codes: ${zCodes}`);
+    if (conceptualization) parts.push(`Case conceptualization: ${conceptualization}`);
+    parts.push('');
+    if (treatmentModality && treatmentModality.length) parts.push(`Treatment modality: ${treatmentModality.join(', ')}`);
+    if (frequency) parts.push(`Session frequency: ${frequency}`);
+    if (txDuration) parts.push(`Treatment duration: ${txDuration}`);
+    parts.push('');
+    parts.push('--- END INTAKE DATA ---');
+    parts.push('');
+    parts.push('Now write the intake assessment note:');
+    return parts.join('\n');
+  }
+
+  function buildDxPrompt({ subject, diagnosis, symptoms, observations }) {
+    const parts = [];
+    parts.push(`You are a licensed psychotherapist. Write a brief clinical justification statement (2 to 4 sentences) for inclusion in a progress note. Describe the presenting symptoms that support the given diagnosis. Use only the information provided below.`);
+    parts.push('');
+    parts.push('STRICT RULE — NO INVENTED CONTENT:');
+    parts.push('- Only reference symptoms and observations explicitly listed below.');
+    parts.push('- Do not add DSM criteria, treatment recommendations, or clinical details not in the input.');
+    parts.push('- Write in past tense. Third person.');
+    parts.push(`- Refer to the person as "${subject}". Clinician as "Writer".`);
+    parts.push('- No em-dashes, no en-dashes, no AI filler.');
+    parts.push('- Output the clinical statement only. No preamble, no headers.');
+    parts.push('');
+    parts.push('--- DATA ---');
+    parts.push(`Diagnosis: ${diagnosis}`);
+    parts.push(`Presenting symptoms: ${symptoms}`);
+    if (observations && observations.trim()) parts.push(`Clinical observations: ${observations}`);
+    parts.push('--- END DATA ---');
+    parts.push('');
+    parts.push('Write the diagnostic justification statement:');
+    return parts.join('\n');
+  }
+
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, detectNames, redactNames, detectPHI, redactPHI, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote };
 })();
 </script>
 
@@ -1045,12 +1158,13 @@ async function callGroq(prompt, token) {
       throw new Error('Groq model "' + model + '" is unavailable. Please try generating again — the app will pick a new model automatically.');
     }
     if (resp.status === 401) throw new Error('invalid_key:' + detail);
+    if (resp.status === 413 || detail.toLowerCase().includes('too large') || detail.toLowerCase().includes('entity')) throw new Error('Session content is too long. Try shortening your notes or switching to Brief length.');
     if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
     throw new Error(detail || `API error (${resp.status})`);
   }
   const data = await resp.json();
   const content = data.choices[0].message.content || '';
-  return content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*/i, '').trim();
+  return content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 }
 
 function useToast() {
@@ -1161,6 +1275,373 @@ function AllowlistEditor({ words, onAdd, onRemove }) {
   );
 }
 
+function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
+  const [subject, setSubject] = useState('Client');
+  const [note, setNote] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sessionDate, setSessionDate] = useState('');
+  const [duration, setDuration] = useState('');
+  const [locationMode, setLocationMode] = useState('In-Office (POS 11)');
+  const [credentials, setCredentials] = useState('');
+  const [symptoms, setSymptoms] = useState('');
+  const [onset, setOnset] = useState('');
+  const [severity, setSeverity] = useState('');
+  const [stressors, setStressors] = useState('');
+  const [occ, setOcc] = useState({ status: '', detail: '' });
+  const [soc, setSoc] = useState({ status: '', detail: '' });
+  const [adl, setAdl] = useState({ status: '', detail: '' });
+  const [si, setSi] = useState({ status: '', detail: '' });
+  const [hi, setHi] = useState({ status: '', detail: '' });
+  const [selfHarm, setSelfHarm] = useState({ status: '', detail: '' });
+  const [safetyPlan, setSafetyPlan] = useState('');
+  const [prevTherapy, setPrevTherapy] = useState({ status: '', detail: '' });
+  const [medications, setMedications] = useState({ status: '', detail: '' });
+  const [medConds, setMedConds] = useState({ status: '', detail: '' });
+  const [substance, setSubstance] = useState({ status: '', detail: '' });
+  const [mse, setMse] = useState({});
+  const [primaryDx, setPrimaryDx] = useState('');
+  const [secondaryDx, setSecondaryDx] = useState('');
+  const [zCodes, setZCodes] = useState('');
+  const [conceptualization, setConceptualization] = useState('');
+  const [modality, setModality] = useState([]);
+  const [frequency, setFrequency] = useState('');
+  const [txDuration, setTxDuration] = useState('');
+
+  const toggleModality = (m) => setModality(prev => prev.includes(m) ? prev.filter(x=>x!==m) : [...prev,m]);
+  const fmt = (item) => !item.status ? '' : item.status + (item.detail ? ': ' + item.detail : '');
+
+  const generate = async () => {
+    if (loading) return;
+    if (!symptoms.trim()) { showToast('Add presenting symptoms first'); return; }
+    const key = apiKeyRef.current;
+    if (!key) { onNeedKey(); return; }
+    setLoading(true); setNote('');
+    try {
+      const raw = await callGroq(L.buildIntakePrompt({
+        subject, sessionDate, duration, location: locationMode, therapistCredentials: credentials,
+        chiefComplaint: symptoms, onset, severity, stressors,
+        functioning: { occupational: fmt(occ), social: fmt(soc), adl: fmt(adl) },
+        safety: { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), safetyPlan },
+        history: { prevTherapy: fmt(prevTherapy), medications: fmt(medications), medConditions: fmt(medConds), substance: fmt(substance) },
+        mseData: mse, primaryDx, secondaryDx, zCodes, conceptualization,
+        treatmentModality: modality, frequency, txDuration,
+      }), key);
+      setNote(L.scrubText(raw));
+    } catch(err) {
+      showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
+    } finally { setLoading(false); }
+  };
+
+  const copyNote = async () => {
+    try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
+    catch { showToast('Copy failed — select and copy manually'); }
+  };
+
+  const INTAKE_HEADINGS = ['Identifying Information','Chief Complaint','History of Presenting Illness','Safety Assessment','Medical and Psychiatric History','Mental Status Examination','Clinical Impressions and Diagnosis','Treatment Recommendations'];
+  const parseIntakeNote = (text) => {
+    const pat = new RegExp('(' + INTAKE_HEADINGS.map(h => h.replace(/[()]/g,'\\$&')).join('|') + '):', 'i');
+    const tokens = text.split(pat).filter(Boolean);
+    const out = [];
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i].trim();
+      if (INTAKE_HEADINGS.some(h => h.toLowerCase() === t.toLowerCase())) {
+        out.push({ heading: t, body: (tokens[i+1]||'').trim() }); i++;
+      } else if (!out.length && t) { out.push({ heading: null, body: t }); }
+    }
+    return out.length ? out : [{ heading: null, body: text.trim() }];
+  };
+  const sections = note ? parseIntakeNote(note) : [];
+
+  const StatusSeg = ({ value, onChange, opts }) => (
+    <div className="tri-seg">
+      {opts.map(o => <button key={o} type="button" aria-pressed={value===o} onClick={()=>onChange(value===o?'':o)}>{o}</button>)}
+    </div>
+  );
+  const StatusRow = ({ label, item, setItem, opts, detailPh, showOn }) => (
+    <div className="row" style={{marginBottom:8}}>
+      <label style={{marginBottom:4}}>{label}</label>
+      <StatusSeg value={item.status} onChange={s=>setItem(x=>({...x,status:s}))} opts={opts}/>
+      {showOn && showOn.includes(item.status) && <input className="input inline-detail" placeholder={detailPh||'Detail…'} value={item.detail} onChange={e=>setItem(x=>({...x,detail:e.target.value}))}/>}
+    </div>
+  );
+
+  return (
+    <>
+      <aside className="sidebar">
+        <div className="card">
+          <h3>Session info <span className="hint">CPT 90791</span></h3>
+          <div className="row">
+            <label>Refer to subject as</label>
+            <div className="seg">
+              <button type="button" aria-pressed={subject==='Client'} onClick={()=>setSubject('Client')}>Client</button>
+              <button type="button" aria-pressed={subject==='Patient'} onClick={()=>setSubject('Patient')}>Patient</button>
+            </div>
+          </div>
+          <div className="row">
+            <label>Session date</label>
+            <input className="input" type="date" value={sessionDate} onChange={e=>setSessionDate(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>Duration</label>
+            <input className="input" type="text" placeholder="e.g. 90 minutes" value={duration} onChange={e=>setDuration(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>Location / modality</label>
+            <div className="seg">
+              <button type="button" aria-pressed={locationMode==='In-Office (POS 11)'} onClick={()=>setLocationMode('In-Office (POS 11)')}>In-Office</button>
+              <button type="button" aria-pressed={locationMode==='Telehealth (POS 02)'} onClick={()=>setLocationMode('Telehealth (POS 02)')}>Telehealth</button>
+            </div>
+          </div>
+          <div className="row" style={{marginBottom:0}}>
+            <label>Clinician credentials</label>
+            <input className="input" type="text" placeholder="e.g. LCSW, LPC, PsyD" value={credentials} onChange={e=>setCredentials(e.target.value)}/>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Chief complaint <span className="hint">Required</span></h3>
+          <div className="row">
+            <label>Presenting symptoms</label>
+            <textarea className="textarea" rows="4" placeholder="Describe the client's reported symptoms…" value={symptoms} onChange={e=>setSymptoms(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>Onset & duration</label>
+            <input className="input" type="text" placeholder="e.g. 6 months, since job loss" value={onset} onChange={e=>setOnset(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>Frequency & severity (1–10)</label>
+            <input className="input" type="text" placeholder="e.g. daily, severity 7/10" value={severity} onChange={e=>setSeverity(e.target.value)}/>
+          </div>
+          <div className="row" style={{marginBottom:0}}>
+            <label>Precipitating stressors</label>
+            <textarea className="textarea" rows="2" placeholder="e.g. recent divorce, job loss" value={stressors} onChange={e=>setStressors(e.target.value)}/>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Functional impact <span className="hint">HPI</span></h3>
+          <StatusRow label="Occupational / educational" item={occ} setItem={setOcc} opts={['Intact','Impaired']} showOn={['Impaired']} detailPh="Describe impairment…"/>
+          <StatusRow label="Social / interpersonal" item={soc} setItem={setSoc} opts={['Intact','Impaired']} showOn={['Impaired']} detailPh="Describe impairment…"/>
+          <StatusRow label="Activities of daily living" item={adl} setItem={setAdl} opts={['Intact','Impaired']} showOn={['Impaired']} detailPh="Describe impairment…"/>
+        </div>
+
+        <div className="card">
+          <h3>Safety assessment</h3>
+          <StatusRow label="Suicidal ideation" item={si} setItem={setSi} opts={['Denied','Present']} showOn={['Present']} detailPh="Detail…"/>
+          <StatusRow label="Homicidal ideation" item={hi} setItem={setHi} opts={['Denied','Present']} showOn={['Present']} detailPh="Detail…"/>
+          <StatusRow label="Self-harm history" item={selfHarm} setItem={setSelfHarm} opts={['Denied','Present']} showOn={['Present']} detailPh="Detail…"/>
+          <div className="row" style={{marginBottom:0}}>
+            <label>Safety plan</label>
+            <div className="tri-seg">
+              {['Not required','Completed'].map(o => <button key={o} type="button" aria-pressed={safetyPlan===o} onClick={()=>setSafetyPlan(safetyPlan===o?'':o)}>{o}</button>)}
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Medical & psychiatric history</h3>
+          <StatusRow label="Previous therapy / psychiatric care" item={prevTherapy} setItem={setPrevTherapy} opts={['None','Prior']} showOn={['Prior']} detailPh="Provider, dates, reason…"/>
+          <StatusRow label="Current psychiatric medications" item={medications} setItem={setMedications} opts={['None','List']} showOn={['List']} detailPh="Medication, dose…"/>
+          <StatusRow label="Relevant medical conditions" item={medConds} setItem={setMedConds} opts={['None','List']} showOn={['List']} detailPh="Condition, treatment…"/>
+          <StatusRow label="Substance use" item={substance} setItem={setSubstance} opts={['Denies','Current','Past']} showOn={['Current','Past']} detailPh="Substance, frequency, last use…"/>
+        </div>
+
+        <div className="card">
+          <h3>Mental status exam <span className="hint">Quick fill</span></h3>
+          <div className="mse">
+            {L.MSE_FIELDS.map(f => (
+              <div className="mse-cell" key={f.key}>
+                <label>{f.label}</label>
+                <select className="select" value={mse[f.key]||''} onChange={e=>setMse(m=>({...m,[f.key]:e.target.value}))}>
+                  {f.options.map(o => <option key={o} value={o}>{o||'—'}</option>)}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Diagnostic summary</h3>
+          <div className="row">
+            <label>Primary diagnosis (DSM-5-TR / ICD-10)</label>
+            <input className="input" type="text" placeholder="e.g. F32.1 – Major Depressive Disorder, moderate" value={primaryDx} onChange={e=>setPrimaryDx(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>Secondary diagnosis</label>
+            <input className="input" type="text" placeholder="Optional" value={secondaryDx} onChange={e=>setSecondaryDx(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>Z-codes (social determinants)</label>
+            <input className="input" type="text" placeholder="e.g. Z56.0, Z63.0" value={zCodes} onChange={e=>setZCodes(e.target.value)}/>
+          </div>
+          <div className="row" style={{marginBottom:0}}>
+            <label>Case conceptualization</label>
+            <textarea className="textarea" rows="3" placeholder="Brief clinical formulation…" value={conceptualization} onChange={e=>setConceptualization(e.target.value)}/>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Treatment recommendations</h3>
+          <div className="row">
+            <label>Modality</label>
+            <div className="chk-row">
+              {['Individual Therapy','Family Therapy','Group Therapy'].map(m => (
+                <button key={m} type="button" className="chk-btn" aria-pressed={modality.includes(m)} onClick={()=>toggleModality(m)}>{m}</button>
+              ))}
+            </div>
+          </div>
+          <div className="row">
+            <label>Frequency</label>
+            <div className="tri-seg">
+              {['Weekly','Bi-weekly','As needed'].map(f => <button key={f} type="button" aria-pressed={frequency===f} onClick={()=>setFrequency(frequency===f?'':f)}>{f}</button>)}
+            </div>
+          </div>
+          <div className="row" style={{marginBottom:0}}>
+            <label>Duration</label>
+            <div className="tri-seg">
+              {['3 Months','6 Months','Ongoing'].map(d => <button key={d} type="button" aria-pressed={txDuration===d} onClick={()=>setTxDuration(txDuration===d?'':d)}>{d}</button>)}
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main className="main" id="intake-pane">
+        <div className="note-toolbar">
+          <div className="left">{note && <span style={{fontSize:12}}>Intake note generated · CPT 90791</span>}</div>
+          <div className="actions">
+            <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
+            <button className="btn primary" disabled={loading} onClick={generate}>
+              {loading ? <span className="spin"/> : <Icon.spark/>}
+              {loading ? 'Generating…' : note ? 'Regenerate' : 'Generate intake note'}
+            </button>
+          </div>
+        </div>
+        <article className={`paper ${loading?'loading':''}`}>
+          {note ? (
+            <div className="note-output">
+              {sections.map((s,i) => (
+                <div key={i}>
+                  {s.heading && <h2 className="note-section">{s.heading}</h2>}
+                  {(s.body||'').split(/\n{2,}/).map((para,j) => (
+                    <p key={j}>{para.split('\n').map((line,k) => (
+                      <React.Fragment key={k}>{line}{k<para.split('\n').length-1&&<br/>}</React.Fragment>
+                    ))}</p>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ) : loading ? (
+            <>
+              <div className="meta"><span className="fmt">Drafting intake note…</span><span>Writer</span></div>
+              {[0,1,2,3,4,5,6].map(i=><div className="gen-line" key={i} style={{width:`${58+(i*9)%36}%`}}/>)}
+            </>
+          ) : (
+            <div className="empty">
+              <div className="icon"><Icon.page/></div>
+              <h4>Intake note will appear here</h4>
+              <div>Complete the form on the left, then press Generate intake note.</div>
+            </div>
+          )}
+        </article>
+      </main>
+    </>
+  );
+}
+
+function DxTab({ apiKeyRef, showToast, onNeedKey }) {
+  const [subject, setSubject] = useState('Client');
+  const [diagnosis, setDiagnosis] = useState('');
+  const [symptoms, setSymptoms] = useState('');
+  const [observations, setObservations] = useState('');
+  const [note, setNote] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const generate = async () => {
+    if (loading) return;
+    if (!diagnosis.trim() || !symptoms.trim()) { showToast('Enter a diagnosis and presenting symptoms first'); return; }
+    const key = apiKeyRef.current;
+    if (!key) { onNeedKey(); return; }
+    setLoading(true); setNote('');
+    try {
+      const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, symptoms, observations }), key);
+      setNote(L.scrubText(raw));
+    } catch(err) {
+      showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
+    } finally { setLoading(false); }
+  };
+
+  const copyNote = async () => {
+    try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
+    catch { showToast('Copy failed — select and copy manually'); }
+  };
+
+  return (
+    <>
+      <aside className="sidebar">
+        <div className="card">
+          <h3>Diagnosis <span className="hint">Required</span></h3>
+          <div className="row">
+            <label>Refer to subject as</label>
+            <div className="seg">
+              <button type="button" aria-pressed={subject==='Client'} onClick={()=>setSubject('Client')}>Client</button>
+              <button type="button" aria-pressed={subject==='Patient'} onClick={()=>setSubject('Patient')}>Patient</button>
+            </div>
+          </div>
+          <div className="row" style={{marginBottom:0}}>
+            <label>Diagnosis + ICD-10 code</label>
+            <input className="input" type="text" placeholder="e.g. F41.1 – Generalized Anxiety Disorder" value={diagnosis} onChange={e=>setDiagnosis(e.target.value)}/>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Presenting symptoms <span className="hint">Required</span></h3>
+          <textarea className="textarea" rows="8" placeholder={`List symptoms supporting this diagnosis:\n- Persistent worry lasting 6+ months\n- Muscle tension\n- Difficulty concentrating\n- Sleep disturbance\n- Fatigue`} value={symptoms} onChange={e=>setSymptoms(e.target.value)}/>
+        </div>
+
+        <div className="card">
+          <h3>Clinical observations <span className="hint">Optional</span></h3>
+          <textarea className="textarea" rows="4" placeholder="MSE findings, mood, affect, behavior relevant to the diagnosis…" value={observations} onChange={e=>setObservations(e.target.value)}/>
+          <div className="note-sm" style={{marginTop:8}}>Only what is provided here will be included. Leave blank to omit.</div>
+        </div>
+      </aside>
+
+      <main className="main">
+        <div className="note-toolbar">
+          <div className="left">{note && <span style={{fontSize:12}}>Diagnostic justification generated</span>}</div>
+          <div className="actions">
+            <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
+            <button className="btn primary" disabled={loading} onClick={generate}>
+              {loading ? <span className="spin"/> : <Icon.spark/>}
+              {loading ? 'Generating…' : note ? 'Regenerate' : 'Generate statement'}
+            </button>
+          </div>
+        </div>
+        <article className={`paper ${loading?'loading':''}`} style={{padding:'40px 48px'}}>
+          {note ? (
+            <div style={{fontFamily:'var(--serif)',fontSize:'16px',lineHeight:1.85,color:'var(--ink)',maxWidth:620}}>
+              <div style={{fontSize:10.5,fontFamily:'var(--sans)',letterSpacing:'.06em',textTransform:'uppercase',color:'var(--muted)',fontWeight:600,marginBottom:20,borderBottom:'1px solid var(--line)',paddingBottom:10}}>
+                Diagnostic Justification — {diagnosis}
+              </div>
+              <p style={{margin:0,whiteSpace:'pre-wrap'}}>{note}</p>
+            </div>
+          ) : loading ? (
+            <>
+              <div className="meta"><span className="fmt">Drafting statement…</span><span>Writer</span></div>
+              {[0,1,2].map(i=><div className="gen-line" key={i} style={{width:`${68+(i*12)%28}%`}}/>)}
+            </>
+          ) : (
+            <div className="empty">
+              <div className="icon"><Icon.page/></div>
+              <h4>Justification statement will appear here</h4>
+              <div>Enter a diagnosis and symptoms on the left, then press Generate statement.</div>
+            </div>
+          )}
+        </article>
+      </main>
+    </>
+  );
+}
+
 function App() {
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
@@ -1186,6 +1667,7 @@ function App() {
   const removeApiKey = () => { apiKeyRef.current = ''; setApiKey(''); try { localStorage.removeItem('pn.apikey'); } catch {} setShowKeyModal(false); };
   const generateRef = useRef(null);
 
+  const [appMode, setAppMode] = useState('progress');
   const [format, setFormat] = useState('soap');
   const [subject, setSubject] = useState('Client');
   const [tone, setTone] = useState('balanced');
@@ -1235,11 +1717,12 @@ function App() {
     setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(detectedNames); setPhiFlags(detectedPHI);
     const allNames = detectedNames;
     const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
+    const truncate = (s, max = 4000) => s.length > max ? s.slice(0, max) + '…' : s;
     const prompt = L.buildPrompt({
       format, tone, subject, conciseness, voiceMode: voiceOn, voiceStrength, inputMode,
-      freeText: sanitize(freeText).slice(0, 4000),
-      structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,sanitize(v).slice(0,1000)])),
-      bullets: sanitize(bullets).slice(0, 4000),
+      freeText: truncate(sanitize(freeText)),
+      structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,truncate(sanitize(v), 1000)])),
+      bullets: truncate(sanitize(bullets)),
       interventions: [...interventions, ...otherIntervention.split(',').map(s=>s.trim()).filter(Boolean)],
       mse, risk, redactedNames: allNames,
     });
@@ -1289,6 +1772,11 @@ function App() {
           <h1>Progress Note Writer</h1>
           <span className="tag">De-identified · for Writers</span>
         </div>
+        <div className="mode-sel" role="tablist">
+          <button type="button" role="tab" aria-pressed={appMode==='progress'} onClick={()=>setAppMode('progress')}>Progress Note</button>
+          <button type="button" role="tab" aria-pressed={appMode==='intake'} onClick={()=>setAppMode('intake')}>Intake Assessment</button>
+          <button type="button" role="tab" aria-pressed={appMode==='dx'} onClick={()=>setAppMode('dx')}>Dx Justification</button>
+        </div>
         <div className="meta">
           <span className="hipaa-badge" title="HIPAA Safe Harbor de-identification runs on-device before any content is sent to the AI.">
             <Icon.shield/>HIPAA Safe Harbor
@@ -1303,7 +1791,9 @@ function App() {
         </div>
       </header>
 
-      <aside className="sidebar">
+      {appMode === 'intake' && <IntakeTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)}/>}
+      {appMode === 'dx' && <DxTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)}/>}
+      {appMode === 'progress' && <aside className="sidebar">
         <div className="card hipaa-card">
           <h3>Privacy <span className="hint">HIPAA Safe Harbor</span></h3>
           <div className="hipaa-grid">
@@ -1437,9 +1927,8 @@ function App() {
             ))}
           </div>
         </div>
-      </aside>
-
-      <main className="main" id="note-pane">
+      </aside>}
+      {appMode === 'progress' && <main className="main" id="note-pane">
         <div className="note-toolbar">
           <div className="left">
             {generatedMeta && <span style={{fontSize:12}}>Generated {generatedMeta.at.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})}</span>}
@@ -1498,7 +1987,7 @@ function App() {
             </div>
           )}
         </article>
-      </main>
+      </main>}
 
       <TweaksPanel title="Appearance">
         <TweakSection label="Color theme">
