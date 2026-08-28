@@ -1291,7 +1291,15 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [sessionDate, setSessionDate] = useState('');
-  const [duration, setDuration] = useState('');
+  const [sessionStart, setSessionStart] = useState('');
+  const [sessionEnd, setSessionEnd] = useState('');
+  const sessionDuration = useMemo(() => {
+    if (!sessionStart || !sessionEnd) return null;
+    const [sh, sm] = sessionStart.split(':').map(Number);
+    const [eh, em] = sessionEnd.split(':').map(Number);
+    const diff = (eh * 60 + em) - (sh * 60 + sm);
+    return diff > 0 ? diff : null;
+  }, [sessionStart, sessionEnd]);
   const [locationMode, setLocationMode] = useState('In-Office (POS 11)');
   const [credentials, setCredentials] = useState('');
   const [symptoms, setSymptoms] = useState('');
@@ -1329,7 +1337,9 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
     setLoading(true); setNote('');
     try {
       const raw = await callGroq(L.buildIntakePrompt({
-        subject, sessionDate, duration, location: locationMode, therapistCredentials: credentials,
+        subject, sessionDate,
+        duration: sessionStart && sessionEnd && sessionDuration ? `${fmtTime12(sessionStart)} to ${fmtTime12(sessionEnd)} (${sessionDuration} minutes)` : '',
+        location: locationMode, therapistCredentials: credentials,
         chiefComplaint: symptoms, onset, severity, stressors,
         functioning: { occupational: fmt(occ), social: fmt(soc), adl: fmt(adl) },
         safety: { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), safetyPlan },
@@ -1393,8 +1403,26 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
             <input className="input" type="date" value={sessionDate} onChange={e=>setSessionDate(e.target.value)}/>
           </div>
           <div className="row">
-            <label>Duration</label>
-            <input className="input" type="text" placeholder="e.g. 90 minutes" value={duration} onChange={e=>setDuration(e.target.value)}/>
+            <label>Session time</label>
+            <div style={{display:'flex',gap:10,alignItems:'flex-end'}}>
+              <div style={{flex:1}}>
+                <div style={{fontSize:11.5,color:'var(--muted)',marginBottom:4}}>Start</div>
+                <input className="input" type="time" value={sessionStart} onChange={e=>setSessionStart(e.target.value)}/>
+              </div>
+              <span style={{color:'var(--muted)',fontSize:13,paddingBottom:9,flexShrink:0}}>to</span>
+              <div style={{flex:1}}>
+                <div style={{fontSize:11.5,color:'var(--muted)',marginBottom:4}}>End</div>
+                <input className="input" type="time" value={sessionEnd} onChange={e=>setSessionEnd(e.target.value)}/>
+              </div>
+            </div>
+            {sessionDuration !== null && (
+              <div style={{marginTop:8,fontSize:13,color:'var(--ok)',fontWeight:500}}>
+                {fmtTime12(sessionStart)} – {fmtTime12(sessionEnd)} &nbsp;·&nbsp; {sessionDuration} minutes
+              </div>
+            )}
+            {sessionStart && sessionEnd && sessionDuration === null && (
+              <div style={{marginTop:6,fontSize:12,color:'var(--danger)'}}>End time must be after start time</div>
+            )}
           </div>
           <div className="row">
             <label>Location / modality</label>
