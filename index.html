@@ -723,7 +723,7 @@ window.PN_LIB = (() => {
     detailed: { label: 'Detailed', words: '300-500', guidance: 'Write 300-500 words total. Three to five sentences per section where clinically warranted. Include clinical reasoning, functional status, treatment trajectory, and any relevant history context raised this session.' },
   };
 
-  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames }) {
+  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames, sessionStart, sessionEnd, sessionDuration }) {
     const fmt = FORMATS[format];
     const toneInfo = TONES[tone];
     const conc = CONCISENESS[conciseness] || CONCISENESS.standard;
@@ -773,6 +773,11 @@ window.PN_LIB = (() => {
     }
     parts.push('');
     parts.push('--- SESSION NOTES (transform these into the progress note) ---');
+    if (sessionStart && sessionEnd && sessionDuration) {
+      parts.push(`Session time: ${sessionStart} to ${sessionEnd} (${sessionDuration} minutes)`);
+      parts.push('Include the session time in the note header or identifying information.');
+      parts.push('');
+    }
     if (inputMode === 'free' && freeText && freeText.trim()) {
       parts.push(freeText.trim());
     } else if (inputMode === 'structured') {
@@ -1245,6 +1250,12 @@ function ApiKeyModal({ currentKey, onSave, onCancel, onRemove }) {
   );
 }
 
+function fmtTime12(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
 function AllowlistEditor({ words, onAdd, onRemove }) {
   const [draft, setDraft] = useState('');
   const commit = () => {
@@ -1692,6 +1703,15 @@ function App() {
   const addAllowedWord = (w) => { const next = [...allowlist, w]; setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
   const removeAllowedWord = (w) => { const next = allowlist.filter(x => x !== w); setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
   const [confirming, setConfirming] = useState(false);
+  const [sessionStart, setSessionStart] = useState('');
+  const [sessionEnd, setSessionEnd] = useState('');
+  const sessionDuration = useMemo(() => {
+    if (!sessionStart || !sessionEnd) return null;
+    const [sh, sm] = sessionStart.split(':').map(Number);
+    const [eh, em] = sessionEnd.split(':').map(Number);
+    const diff = (eh * 60 + em) - (sh * 60 + sm);
+    return diff > 0 ? diff : null;
+  }, [sessionStart, sessionEnd]);
 
   useEffect(() => {
     try { localStorage.removeItem('pn.drafts'); } catch {}
@@ -1725,6 +1745,9 @@ function App() {
       bullets: truncate(sanitize(bullets)),
       interventions: [...interventions, ...otherIntervention.split(',').map(s=>s.trim()).filter(Boolean)],
       mse, risk, redactedNames: allNames,
+      sessionStart: sessionStart ? fmtTime12(sessionStart) : '',
+      sessionEnd: sessionEnd ? fmtTime12(sessionEnd) : '',
+      sessionDuration,
     });
     try {
       const raw = await callGroq(prompt, key);
@@ -1753,6 +1776,7 @@ function App() {
     setFreeText(''); setBullets('');
     setStructured({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
     setVoiceOn(false); setInterventions([]); setOtherIntervention('');
+    setSessionStart(''); setSessionEnd('');
     setMse({}); setRisk(L.RISK_ITEMS.reduce((acc,r)=>{ acc[r.key]={status:null,note:''}; return acc; },{}));
     setConfirming(false); try { localStorage.removeItem('pn.drafts'); } catch {}
     showToast('Note erased');
@@ -1839,6 +1863,29 @@ function App() {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="card">
+          <h3>Session time <span className="hint">Optional</span></h3>
+          <div style={{display:'flex',gap:10,alignItems:'flex-end'}}>
+            <div style={{flex:1}}>
+              <label className="field-label" style={{display:'block',marginBottom:4,fontSize:11.5,color:'var(--muted)'}}>Start</label>
+              <input className="input" type="time" value={sessionStart} onChange={e=>setSessionStart(e.target.value)}/>
+            </div>
+            <span style={{color:'var(--muted)',fontSize:13,paddingBottom:9,flexShrink:0}}>to</span>
+            <div style={{flex:1}}>
+              <label className="field-label" style={{display:'block',marginBottom:4,fontSize:11.5,color:'var(--muted)'}}>End</label>
+              <input className="input" type="time" value={sessionEnd} onChange={e=>setSessionEnd(e.target.value)}/>
+            </div>
+          </div>
+          {sessionDuration !== null && (
+            <div style={{marginTop:10,fontSize:13,color:'var(--ok)',fontWeight:500,letterSpacing:'-0.01em'}}>
+              {fmtTime12(sessionStart)} – {fmtTime12(sessionEnd)} &nbsp;·&nbsp; {sessionDuration} minutes
+            </div>
+          )}
+          {sessionStart && sessionEnd && sessionDuration === null && (
+            <div style={{marginTop:8,fontSize:12,color:'var(--danger)'}}>End time must be after start time</div>
+          )}
         </div>
 
         <div className="card">
