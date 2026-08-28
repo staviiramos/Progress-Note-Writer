@@ -1170,7 +1170,7 @@ async function callGroq(prompt, token) {
       throw new Error('Groq model "' + model + '" is unavailable. Please try generating again — the app will pick a new model automatically.');
     }
     if (resp.status === 401) throw new Error('invalid_key:' + detail);
-    if (resp.status === 413 || detail.toLowerCase().includes('too large') || detail.toLowerCase().includes('entity')) throw new Error('Session content is too long. Try shortening your notes or switching to Brief length.');
+    if (resp.status === 413 || detail.toLowerCase().includes('too large') || detail.toLowerCase().includes('entity')) throw new Error('Notes are too long for the AI to process. Please shorten your session content and try again.');
     if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
     throw new Error(detail || `API error (${resp.status})`);
   }
@@ -1778,11 +1778,11 @@ function App() {
     setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(detectedNames); setPhiFlags(detectedPHI);
     const allNames = detectedNames;
     const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
-    const truncate = (s, max = 4000) => s.length > max ? s.slice(0, max) + '…' : s;
+    const truncate = (s, max = 2500) => s.length > max ? s.slice(0, max) + '…' : s;
     const prompt = L.buildPrompt({
       format, tone, subject, conciseness, voiceMode: voiceOn, voiceStrength, inputMode,
       freeText: truncate(sanitize(freeText)),
-      structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,truncate(sanitize(v), 1000)])),
+      structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,truncate(sanitize(v), 600)])),
       bullets: truncate(sanitize(bullets)),
       interventions: [...interventions, ...otherIntervention.split(',').map(s=>s.trim()).filter(Boolean)],
       mse, risk, redactedNames: allNames,
