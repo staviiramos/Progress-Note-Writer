@@ -1176,10 +1176,15 @@ async function callGroq(prompt, token) {
   }
   const data = await resp.json();
   const content = data.choices[0].message.content || '';
-  return content
+  const stripped = content
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .replace(/<think>[\s\S]*/i, '')
     .trim();
+  if (!stripped && content.trim()) {
+    _groqModelCache = null;
+    throw new Error('A reasoning model was selected. Click Generate again — the app will pick a different model automatically.');
+  }
+  return stripped;
 }
 
 function useToast() {
