@@ -252,6 +252,44 @@ textarea { resize: vertical; }
 .chk-btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 .inline-detail { margin-top: 5px; }
 .note-output { padding: var(--pad) 0; font-family: var(--serif); font-size: 15.5px; line-height: 1.8; color: var(--ink); max-width: 660px; }
+
+/* Dx autocomplete */
+.dx-ac-wrap { position: relative; }
+.dx-ac-drop {
+  position: absolute; top: calc(100% + 3px); left: 0; right: 0; z-index: 200;
+  background: var(--paper); border: 1px solid var(--line-2); border-radius: var(--r-sm);
+  box-shadow: 0 4px 18px oklch(20% 0 0 / .13); max-height: 260px; overflow-y: auto;
+}
+.dx-ac-item {
+  padding: 9px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+  border-bottom: 1px solid var(--line); transition: background .08s;
+}
+.dx-ac-item:last-child { border-bottom: 0; }
+.dx-ac-item:hover, .dx-ac-item.focused { background: var(--accent-soft); }
+.dx-ac-item .dx-code { font-family: var(--mono); font-size: 10.5px; color: var(--accent); font-weight: 600; letter-spacing: .03em; }
+.dx-ac-item .dx-name { font-size: 12.5px; color: var(--ink); line-height: 1.3; }
+
+/* Dx symptom checklist */
+.sx-list { display: flex; flex-direction: column; gap: 6px; }
+.sx-item { border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; }
+.sx-item.checked { border-color: var(--accent); }
+.sx-check {
+  display: flex; align-items: flex-start; gap: 10px; padding: 9px 11px;
+  cursor: pointer; background: transparent; border: 0; width: 100%; text-align: left;
+  transition: background .09s; font-family: inherit;
+}
+.sx-check:hover { background: var(--bg); }
+.sx-item.checked .sx-check { background: var(--accent-soft); }
+.sx-chk-box {
+  width: 16px; height: 16px; border: 1.5px solid var(--line-2); border-radius: 4px;
+  flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center;
+  transition: background .1s, border-color .1s;
+}
+.sx-item.checked .sx-chk-box { background: var(--accent); border-color: var(--accent); }
+.sx-chk-lbl { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+.sx-item.checked .sx-chk-lbl { color: var(--ink); font-weight: 500; }
+.sx-ctx { padding: 0 11px 10px; }
+.sx-ctx textarea { min-height: 54px; font-size: 12.5px; }
 .note-output h2.note-section { font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin: 1.6em 0 0.5em; }
 .note-output p { margin: 0 0 0.85em; }
 
@@ -904,13 +942,46 @@ window.PN_LIB = (() => {
     return parts.join('\n');
   }
 
-  function buildDxPrompt({ subject, diagnosis, symptoms, observations }) {
+  const DX_DATABASE = [
+    { code:'F32.0', name:'Major Depressive Disorder, single episode, mild', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight loss/gain or appetite decrease/increase','Insomnia or hypersomnia','Psychomotor agitation or retardation observable by others','Fatigue or loss of energy nearly every day','Feelings of worthlessness or excessive/inappropriate guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','Symptoms cause clinically significant distress or functional impairment'] },
+    { code:'F32.1', name:'Major Depressive Disorder, single episode, moderate', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight loss/gain or appetite decrease/increase','Insomnia or hypersomnia','Psychomotor agitation or retardation observable by others','Fatigue or loss of energy','Feelings of worthlessness or excessive/inappropriate guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','Moderate impairment in social or occupational functioning'] },
+    { code:'F32.2', name:'Major Depressive Disorder, single episode, severe', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in nearly all activities','Significant weight loss/gain or appetite disturbance','Insomnia or hypersomnia','Psychomotor agitation or retardation','Fatigue or loss of energy','Feelings of worthlessness or excessive guilt','Diminished ability to think, concentrate, or make decisions','Recurrent thoughts of death or suicidal ideation with or without a plan','Severe functional impairment in social or occupational domains'] },
+    { code:'F32.9', name:'Major Depressive Disorder, unspecified', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight change or appetite disturbance','Insomnia or hypersomnia','Fatigue or loss of energy','Feelings of worthlessness or excessive guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','Symptoms cause clinically significant distress or impairment'] },
+    { code:'F33.0', name:'Major Depressive Disorder, recurrent, mild', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities','Appetite or weight disturbance','Insomnia or hypersomnia','Fatigue or loss of energy','Feelings of worthlessness or guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','History of at least one prior depressive episode','Mild functional impairment'] },
+    { code:'F33.1', name:'Major Depressive Disorder, recurrent, moderate', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities','Appetite or weight disturbance','Insomnia or hypersomnia','Psychomotor agitation or retardation','Fatigue or loss of energy','Feelings of worthlessness or excessive guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','History of at least one prior depressive episode'] },
+    { code:'F33.2', name:'Major Depressive Disorder, recurrent, severe', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in nearly all activities','Significant weight loss/gain or appetite disturbance','Insomnia or hypersomnia','Psychomotor agitation or retardation','Fatigue or loss of energy nearly every day','Feelings of worthlessness or excessive guilt','Diminished ability to think or concentrate','Recurrent thoughts of death or suicidal ideation with or without a plan','Severe functional impairment','History of at least one prior depressive episode'] },
+    { code:'F34.1', name:'Persistent Depressive Disorder (Dysthymia)', criteria:['Depressed mood for most of the day, more days than not, for at least 2 years','Poor appetite or overeating','Insomnia or hypersomnia','Low energy or fatigue','Low self-esteem','Poor concentration or difficulty making decisions','Feelings of hopelessness','No absence of symptoms for more than 2 consecutive months','Symptoms cause clinically significant distress or impairment'] },
+    { code:'F41.1', name:'Generalized Anxiety Disorder', criteria:['Excessive anxiety and worry occurring more days than not for at least 6 months','Difficulty controlling the worry','Restlessness or feeling keyed up or on edge','Being easily fatigued','Difficulty concentrating or mind going blank','Irritability','Muscle tension','Sleep disturbance (difficulty falling or staying asleep, or restless sleep)','Anxiety causes clinically significant distress or functional impairment'] },
+    { code:'F41.0', name:'Panic Disorder', criteria:['Recurrent unexpected panic attacks','At least one month of persistent concern or worry about additional attacks','Significant maladaptive change in behavior related to attacks (avoidance)','Palpitations, pounding heart, or accelerated heart rate during attacks','Sweating, trembling, or shaking during attacks','Sensations of shortness of breath or smothering','Chest pain or discomfort','Nausea or abdominal distress','Dizziness, lightheadedness, or faintness','Derealization or depersonalization','Fear of losing control or going crazy','Fear of dying','Paresthesias (numbness or tingling)','Chills or hot flushes'] },
+    { code:'F40.10', name:'Social Anxiety Disorder', criteria:['Marked fear or anxiety about social situations in which scrutiny is possible','Fear of acting in a way that will be negatively evaluated','Social situations almost always provoke fear or anxiety','Social situations are avoided or endured with intense distress','Fear or anxiety is out of proportion to the actual threat','Fear, anxiety, or avoidance is persistent (6+ months)','Causes clinically significant distress or functional impairment','Physical symptoms in social situations (blushing, sweating, trembling, nausea)'] },
+    { code:'F40.00', name:'Agoraphobia', criteria:['Marked fear or anxiety about using public transportation','Marked fear or anxiety about open spaces (parking lots, bridges)','Marked fear or anxiety about enclosed places (shops, theaters)','Marked fear or anxiety about standing in line or being in a crowd','Marked fear or anxiety about being outside of the home alone','Fear that escape would be difficult or help unavailable if panic-like symptoms occur','Situations are avoided or endured with significant distress','Persistent, typically lasting 6+ months'] },
+    { code:'F43.10', name:'Post-Traumatic Stress Disorder', criteria:['Exposure to actual or threatened death, serious injury, or sexual violence','Intrusive memories of the traumatic event','Recurrent distressing dreams related to the traumatic event','Dissociative reactions (flashbacks)','Intense psychological distress at internal or external trauma cues','Marked physiological reactions to trauma reminders','Persistent avoidance of trauma-related external stimuli','Avoidance of thoughts, feelings, or memories associated with trauma','Persistent negative beliefs about oneself, others, or the world','Persistent negative emotional state (fear, horror, anger, guilt, shame)','Diminished interest or participation in significant activities','Feelings of detachment or estrangement from others','Persistent inability to experience positive emotions','Irritable or aggressive behavior','Reckless or self-destructive behavior','Hypervigilance','Exaggerated startle response','Problems with concentration','Sleep disturbance'] },
+    { code:'F43.20', name:'Adjustment Disorder with Depressed Mood', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Significant impairment in social or occupational functioning','Symptoms developed within 3 months of the onset of the stressor','Depressed mood as primary presentation','Tearfulness or feelings of hopelessness'] },
+    { code:'F43.21', name:'Adjustment Disorder with Anxiety', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Significant impairment in social or occupational functioning','Symptoms developed within 3 months of the onset of the stressor','Nervousness, worry, or jitteriness as primary presentation'] },
+    { code:'F43.22', name:'Adjustment Disorder with Mixed Anxiety and Depressed Mood', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Significant impairment in social or occupational functioning','Symptoms developed within 3 months of the onset of the stressor','Combination of depressed mood and anxiety symptoms','Tearfulness, hopelessness, nervousness, or worry'] },
+    { code:'F43.23', name:'Adjustment Disorder with Disturbance of Conduct', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Symptoms developed within 3 months of onset of the stressor','Primary presentation involves conduct problems','Violation of others\' rights or age-appropriate societal norms'] },
+    { code:'F43.25', name:'Adjustment Disorder with Mixed Disturbance of Emotions and Conduct', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Significant impairment in social or occupational functioning','Both emotional symptoms (depression/anxiety) and conduct disturbances present'] },
+    { code:'F42.2', name:'Obsessive-Compulsive Disorder', criteria:['Recurrent and persistent intrusive, unwanted thoughts, urges, or images (obsessions)','Attempts to suppress, neutralize, or ignore obsessions','Repetitive behaviors or mental acts aimed at reducing distress (compulsions)','Compulsions are not connected to the feared event in a realistic way','Obsessions and/or compulsions are time-consuming (more than 1 hour per day)','Causes clinically significant distress or functional impairment'] },
+    { code:'F90.0', name:'ADHD, predominantly inattentive presentation', criteria:['Often fails to give close attention to details or makes careless mistakes','Often has difficulty sustaining attention in tasks or play','Often does not seem to listen when spoken to directly','Often does not follow through on instructions or fails to finish tasks','Often has difficulty organizing tasks and activities','Often avoids tasks requiring sustained mental effort','Often loses things necessary for tasks (keys, glasses, paperwork, tools)','Often easily distracted by extraneous stimuli','Often forgetful in daily activities','Symptoms present in two or more settings','Symptoms interfere with or reduce quality of social, academic, or occupational functioning'] },
+    { code:'F90.1', name:'ADHD, predominantly hyperactive-impulsive presentation', criteria:['Often fidgets with or taps hands/feet, or squirms in seat','Often leaves seat when remaining seated is expected','Often runs about or climbs in situations where it is inappropriate','Often unable to play or engage in leisure activities quietly','Often "on the go" or acts as if "driven by a motor"','Often talks excessively','Often blurts out an answer before a question has been completed','Often has difficulty waiting their turn','Often interrupts or intrudes on others'] },
+    { code:'F90.2', name:'ADHD, combined presentation', criteria:['Often fails to give close attention to details or makes careless mistakes','Often has difficulty sustaining attention','Often does not follow through on instructions or fails to finish tasks','Often has difficulty organizing tasks and activities','Often easily distracted or forgetful in daily activities','Often fidgets, squirms, or leaves seat when remaining seated is expected','Often talks excessively or blurts out answers','Often has difficulty waiting turn or interrupts others','Symptoms present in two or more settings','Symptoms interfere with social, academic, or occupational functioning'] },
+    { code:'F31.81', name:'Bipolar II Disorder', criteria:['At least one current or past hypomanic episode','At least one current or past major depressive episode','No history of manic episodes','Elevated, expansive, or irritable mood during hypomanic episode','Increased activity or energy during hypomanic episode','Inflated self-esteem or grandiosity','Decreased need for sleep (feels rested after only 3 hours)','More talkative than usual or pressured speech','Flight of ideas or racing thoughts','Distractibility','Increased goal-directed activity or psychomotor agitation','Excessive involvement in activities with high potential for harm'] },
+    { code:'F31.9', name:'Bipolar I Disorder, unspecified', criteria:['At least one lifetime manic episode','Distinct period of abnormally elevated, expansive, or irritable mood','Abnormally increased activity or energy','Inflated self-esteem or grandiosity','Decreased need for sleep','Pressured speech or more talkative than usual','Flight of ideas or racing thoughts','Distractibility','Increased goal-directed activity or psychomotor agitation','Excessive involvement in activities with high potential for harm','Marked impairment in social or occupational functioning'] },
+    { code:'F60.3', name:'Borderline Personality Disorder', criteria:['Frantic efforts to avoid real or imagined abandonment','Pattern of unstable and intense interpersonal relationships (idealization/devaluation)','Identity disturbance: markedly unstable self-image or sense of self','Impulsivity in at least two self-damaging areas','Recurrent suicidal behavior, gestures, threats, or self-mutilating behavior','Affective instability due to marked reactivity of mood','Chronic feelings of emptiness','Inappropriate, intense anger or difficulty controlling anger','Transient, stress-related paranoid ideation or severe dissociative symptoms'] },
+    { code:'F50.01', name:'Anorexia Nervosa, restricting type', criteria:['Restriction of energy intake relative to requirements leading to significantly low body weight','Intense fear of gaining weight or persistent behavior that interferes with weight gain','Disturbance in perception of own body weight or shape','Lack of recognition of the seriousness of the current low body weight','No regular binge-eating or purging behavior'] },
+    { code:'F50.2', name:'Bulimia Nervosa', criteria:['Recurrent episodes of binge eating (eating an unusually large amount in a discrete period)','Sense of lack of control over eating during the episode','Recurrent compensatory behaviors to prevent weight gain','Self-induced vomiting or misuse of laxatives/diuretics','Non-purging compensatory behavior (fasting, excessive exercise)','Binge eating and compensatory behaviors occur at least once a week for 3 months','Self-evaluation unduly influenced by body shape and weight','Clinically significant distress or impairment'] },
+    { code:'F10.10', name:'Alcohol Use Disorder, mild', criteria:['Alcohol often taken in larger amounts or over longer periods than intended','Persistent desire or unsuccessful efforts to cut down or control use','Great deal of time spent obtaining, using, or recovering from alcohol','Craving or strong desire to use alcohol','Recurrent use resulting in failure to fulfill major role obligations','Continued use despite persistent social or interpersonal problems caused by alcohol','Important activities given up or reduced because of alcohol use','Recurrent use in physically hazardous situations','Continued use despite knowing a physical or psychological problem is worsened by alcohol','Tolerance (need for markedly increased amounts or diminished effect)','Withdrawal symptoms'] },
+    { code:'F10.20', name:'Alcohol Use Disorder, moderate to severe', criteria:['Alcohol often taken in larger amounts or over longer periods than intended','Persistent desire or unsuccessful efforts to cut down or control use','Great deal of time spent obtaining, using, or recovering from alcohol','Craving or strong desire to use alcohol','Recurrent use resulting in failure to fulfill major role obligations','Continued use despite persistent social or interpersonal problems','Important activities given up or reduced because of alcohol use','Recurrent use in physically hazardous situations','Continued use despite knowing a physical or psychological problem','Tolerance (need for markedly increased amounts or diminished effect with same amount)','Withdrawal symptoms (sweating, tremor, anxiety, nausea, seizures)'] },
+  ];
+
+  function buildDxPrompt({ subject, diagnosis, selectedSymptoms, observations }) {
     const parts = [];
     parts.push(`You are a licensed psychotherapist. Write a brief clinical justification statement (2 to 4 sentences) for inclusion in a progress note. Describe the presenting symptoms that support the given diagnosis. Use only the information provided below.`);
     parts.push('');
     parts.push('STRICT RULE — NO INVENTED CONTENT:');
     parts.push('- Only reference symptoms and observations explicitly listed below.');
     parts.push('- Do not add DSM criteria, treatment recommendations, or clinical details not in the input.');
+    parts.push('- For each symptom, if clinical context is provided, weave that specific context into the statement. If no context is provided, reference the symptom in general clinical language.');
     parts.push('- Write in past tense. Third person.');
     parts.push(`- Refer to the person as "${subject}". Clinician as "Writer".`);
     parts.push('- No em-dashes, no en-dashes, no AI filler.');
@@ -918,15 +989,25 @@ window.PN_LIB = (() => {
     parts.push('');
     parts.push('--- DATA ---');
     parts.push(`Diagnosis: ${diagnosis}`);
-    parts.push(`Presenting symptoms: ${symptoms}`);
-    if (observations && observations.trim()) parts.push(`Clinical observations: ${observations}`);
+    parts.push('');
+    if (selectedSymptoms && selectedSymptoms.length) {
+      parts.push('Presenting symptoms with clinical context:');
+      selectedSymptoms.forEach(({ label, context }) => {
+        if (context && context.trim()) {
+          parts.push(`- ${label}: ${context.trim()}`);
+        } else {
+          parts.push(`- ${label}`);
+        }
+      });
+    }
+    if (observations && observations.trim()) { parts.push(''); parts.push(`Clinical observations: ${observations.trim()}`); }
     parts.push('--- END DATA ---');
     parts.push('');
     parts.push('Write the diagnostic justification statement:');
     return parts.join('\n');
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, detectNames, redactNames, detectPHI, redactPHI, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote };
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote };
 })();
 </script>
 
@@ -1604,20 +1685,65 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
 
 function DxTab({ apiKeyRef, showToast, onNeedKey }) {
   const [subject, setSubject] = useState('Client');
-  const [diagnosis, setDiagnosis] = useState('');
-  const [symptoms, setSymptoms] = useState('');
+  const [dxQuery, setDxQuery] = useState('');
+  const [showDrop, setShowDrop] = useState(false);
+  const [focusedIdx, setFocusedIdx] = useState(-1);
+  const [selectedDx, setSelectedDx] = useState(null);
+  const [checkedSet, setCheckedSet] = useState(new Set());
+  const [ctxMap, setCtxMap] = useState({});
   const [observations, setObservations] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const acWrapRef = useRef(null);
+
+  const filtered = useMemo(() => {
+    if (!dxQuery.trim() || selectedDx) return [];
+    const q = dxQuery.toLowerCase();
+    return L.DX_DATABASE.filter(d => d.code.toLowerCase().includes(q) || d.name.toLowerCase().includes(q)).slice(0, 9);
+  }, [dxQuery, selectedDx]);
+
+  useEffect(() => {
+    const handler = (e) => { if (acWrapRef.current && !acWrapRef.current.contains(e.target)) setShowDrop(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selectDx = (dx) => {
+    setSelectedDx(dx);
+    setDxQuery(`${dx.code} — ${dx.name}`);
+    setShowDrop(false);
+    setFocusedIdx(-1);
+    setCheckedSet(new Set());
+    setCtxMap({});
+    setNote('');
+  };
+
+  const clearDx = () => {
+    setSelectedDx(null);
+    setDxQuery('');
+    setShowDrop(false);
+    setCheckedSet(new Set());
+    setCtxMap({});
+    setNote('');
+  };
+
+  const toggleSymptom = (idx) => {
+    setCheckedSet(prev => { const n = new Set(prev); n.has(idx) ? n.delete(idx) : n.add(idx); return n; });
+  };
+
+  const setCtx = (idx, val) => setCtxMap(prev => ({ ...prev, [idx]: val }));
 
   const generate = async () => {
     if (loading) return;
-    if (!diagnosis.trim() || !symptoms.trim()) { showToast('Enter a diagnosis and presenting symptoms first'); return; }
+    if (!selectedDx) { showToast('Select a diagnosis first'); return; }
+    if (checkedSet.size === 0) { showToast('Select at least one presenting symptom'); return; }
     const key = apiKeyRef.current;
     if (!key) { onNeedKey(); return; }
     setLoading(true); setNote('');
     try {
-      const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, symptoms, observations }), key);
+      const selectedSymptoms = Array.from(checkedSet).sort((a,b)=>a-b).map(i => ({ label: selectedDx.criteria[i], context: ctxMap[i] || '' }));
+      const diagnosis = `${selectedDx.code} — ${selectedDx.name}`;
+      const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, selectedSymptoms, observations }), key);
       setNote(L.scrubText(raw));
     } catch(err) {
       showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
@@ -1642,15 +1768,89 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
             </div>
           </div>
           <div className="row" style={{marginBottom:0}}>
-            <label>Diagnosis + ICD-10 code</label>
-            <input className="input" type="text" placeholder="e.g. F41.1 – Generalized Anxiety Disorder" value={diagnosis} onChange={e=>setDiagnosis(e.target.value)}/>
+            <label>Search by name or ICD-10 code</label>
+            <div className="dx-ac-wrap" ref={acWrapRef}>
+              <div style={{position:'relative',display:'flex',alignItems:'center'}}>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="e.g. anxiety, F41.1, depression, PTSD…"
+                  value={dxQuery}
+                  style={selectedDx ? {paddingRight:32,background:'var(--accent-soft)',borderColor:'var(--accent)',fontWeight:500} : {}}
+                  readOnly={!!selectedDx}
+                  onFocus={() => { if (!selectedDx && filtered.length) setShowDrop(true); }}
+                  onChange={e => { setDxQuery(e.target.value); setShowDrop(true); setFocusedIdx(-1); }}
+                  onKeyDown={e => {
+                    if (e.key === 'Escape') { setShowDrop(false); return; }
+                    if (!showDrop || !filtered.length) return;
+                    if (e.key === 'ArrowDown') { e.preventDefault(); setFocusedIdx(i => Math.min(i+1, filtered.length-1)); }
+                    else if (e.key === 'ArrowUp') { e.preventDefault(); setFocusedIdx(i => Math.max(i-1, 0)); }
+                    else if (e.key === 'Enter' && focusedIdx >= 0) { e.preventDefault(); selectDx(filtered[focusedIdx]); }
+                  }}
+                />
+                {selectedDx && (
+                  <button
+                    type="button"
+                    onClick={clearDx}
+                    title="Clear selection"
+                    style={{position:'absolute',right:8,background:'none',border:'none',cursor:'pointer',color:'var(--accent)',fontSize:15,lineHeight:1,padding:'2px 4px',borderRadius:4,display:'flex',alignItems:'center'}}
+                  >✕</button>
+                )}
+              </div>
+              {showDrop && filtered.length > 0 && (
+                <div className="dx-ac-drop">
+                  {filtered.map((dx, i) => (
+                    <div
+                      key={dx.code}
+                      className={`dx-ac-item${i === focusedIdx ? ' focused' : ''}`}
+                      onMouseDown={e => { e.preventDefault(); selectDx(dx); }}
+                    >
+                      <span className="dx-code">{dx.code}</span>
+                      <span className="dx-name">{dx.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="card">
-          <h3>Presenting symptoms <span className="hint">Required</span></h3>
-          <textarea className="textarea" rows="8" placeholder={`List symptoms supporting this diagnosis:\n- Persistent worry lasting 6+ months\n- Muscle tension\n- Difficulty concentrating\n- Sleep disturbance\n- Fatigue`} value={symptoms} onChange={e=>setSymptoms(e.target.value)}/>
-        </div>
+        {selectedDx && (
+          <div className="card">
+            <h3>
+              Presenting symptoms
+              <span className="hint">{checkedSet.size > 0 ? `${checkedSet.size} selected` : 'Select all that apply'}</span>
+            </h3>
+            <div className="note-sm" style={{marginBottom:10}}>Check each symptom present, then add specific clinical context in the text box that appears.</div>
+            <div className="sx-list">
+              {selectedDx.criteria.map((criterion, idx) => (
+                <div key={idx} className={`sx-item${checkedSet.has(idx) ? ' checked' : ''}`}>
+                  <button type="button" className="sx-check" onClick={() => toggleSymptom(idx)}>
+                    <span className="sx-chk-box">
+                      {checkedSet.has(idx) && (
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </span>
+                    <span className="sx-chk-lbl">{criterion}</span>
+                  </button>
+                  {checkedSet.has(idx) && (
+                    <div className="sx-ctx">
+                      <textarea
+                        className="textarea"
+                        rows="2"
+                        placeholder="Add clinical specifics or context (optional)…"
+                        value={ctxMap[idx] || ''}
+                        onChange={e => setCtx(idx, e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="card">
           <h3>Clinical observations <span className="hint">Optional</span></h3>
@@ -1674,7 +1874,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
           {note ? (
             <div style={{fontFamily:'var(--serif)',fontSize:'16px',lineHeight:1.85,color:'var(--ink)',maxWidth:620}}>
               <div style={{fontSize:10.5,fontFamily:'var(--sans)',letterSpacing:'.06em',textTransform:'uppercase',color:'var(--muted)',fontWeight:600,marginBottom:20,borderBottom:'1px solid var(--line)',paddingBottom:10}}>
-                Diagnostic Justification — {diagnosis}
+                Diagnostic Justification — {selectedDx ? `${selectedDx.code} ${selectedDx.name}` : ''}
               </div>
               <p style={{margin:0,whiteSpace:'pre-wrap'}}>{note}</p>
             </div>
@@ -1687,7 +1887,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
             <div className="empty">
               <div className="icon"><Icon.page/></div>
               <h4>Justification statement will appear here</h4>
-              <div>Enter a diagnosis and symptoms on the left, then press Generate statement.</div>
+              <div>Search for a diagnosis, select presenting symptoms, then press Generate statement.</div>
             </div>
           )}
         </article>
