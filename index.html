@@ -1112,6 +1112,306 @@ window.PN_LIB = (() => {
       { label:'Diagnostic criteria', note:'4–5 symptoms = moderate; 6+ symptoms = severe; within a 12-month period', min:4,
         criteria:['Alcohol often taken in larger amounts or over a longer period than intended','Persistent desire or unsuccessful efforts to cut down or control use','Great deal of time spent obtaining, using, or recovering from alcohol','Craving or a strong desire to use alcohol','Recurrent use resulting in failure to fulfill major role obligations at work, school, or home','Continued use despite persistent or recurrent social or interpersonal problems caused or exacerbated by alcohol','Important social, occupational, or recreational activities given up or reduced','Recurrent use in situations in which it is physically hazardous','Continued use despite knowing a persistent physical or psychological problem is caused or worsened by alcohol','Tolerance: need for markedly increased amounts for effect, or markedly diminished effect with the same amount','Withdrawal: characteristic alcohol withdrawal syndrome, or alcohol taken to relieve or avoid withdrawal symptoms'] },
     ]},
+    // ─── Anxiety: unspecified / other specified ───────────────────────────────
+    { code:'F41.9', name:'Anxiety Disorder, Unspecified', groups:[
+      { label:'Clinical presentation', note:'Clinically significant anxiety not meeting full criteria for a specific disorder', min:1,
+        criteria:['Clinically significant anxiety, worry, or fear causing marked distress or functional impairment','Symptoms do not meet full diagnostic criteria for any specific anxiety disorder','Not attributable to physiological effects of a substance or another medical condition'] },
+    ]},
+    { code:'F41.8', name:'Other Specified Anxiety Disorder', groups:[
+      { label:'Clinical presentation', note:'Clinician specifies which criteria are not met (e.g., limited-symptom attacks, mixed anxiety-depressive symptoms)', min:1,
+        criteria:['Anxiety symptoms causing clinically significant distress or functional impairment','Symptoms do not meet full criteria for any specific anxiety disorder','Clinician documents the specific reason criteria are not fully met'] },
+    ]},
+    // ─── Specific Phobias ─────────────────────────────────────────────────────
+    { code:'F40.218', name:'Specific Phobia, Animal', groups:[
+      { label:'Criteria A–E — Core features', note:'All 5 required', min:5,
+        criteria:['Marked fear or anxiety about a specific animal','The animal almost always provokes immediate fear or anxiety','The animal is actively avoided or endured with intense anxiety','The fear or anxiety is out of proportion to the actual danger posed by the animal','The fear, anxiety, or avoidance is persistent, typically lasting 6 or more months'] },
+      { label:'Criteria F–G — Impairment and exclusions', note:'Both required', min:2,
+        criteria:['The fear, anxiety, or avoidance causes clinically significant distress or functional impairment','The disturbance is not better explained by symptoms of another mental disorder'] },
+    ]},
+    { code:'F40.228', name:'Specific Phobia, Natural Environment', groups:[
+      { label:'Criteria A–E — Core features', note:'All 5 required', min:5,
+        criteria:['Marked fear or anxiety about a natural environment stimulus (e.g., heights, storms, water)','The phobic stimulus almost always provokes immediate fear or anxiety','The phobic stimulus is actively avoided or endured with intense anxiety','The fear or anxiety is out of proportion to the actual danger posed by the stimulus','The fear, anxiety, or avoidance is persistent, typically lasting 6 or more months'] },
+      { label:'Criteria F–G — Impairment and exclusions', note:'Both required', min:2,
+        criteria:['The fear, anxiety, or avoidance causes clinically significant distress or functional impairment','The disturbance is not better explained by symptoms of another mental disorder'] },
+    ]},
+    { code:'F40.233', name:'Specific Phobia, Blood-Injection-Injury', groups:[
+      { label:'Criteria A–E — Core features', note:'All 5 required', min:5,
+        criteria:['Marked fear or anxiety about blood, injections, or injury','The phobic stimulus almost always provokes immediate fear or anxiety (may include vasovagal response)','The phobic stimulus is actively avoided or endured with intense anxiety','The fear or anxiety is out of proportion to the actual danger posed by the stimulus','The fear, anxiety, or avoidance is persistent, typically lasting 6 or more months'] },
+      { label:'Criteria F–G — Impairment and exclusions', note:'Both required', min:2,
+        criteria:['The fear, anxiety, or avoidance causes clinically significant distress or functional impairment','The disturbance is not better explained by symptoms of another mental disorder'] },
+    ]},
+    { code:'F40.248', name:'Specific Phobia, Situational', groups:[
+      { label:'Criteria A–E — Core features', note:'All 5 required', min:5,
+        criteria:['Marked fear or anxiety about a specific situation (e.g., airplanes, elevators, enclosed places)','The situation almost always provokes immediate fear or anxiety','The situation is actively avoided or endured with intense anxiety','The fear or anxiety is out of proportion to the actual danger posed by the situation','The fear, anxiety, or avoidance is persistent, typically lasting 6 or more months'] },
+      { label:'Criteria F–G — Impairment and exclusions', note:'Both required', min:2,
+        criteria:['The fear, anxiety, or avoidance causes clinically significant distress or functional impairment','The disturbance is not better explained by symptoms of another mental disorder'] },
+    ]},
+    { code:'F40.298', name:'Specific Phobia, Other', groups:[
+      { label:'Criteria A–E — Core features', note:'All 5 required', min:5,
+        criteria:['Marked fear or anxiety about a specific object or situation (other than animals, natural environments, blood/injury/injection, or situational)','The phobic stimulus almost always provokes immediate fear or anxiety','The phobic stimulus is actively avoided or endured with intense anxiety','The fear or anxiety is out of proportion to the actual danger posed by the stimulus','The fear, anxiety, or avoidance is persistent, typically lasting 6 or more months'] },
+      { label:'Criteria F–G — Impairment and exclusions', note:'Both required', min:2,
+        criteria:['The fear, anxiety, or avoidance causes clinically significant distress or functional impairment','The disturbance is not better explained by symptoms of another mental disorder'] },
+    ]},
+    // ─── Depressive Disorders (additional specifiers) ─────────────────────────
+    { code:'F33.9', name:'Major Depressive Disorder, Recurrent Episode, Unspecified', groups:_MDD_GROUPS },
+    { code:'F33.3', name:'Major Depressive Disorder, Recurrent, Severe with Psychotic Features', groups:[
+      { label:'Criterion A — Depressive episode', note:'5 of 9 required; at least one must be depressed mood (1) or anhedonia (2)', min:5,
+        criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight loss/gain or appetite decrease/increase','Insomnia or hypersomnia','Psychomotor agitation or retardation observable by others','Fatigue or loss of energy nearly every day','Feelings of worthlessness or excessive/inappropriate guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation'] },
+      { label:'Psychotic features', note:'Both required for severe with psychotic features specifier', min:2,
+        criteria:['Presence of delusions (mood-congruent or mood-incongruent)','Presence of hallucinations (mood-congruent or mood-incongruent)'] },
+    ]},
+    { code:'F32.4', name:'Major Depressive Disorder, Single Episode, In Full Remission', groups:[
+      { label:'Remission status', note:'No significant depressive symptoms present for 2+ months', min:1,
+        criteria:['No significant signs or symptoms of the major depressive episode have been present for 2 or more months','Prior episode met full criteria for a single major depressive episode','Clinically significant distress or impairment was present during the active episode'] },
+    ]},
+    { code:'F32.81', name:'Premenstrual Dysphoric Disorder (PMDD)', groups:[
+      { label:'Criterion A — Mood symptoms (at least 1 required)', note:'At least one of the following in the final week before menses onset in most cycles in the past year', min:1,
+        criteria:['Marked affective lability (mood swings, sudden sadness, or tearfulness)','Marked irritability or anger or increased interpersonal conflicts','Markedly depressed mood, feelings of hopelessness, or self-deprecating thoughts','Marked anxiety, tension, or feeling of being keyed up or on edge'] },
+      { label:'Criterion A — Additional symptoms', note:'Enough additional symptoms to reach a total of 5 across both groups', min:1,
+        criteria:['Decreased interest in usual activities','Subjective difficulty concentrating','Lethargy, easy fatigability, or marked lack of energy','Marked change in appetite, overeating, or specific food cravings','Hypersomnia or insomnia','A sense of being overwhelmed or out of control','Physical symptoms (breast tenderness/swelling, joint/muscle pain, sensation of bloating, weight gain)'] },
+      { label:'Criteria B–D — Impact and confirmation', note:'All 3 required', min:3,
+        criteria:['Symptoms are associated with clinically significant distress or interference with work, school, activities, or relationships','Symptoms are not a mere exacerbation of another disorder (e.g., MDD, panic disorder, dysthymia)','Criterion A confirmed by prospective daily ratings during at least 2 symptomatic cycles (provisional diagnosis may be made prior to confirmation)'] },
+    ]},
+    // ─── Bipolar and Related ──────────────────────────────────────────────────
+    { code:'F34.0', name:'Cyclothymic Disorder', groups:[
+      { label:'Criterion A — Course pattern', note:'Both required for at least 2 years (1 year in children/adolescents)', min:2,
+        criteria:['Numerous periods with hypomanic symptoms that do not meet criteria for a hypomanic episode','Numerous periods with depressive symptoms that do not meet criteria for a major depressive episode'] },
+      { label:'Criteria B–F — Specifiers', note:'All 5 required', min:5,
+        criteria:['During the 2-year period, symptoms have been present for at least half the time and never absent for more than 2 consecutive months','Criteria for a major depressive, manic, or hypomanic episode have never been met','Symptoms not better explained by schizoaffective disorder, schizophrenia, schizophreniform disorder, delusional disorder, or another psychotic disorder','Symptoms not attributable to physiological effects of a substance or medical condition','Symptoms cause clinically significant distress or functional impairment'] },
+    ]},
+    // ─── Trauma / Stress-Related (additional specifiers) ─────────────────────
+    { code:'F43.11', name:'Post-Traumatic Stress Disorder, Acute (< 3 months)', groups:[
+      { label:'Criterion A — Trauma exposure', note:'At least 1 required', min:1,
+        criteria:['Direct experience of a traumatic event (actual or threatened death, serious injury, or sexual violence)','Witnessing the traumatic event as it occurred to others','Learning that a traumatic event occurred to a close family member or close friend','Experiencing repeated or extreme exposure to aversive details of traumatic events'] },
+      { label:'Criterion B — Intrusion symptoms', note:'1 of 5 required', min:1,
+        criteria:['Recurrent, involuntary, and intrusive distressing memories of the traumatic event','Recurrent distressing dreams related to the traumatic event','Dissociative reactions (flashbacks) in which the individual feels the traumatic event is recurring','Intense or prolonged psychological distress at exposure to internal or external cues resembling the event','Marked physiological reactions to internal or external cues resembling the traumatic event'] },
+      { label:'Criterion C — Avoidance', note:'1 of 2 required', min:1,
+        criteria:['Avoidance of or efforts to avoid distressing memories, thoughts, or feelings related to the traumatic event','Avoidance of external reminders (people, places, conversations, activities, objects, situations) that arouse memories'] },
+      { label:'Criterion D — Negative alterations in cognition and mood', note:'2 of 7 required', min:2,
+        criteria:['Inability to remember an important aspect of the traumatic event','Persistent and exaggerated negative beliefs or expectations about oneself, others, or the world','Persistent, distorted cognitions about the cause or consequences of the traumatic event','Persistent negative emotional state (fear, horror, anger, guilt, or shame)','Markedly diminished interest or participation in significant activities','Feelings of detachment or estrangement from others','Persistent inability to experience positive emotions (emotional numbing)'] },
+      { label:'Criterion E — Alterations in arousal and reactivity', note:'2 of 6 required', min:2,
+        criteria:['Irritable behavior and angry outbursts with little or no provocation','Reckless or self-destructive behavior','Hypervigilance','Exaggerated startle response','Problems with concentration','Sleep disturbance (difficulty falling or staying asleep, or restless sleep)'] },
+    ]},
+    { code:'F43.12', name:'Post-Traumatic Stress Disorder, Chronic (3+ months)', groups:[
+      { label:'Criterion A — Trauma exposure', note:'At least 1 required', min:1,
+        criteria:['Direct experience of a traumatic event (actual or threatened death, serious injury, or sexual violence)','Witnessing the traumatic event as it occurred to others','Learning that a traumatic event occurred to a close family member or close friend','Experiencing repeated or extreme exposure to aversive details of traumatic events'] },
+      { label:'Criterion B — Intrusion symptoms', note:'1 of 5 required', min:1,
+        criteria:['Recurrent, involuntary, and intrusive distressing memories of the traumatic event','Recurrent distressing dreams related to the traumatic event','Dissociative reactions (flashbacks) in which the individual feels the traumatic event is recurring','Intense or prolonged psychological distress at exposure to internal or external cues resembling the event','Marked physiological reactions to internal or external cues resembling the traumatic event'] },
+      { label:'Criterion C — Avoidance', note:'1 of 2 required', min:1,
+        criteria:['Avoidance of or efforts to avoid distressing memories, thoughts, or feelings related to the traumatic event','Avoidance of external reminders (people, places, conversations, activities, objects, situations) that arouse memories'] },
+      { label:'Criterion D — Negative alterations in cognition and mood', note:'2 of 7 required', min:2,
+        criteria:['Inability to remember an important aspect of the traumatic event','Persistent and exaggerated negative beliefs or expectations about oneself, others, or the world','Persistent, distorted cognitions about the cause or consequences of the traumatic event','Persistent negative emotional state (fear, horror, anger, guilt, or shame)','Markedly diminished interest or participation in significant activities','Feelings of detachment or estrangement from others','Persistent inability to experience positive emotions (emotional numbing)'] },
+      { label:'Criterion E — Alterations in arousal and reactivity', note:'2 of 6 required', min:2,
+        criteria:['Irritable behavior and angry outbursts with little or no provocation','Reckless or self-destructive behavior','Hypervigilance','Exaggerated startle response','Problems with concentration','Sleep disturbance (difficulty falling or staying asleep, or restless sleep)'] },
+    ]},
+    { code:'F43.29', name:'Adjustment Disorder, Unspecified', groups:[
+      { label:'Diagnostic criteria', note:'All 3 required', min:3,
+        criteria:['Emotional or behavioral symptoms developed in response to an identifiable stressor within 3 months of the onset of the stressor','Symptoms or behaviors are clinically significant: marked distress out of proportion to the severity of the stressor (considering cultural context), or significant impairment in social, occupational, or other functioning','Symptoms do not meet criteria for another mental disorder and are not merely an exacerbation of a pre-existing mental disorder'] },
+    ]},
+    // ─── OCD Spectrum ─────────────────────────────────────────────────────────
+    { code:'F42.3', name:'Hoarding Disorder', groups:[
+      { label:'Criteria A–C — Core features', note:'All 3 required', min:3,
+        criteria:['Persistent difficulty discarding or parting with possessions, regardless of their actual value','Difficulty discarding possessions is due to a perceived need to save items and distress associated with discarding them','Difficulty with discarding results in the accumulation of possessions that congest and clutter active living areas, substantially compromising their intended use'] },
+      { label:'Criteria D–F — Impairment and exclusions', note:'All 3 required', min:3,
+        criteria:['The hoarding causes clinically significant distress or impairment in social, occupational, or other functioning','The hoarding is not attributable to another medical condition','The hoarding is not better explained by symptoms of another mental disorder'] },
+    ]},
+    { code:'F42.4', name:'Excoriation (Skin-Picking) Disorder', groups:[
+      { label:'Criteria A–B — Core features', note:'Both required', min:2,
+        criteria:['Recurrent skin picking resulting in skin lesions','Repeated attempts to decrease or stop skin picking'] },
+      { label:'Criteria C–E — Impact and exclusions', note:'All 3 required', min:3,
+        criteria:['Skin picking causes clinically significant distress or impairment in social, occupational, or other functioning','Skin picking is not attributable to the physiological effects of a substance or another medical condition','Skin picking is not better explained by symptoms of another mental disorder'] },
+    ]},
+    { code:'F63.3', name:'Trichotillomania (Hair-Pulling Disorder)', groups:[
+      { label:'Criteria A–B — Core features', note:'Both required', min:2,
+        criteria:['Recurrent pulling out of one's hair, resulting in hair loss','Repeated attempts to decrease or stop hair pulling'] },
+      { label:'Criteria C–E — Impact and exclusions', note:'All 3 required', min:3,
+        criteria:['Hair pulling causes clinically significant distress or impairment in social, occupational, or other functioning','Hair pulling is not attributable to the physiological effects of a substance or another medical condition','Hair pulling is not better explained by symptoms of another mental disorder'] },
+    ]},
+    { code:'F45.22', name:'Body Dysmorphic Disorder', groups:[
+      { label:'Criteria A–B — Core features', note:'Both required', min:2,
+        criteria:['Preoccupation with one or more perceived defects or flaws in physical appearance that are not observable or appear slight to others','At some point, the individual has performed repetitive behaviors (e.g., mirror checking, excessive grooming, skin picking, reassurance seeking) or mental acts (e.g., comparing appearance with others) in response to appearance concerns'] },
+      { label:'Criteria C–D — Impact and exclusions', note:'Both required', min:2,
+        criteria:['Preoccupation causes clinically significant distress or impairment in social, occupational, or other functioning','Appearance preoccupation is not better explained by concerns about body fat or weight in an individual whose symptoms meet diagnostic criteria for an eating disorder'] },
+    ]},
+    // ─── Dissociative Disorders ───────────────────────────────────────────────
+    { code:'F44.0', name:'Dissociative Amnesia', groups:[
+      { label:'Criterion A — Core feature', note:'Required', min:1,
+        criteria:['Inability to recall important autobiographical information, usually of a traumatic or stressful nature, that is inconsistent with ordinary forgetting (may be localized, selective, or generalized amnesia)'] },
+      { label:'Criteria B–D — Impact and exclusions', note:'All 3 required', min:3,
+        criteria:['Symptoms cause clinically significant distress or impairment in social, occupational, or other functioning','Not attributable to physiological effects of a substance or a neurological or other medical condition','Not better explained by dissociative identity disorder, PTSD, acute stress disorder, somatic symptom disorder, or major or mild neurocognitive disorder'] },
+    ]},
+    { code:'F44.81', name:'Dissociative Identity Disorder', groups:[
+      { label:'Criteria A–B — Core features', note:'Both required', min:2,
+        criteria:['Disruption of identity characterized by two or more distinct personality states, involving marked discontinuity in sense of self and sense of agency, with related alterations in affect, behavior, consciousness, memory, perception, cognition, and/or sensory-motor functioning','Recurrent gaps in the recall of everyday events, important personal information, and/or traumatic events that are inconsistent with ordinary forgetting'] },
+      { label:'Criteria C–E — Impact and exclusions', note:'All 3 required', min:3,
+        criteria:['Symptoms cause clinically significant distress or impairment in social, occupational, or other functioning','Disturbance is not a normal part of a broadly accepted cultural or religious practice','Symptoms not attributable to the physiological effects of a substance or another medical condition'] },
+    ]},
+    { code:'F48.1', name:'Depersonalization/Derealization Disorder', groups:[
+      { label:'Criterion A — Core features', note:'Depersonalization, derealization, or both required', min:1,
+        criteria:['Persistent or recurrent experiences of depersonalization: feeling detached from one's mental processes or body (e.g., feeling like an outside observer of one's thoughts, feelings, sensations, body, or actions)','Persistent or recurrent experiences of derealization: feelings of unreality of surroundings (e.g., the world is experienced as unreal, dreamlike, distant, or distorted)'] },
+      { label:'Criteria B–D — Reality testing and exclusions', note:'All 3 required', min:3,
+        criteria:['During depersonalization or derealization experiences, reality testing remains intact','Symptoms cause clinically significant distress or impairment in social, occupational, or other functioning','Not attributable to physiological effects of a substance or another medical condition, and not better explained by another mental disorder'] },
+    ]},
+    // ─── Somatic Symptom and Related Disorders ────────────────────────────────
+    { code:'F45.0', name:'Somatic Symptom Disorder', groups:[
+      { label:'Criterion A — Somatic symptoms', note:'Required', min:1,
+        criteria:['One or more somatic symptoms that are distressing or result in significant disruption of daily life'] },
+      { label:'Criterion B — Excessive thoughts, feelings, or behaviors', note:'At least 1 of 3 required', min:1,
+        criteria:['Disproportionate and persistent thoughts about the seriousness of one's symptoms','Persistently high level of anxiety about health or symptoms','Excessive time and energy devoted to these symptoms or health concerns'] },
+      { label:'Criterion C — Duration', note:'Required', min:1,
+        criteria:['State of being symptomatic is persistent, typically lasting more than 6 months (individual somatic symptoms may not be continuously present)'] },
+    ]},
+    { code:'F45.1', name:'Illness Anxiety Disorder', groups:[
+      { label:'Criteria A–D — Core features', note:'All 4 required', min:4,
+        criteria:['Preoccupation with having or acquiring a serious illness','Somatic symptoms are not present or, if present, are only mild in intensity; if another medical condition is present or there is high risk for developing one, the preoccupation is clearly excessive','High level of anxiety about health, and the individual is easily alarmed about personal health status','Excessive health-related behaviors (e.g., repeatedly checks body for signs of illness) or maladaptive avoidance (e.g., avoids doctor appointments and hospitals)'] },
+      { label:'Criteria E–F — Duration and exclusions', note:'Both required', min:2,
+        criteria:['Illness preoccupation has been present for at least 6 months, but the specific illness that is feared may change over that period of time','Not better explained by somatic symptom disorder, panic disorder, generalized anxiety disorder, body dysmorphic disorder, OCD, or delusional disorder'] },
+    ]},
+    // ─── Eating Disorders (additional) ───────────────────────────────────────
+    { code:'F50.02', name:'Anorexia Nervosa, Binge-Eating/Purging Type', groups:[
+      { label:'Criteria A–C — Core features', note:'All 3 required', min:3,
+        criteria:['Restriction of energy intake relative to requirements, leading to a significantly low body weight in the context of age, sex, developmental trajectory, and physical health','Intense fear of gaining weight or becoming fat, or persistent behavior that interferes with weight gain (even at significantly low weight)','Disturbance in the way body weight or shape is experienced; undue influence of body weight or shape on self-evaluation; or persistent lack of recognition of the seriousness of current low body weight'] },
+      { label:'Binge/purge type specifier', note:'Required during the current episode', min:1,
+        criteria:['During the last 3 months, the individual has engaged in recurrent episodes of binge eating or purging behavior (i.e., self-induced vomiting, misuse of laxatives, diuretics, or enemas)'] },
+    ]},
+    { code:'F50.81', name:'Binge Eating Disorder', groups:[
+      { label:'Criterion A — Binge eating episodes', note:'Recurrent binge eating episodes with 3 of 5 behavioral markers required', min:3,
+        criteria:['Eating much more rapidly than normal','Eating until feeling uncomfortably full','Eating large amounts of food when not feeling physically hungry','Eating alone because of feeling embarrassed by how much one is eating','Feeling disgusted with oneself, depressed, or very guilty after bingeing'] },
+      { label:'Criteria B–E — Impact and duration', note:'All 4 required', min:4,
+        criteria:['Marked distress regarding binge eating is present','Binge eating occurs at least once a week for 3 months','Binge eating is not associated with the recurrent use of inappropriate compensatory behaviors (as in bulimia nervosa)','Binge eating does not occur exclusively during the course of bulimia nervosa or anorexia nervosa'] },
+    ]},
+    // ─── Personality Disorders ────────────────────────────────────────────────
+    { code:'F21', name:'Schizotypal Personality Disorder', groups:[
+      { label:'Diagnostic criteria', note:'5 of 9 required, beginning by early adulthood', min:5,
+        criteria:['Ideas of reference (excluding delusions of reference)','Odd beliefs or magical thinking that influences behavior and is inconsistent with subcultural norms','Unusual perceptual experiences, including bodily illusions','Odd thinking and speech (e.g., vague, circumstantial, metaphorical, overelaborate, or stereotyped)','Suspiciousness or paranoid ideation','Inappropriate or constricted affect','Behavior or appearance that is odd, eccentric, or peculiar','Lack of close friends or confidants other than first-degree relatives','Excessive social anxiety that does not diminish with familiarity'] },
+    ]},
+    { code:'F60.0', name:'Paranoid Personality Disorder', groups:[
+      { label:'Diagnostic criteria', note:'4 of 7 required, beginning by early adulthood', min:4,
+        criteria:['Suspects, without sufficient basis, that others are exploiting, harming, or deceiving them','Preoccupied with unjustified doubts about the loyalty or trustworthiness of friends or associates','Reluctant to confide in others because of unwarranted fear that information will be used maliciously against them','Reads hidden demeaning or threatening meanings into benign remarks or events','Persistently bears grudges (unforgiving of insults, injuries, or slights)','Perceives attacks on their character or reputation not apparent to others and is quick to react with anger or counterattack','Has recurrent suspicions, without justification, regarding fidelity of spouse or sexual partner'] },
+    ]},
+    { code:'F60.1', name:'Schizoid Personality Disorder', groups:[
+      { label:'Diagnostic criteria', note:'4 of 7 required, beginning by early adulthood', min:4,
+        criteria:['Neither desires nor enjoys close relationships, including being part of a family','Almost always chooses solitary activities','Has little, if any, interest in having sexual experiences with another person','Takes pleasure in few, if any, activities','Lacks close friends or confidants other than first-degree relatives','Appears indifferent to the praise or criticism of others','Shows emotional coldness, detachment, or flattened affect'] },
+    ]},
+    { code:'F60.2', name:'Antisocial Personality Disorder', groups:[
+      { label:'Criterion A — Pervasive pattern of disregard', note:'3 of 7 required, since age 15', min:3,
+        criteria:['Failure to conform to social norms with respect to lawful behaviors (repeated acts that are grounds for arrest)','Deceitfulness (repeated lying, use of aliases, or conning others for personal profit or pleasure)','Impulsivity or failure to plan ahead','Irritability and aggressiveness (repeated physical fights or assaults)','Reckless disregard for safety of self or others','Consistent irresponsibility (repeated failure to sustain consistent work behavior or honor financial obligations)','Lack of remorse (indifferent to or rationalizes having hurt, mistreated, or stolen from another)'] },
+      { label:'Criteria B–D — Age and exclusions', note:'All 3 required', min:3,
+        criteria:['Individual is at least 18 years old','Evidence of conduct disorder with onset before age 15','Occurrence of antisocial behavior is not exclusively during the course of schizophrenia or bipolar disorder'] },
+    ]},
+    { code:'F60.4', name:'Histrionic Personality Disorder', groups:[
+      { label:'Diagnostic criteria', note:'5 of 8 required, beginning by early adulthood', min:5,
+        criteria:['Uncomfortable in situations in which they are not the center of attention','Interaction with others is often characterized by inappropriate sexually seductive or provocative behavior','Displays rapidly shifting and shallow expression of emotions','Consistently uses physical appearance to draw attention to self','Style of speech that is excessively impressionistic and lacking in detail','Shows self-dramatization, theatricality, and exaggerated expression of emotion','Suggestible (easily influenced by others or circumstances)','Considers relationships to be more intimate than they actually are'] },
+    ]},
+    { code:'F60.5', name:'Obsessive-Compulsive Personality Disorder', groups:[
+      { label:'Diagnostic criteria', note:'4 of 8 required, beginning by early adulthood', min:4,
+        criteria:['Preoccupied with details, rules, lists, order, organization, or schedules to the extent that the major point of the activity is lost','Shows perfectionism that interferes with task completion','Excessively devoted to work and productivity to the exclusion of leisure activities and friendships (not accounted for by obvious economic necessity)','Overconscientious, scrupulous, and inflexible about matters of morality, ethics, or values','Unable to discard worn-out or worthless objects even when they have no sentimental value','Reluctant to delegate tasks or to work with others unless they submit to exactly their way of doing things','Adopts a miserly spending style toward both self and others; money is viewed as something to be hoarded for future catastrophes','Shows rigidity and stubbornness'] },
+    ]},
+    { code:'F60.6', name:'Avoidant Personality Disorder', groups:[
+      { label:'Diagnostic criteria', note:'4 of 7 required, beginning by early adulthood', min:4,
+        criteria:['Avoids occupational activities that involve significant interpersonal contact, because of fears of criticism, disapproval, or rejection','Unwilling to get involved with people unless certain of being liked','Shows restraint within intimate relationships because of the fear of being shamed or ridiculed','Is preoccupied with being criticized or rejected in social situations','Is inhibited in new interpersonal situations because of feelings of inadequacy','Views self as socially inept, personally unappealing, or inferior to others','Is unusually reluctant to take personal risks or to engage in any new activities because they may prove embarrassing'] },
+    ]},
+    { code:'F60.7', name:'Dependent Personality Disorder', groups:[
+      { label:'Diagnostic criteria', note:'5 of 8 required, beginning by early adulthood', min:5,
+        criteria:['Has difficulty making everyday decisions without an excessive amount of advice and reassurance from others','Needs others to assume responsibility for most major areas of their life','Has difficulty expressing disagreement with others because of fear of loss of support or approval','Has difficulty initiating projects or doing things on their own (because of lack of self-confidence rather than lack of motivation or energy)','Goes to excessive lengths to obtain nurturance and support from others, to the point of volunteering to do things that are unpleasant','Feels uncomfortable or helpless when alone because of exaggerated fears of being unable to care for themselves','Urgently seeks another relationship as a source of care and support when a close relationship ends','Unrealistically preoccupied with fears of being left to take care of themselves'] },
+    ]},
+    { code:'F60.81', name:'Narcissistic Personality Disorder', groups:[
+      { label:'Diagnostic criteria', note:'5 of 9 required, beginning by early adulthood', min:5,
+        criteria:['Has a grandiose sense of self-importance (exaggerates achievements and talents, expects to be recognized as superior without commensurate achievements)','Preoccupied with fantasies of unlimited success, power, brilliance, beauty, or ideal love','Believes that they are special and unique and can only be understood by, or should associate with, other special high-status people or institutions','Requires excessive admiration','Has a sense of entitlement (unreasonable expectations of especially favorable treatment or automatic compliance with their wishes)','Is interpersonally exploitative (takes advantage of others to achieve their own ends)','Lacks empathy (unwilling to recognize or identify with the feelings and needs of others)','Is often envious of others or believes that others are envious of them','Shows arrogant, haughty behaviors or attitudes'] },
+    ]},
+    { code:'F60.9', name:'Personality Disorder, Unspecified', groups:[
+      { label:'General criteria for personality disorder', note:'All 5 required', min:5,
+        criteria:['An enduring pattern of inner experience and behavior that deviates markedly from the expectations of the individual's culture (in cognition, affectivity, interpersonal functioning, or impulse control)','The enduring pattern is inflexible and pervasive across a broad range of personal and social situations','Leads to clinically significant distress or impairment in social, occupational, or other functioning','Pattern is stable and of long duration and can be traced back at least to adolescence or early adulthood','Pattern is not better accounted for as a manifestation or consequence of another mental disorder'] },
+    ]},
+    // ─── Schizophrenia Spectrum and Other Psychotic Disorders ─────────────────
+    { code:'F20.9', name:'Schizophrenia, Unspecified', groups:[
+      { label:'Criterion A — Characteristic symptoms', note:'2 of 5 required for at least 1 month; at least 1 must be from symptoms 1, 2, or 3', min:2,
+        criteria:['Delusions','Hallucinations','Disorganized speech (e.g., frequent derailment or incoherence)','Grossly disorganized or catatonic behavior','Negative symptoms (diminished emotional expression or avolition)'] },
+      { label:'Criteria B–F — Duration and functional impact', note:'All 5 required', min:5,
+        criteria:['Social/occupational dysfunction: for a significant portion of time since onset, functioning in one or more major areas is markedly below the level prior to onset','Continuous signs of the disturbance persist for at least 6 months (including at least 1 month of Criterion A symptoms)','Schizoaffective disorder and depressive or bipolar disorder with psychotic features have been ruled out','Not attributable to physiological effects of a substance or another medical condition','If there is a history of autism spectrum disorder or childhood-onset communication disorder, the additional diagnosis of schizophrenia is made only if prominent delusions or hallucinations are also present'] },
+    ]},
+    { code:'F25.0', name:'Schizoaffective Disorder, Bipolar Type', groups:[
+      { label:'Criteria A–D — Core diagnostic features', note:'All 4 required', min:4,
+        criteria:['An uninterrupted period of illness during which there is a major mood episode (major depressive or manic) concurrent with Criterion A of schizophrenia','Delusions or hallucinations for 2 or more weeks in the absence of a major mood episode (depressive or manic) during the lifetime duration of the illness','Symptoms that meet criteria for a major mood episode are present for the majority of the total duration of the active and residual portions of the illness','Not attributable to physiological effects of a substance or another medical condition'] },
+      { label:'Bipolar type specifier', note:'Required', min:1,
+        criteria:['The disturbance includes a manic episode (major depressive episodes may also occur)'] },
+    ]},
+    { code:'F25.1', name:'Schizoaffective Disorder, Depressive Type', groups:[
+      { label:'Criteria A–D — Core diagnostic features', note:'All 4 required', min:4,
+        criteria:['An uninterrupted period of illness during which there is a major mood episode (major depressive or manic) concurrent with Criterion A of schizophrenia','Delusions or hallucinations for 2 or more weeks in the absence of a major mood episode (depressive or manic) during the lifetime duration of the illness','Symptoms that meet criteria for a major mood episode are present for the majority of the total duration of the active and residual portions of the illness','Not attributable to physiological effects of a substance or another medical condition'] },
+      { label:'Depressive type specifier', note:'Required', min:1,
+        criteria:['The disturbance only includes major depressive episodes (no manic episodes)'] },
+    ]},
+    { code:'F22', name:'Delusional Disorder', groups:[
+      { label:'Criterion A — Core feature', note:'Required', min:1,
+        criteria:['Presence of one or more delusions with a duration of 1 month or longer'] },
+      { label:'Criteria B–E — Exclusions and functioning', note:'All 4 required', min:4,
+        criteria:['Criterion A for schizophrenia has never been met (hallucinations, if present, are not prominent and are related to the delusional theme)','Apart from the impact of the delusion(s) or its ramifications, functioning is not markedly impaired and behavior is not obviously bizarre or odd','If manic or major depressive episodes have occurred, these have been brief relative to the duration of the delusional periods','Not attributable to physiological effects of a substance or another medical condition, and not better explained by another mental disorder such as body dysmorphic disorder or OCD'] },
+    ]},
+    { code:'F23', name:'Brief Psychotic Disorder', groups:[
+      { label:'Criterion A — Psychotic symptoms', note:'1 of 4 required; at least one must be 1, 2, or 3', min:1,
+        criteria:['Delusions','Hallucinations','Disorganized speech (e.g., frequent derailment or incoherence)','Grossly disorganized or catatonic behavior'] },
+      { label:'Criteria B–D — Duration and exclusions', note:'All 3 required', min:3,
+        criteria:['Duration of an episode of the disturbance is at least 1 day but less than 1 month, with eventual full return to premorbid level of functioning','Not better explained by major depressive or bipolar disorder with psychotic features, or another psychotic disorder such as schizophrenia or catatonia','Not attributable to physiological effects of a substance or another medical condition'] },
+    ]},
+    // ─── Substance Use Disorders ──────────────────────────────────────────────
+    { code:'F11.10', name:'Opioid Use Disorder, Mild', groups:[
+      { label:'Diagnostic criteria', note:'2–3 symptoms = mild; within a 12-month period', min:2,
+        criteria:['Opioids are often taken in larger amounts or over a longer period than was intended','Persistent desire or unsuccessful efforts to cut down or control opioid use','A great deal of time is spent in activities necessary to obtain opioids, use opioids, or recover from their effects','Craving or a strong desire or urge to use opioids','Recurrent opioid use resulting in a failure to fulfill major role obligations at work, school, or home','Continued opioid use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by the effects of opioids','Important social, occupational, or recreational activities are given up or reduced because of opioid use','Recurrent opioid use in situations in which it is physically hazardous','Continued opioid use despite knowledge of having a persistent or recurrent physical or psychological problem that is likely to have been caused or exacerbated by opioids','Tolerance: a need for markedly increased amounts of opioids to achieve intoxication or desired effect; or markedly diminished effect with continued use of the same amount','Withdrawal: characteristic opioid withdrawal syndrome; or opioids are taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+    { code:'F11.20', name:'Opioid Use Disorder, Moderate to Severe', groups:[
+      { label:'Diagnostic criteria', note:'4–5 symptoms = moderate; 6+ = severe; within a 12-month period', min:4,
+        criteria:['Opioids are often taken in larger amounts or over a longer period than was intended','Persistent desire or unsuccessful efforts to cut down or control opioid use','A great deal of time is spent in activities necessary to obtain opioids, use opioids, or recover from their effects','Craving or a strong desire or urge to use opioids','Recurrent opioid use resulting in a failure to fulfill major role obligations at work, school, or home','Continued opioid use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by the effects of opioids','Important social, occupational, or recreational activities are given up or reduced because of opioid use','Recurrent opioid use in situations in which it is physically hazardous','Continued opioid use despite knowledge of having a persistent or recurrent physical or psychological problem that is likely to have been caused or exacerbated by opioids','Tolerance: a need for markedly increased amounts of opioids to achieve intoxication or desired effect; or markedly diminished effect with continued use of the same amount','Withdrawal: characteristic opioid withdrawal syndrome; or opioids are taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+    { code:'F12.10', name:'Cannabis Use Disorder, Mild', groups:[
+      { label:'Diagnostic criteria', note:'2–3 symptoms = mild; within a 12-month period', min:2,
+        criteria:['Cannabis is often taken in larger amounts or over a longer period than was intended','Persistent desire or unsuccessful efforts to cut down or control cannabis use','A great deal of time is spent in activities necessary to obtain cannabis, use cannabis, or recover from its effects','Craving or a strong desire or urge to use cannabis','Recurrent cannabis use resulting in a failure to fulfill major role obligations at work, school, or home','Continued cannabis use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by cannabis use','Important social, occupational, or recreational activities are given up or reduced because of cannabis use','Recurrent cannabis use in situations in which it is physically hazardous','Continued cannabis use despite knowledge of having a persistent or recurrent physical or psychological problem likely caused or exacerbated by cannabis','Tolerance: a need for markedly increased amounts of cannabis to achieve intoxication or desired effect; or markedly diminished effect with continued use of the same amount','Withdrawal: characteristic cannabis withdrawal syndrome; or cannabis is taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+    { code:'F12.20', name:'Cannabis Use Disorder, Moderate to Severe', groups:[
+      { label:'Diagnostic criteria', note:'4–5 symptoms = moderate; 6+ = severe; within a 12-month period', min:4,
+        criteria:['Cannabis is often taken in larger amounts or over a longer period than was intended','Persistent desire or unsuccessful efforts to cut down or control cannabis use','A great deal of time is spent in activities necessary to obtain cannabis, use cannabis, or recover from its effects','Craving or a strong desire or urge to use cannabis','Recurrent cannabis use resulting in a failure to fulfill major role obligations at work, school, or home','Continued cannabis use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by cannabis use','Important social, occupational, or recreational activities are given up or reduced because of cannabis use','Recurrent cannabis use in situations in which it is physically hazardous','Continued cannabis use despite knowledge of having a persistent or recurrent physical or psychological problem likely caused or exacerbated by cannabis','Tolerance: a need for markedly increased amounts of cannabis to achieve intoxication or desired effect; or markedly diminished effect with continued use of the same amount','Withdrawal: characteristic cannabis withdrawal syndrome; or cannabis is taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+    { code:'F14.10', name:'Cocaine Use Disorder, Mild', groups:[
+      { label:'Diagnostic criteria', note:'2–3 symptoms = mild; within a 12-month period', min:2,
+        criteria:['Cocaine is often taken in larger amounts or over a longer period than was intended','Persistent desire or unsuccessful efforts to cut down or control cocaine use','A great deal of time is spent in activities necessary to obtain cocaine, use cocaine, or recover from its effects','Craving or a strong desire or urge to use cocaine','Recurrent cocaine use resulting in a failure to fulfill major role obligations at work, school, or home','Continued cocaine use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by cocaine use','Important social, occupational, or recreational activities are given up or reduced because of cocaine use','Recurrent cocaine use in situations in which it is physically hazardous','Continued cocaine use despite knowledge of having a persistent or recurrent physical or psychological problem likely caused or exacerbated by cocaine','Tolerance: a need for markedly increased amounts of cocaine to achieve intoxication or desired effect; or markedly diminished effect with continued use of the same amount','Withdrawal: characteristic cocaine withdrawal syndrome (e.g., dysphoric mood, fatigue, sleep changes); or cocaine is taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+    { code:'F14.20', name:'Cocaine Use Disorder, Moderate to Severe', groups:[
+      { label:'Diagnostic criteria', note:'4–5 symptoms = moderate; 6+ = severe; within a 12-month period', min:4,
+        criteria:['Cocaine is often taken in larger amounts or over a longer period than was intended','Persistent desire or unsuccessful efforts to cut down or control cocaine use','A great deal of time is spent in activities necessary to obtain cocaine, use cocaine, or recover from its effects','Craving or a strong desire or urge to use cocaine','Recurrent cocaine use resulting in a failure to fulfill major role obligations at work, school, or home','Continued cocaine use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by cocaine use','Important social, occupational, or recreational activities are given up or reduced because of cocaine use','Recurrent cocaine use in situations in which it is physically hazardous','Continued cocaine use despite knowledge of having a persistent or recurrent physical or psychological problem likely caused or exacerbated by cocaine','Tolerance: a need for markedly increased amounts of cocaine to achieve intoxication or desired effect; or markedly diminished effect with continued use of the same amount','Withdrawal: characteristic cocaine withdrawal syndrome (e.g., dysphoric mood, fatigue, sleep changes); or cocaine is taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+    { code:'F15.10', name:'Other Stimulant Use Disorder, Mild', groups:[
+      { label:'Diagnostic criteria', note:'2–3 symptoms = mild; within a 12-month period', min:2,
+        criteria:['Stimulants are often taken in larger amounts or over a longer period than was intended','Persistent desire or unsuccessful efforts to cut down or control stimulant use','A great deal of time is spent in activities necessary to obtain stimulants, use stimulants, or recover from their effects','Craving or a strong desire or urge to use a stimulant','Recurrent stimulant use resulting in a failure to fulfill major role obligations at work, school, or home','Continued stimulant use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by stimulant use','Important social, occupational, or recreational activities are given up or reduced because of stimulant use','Recurrent stimulant use in situations in which it is physically hazardous','Continued stimulant use despite knowledge of having a persistent or recurrent physical or psychological problem likely caused or exacerbated by stimulants','Tolerance: a need for markedly increased amounts of stimulants to achieve intoxication or desired effect; or markedly diminished effect with continued use of the same amount','Withdrawal: characteristic stimulant withdrawal syndrome; or stimulants are taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+    { code:'F15.20', name:'Other Stimulant Use Disorder, Moderate to Severe', groups:[
+      { label:'Diagnostic criteria', note:'4–5 symptoms = moderate; 6+ = severe; within a 12-month period', min:4,
+        criteria:['Stimulants are often taken in larger amounts or over a longer period than was intended','Persistent desire or unsuccessful efforts to cut down or control stimulant use','A great deal of time is spent in activities necessary to obtain stimulants, use stimulants, or recover from their effects','Craving or a strong desire or urge to use a stimulant','Recurrent stimulant use resulting in a failure to fulfill major role obligations at work, school, or home','Continued stimulant use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by stimulant use','Important social, occupational, or recreational activities are given up or reduced because of stimulant use','Recurrent stimulant use in situations in which it is physically hazardous','Continued stimulant use despite knowledge of having a persistent or recurrent physical or psychological problem likely caused or exacerbated by stimulants','Tolerance: a need for markedly increased amounts of stimulants to achieve intoxication or desired effect; or markedly diminished effect with continued use of the same amount','Withdrawal: characteristic stimulant withdrawal syndrome; or stimulants are taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+    { code:'F17.210', name:'Nicotine Dependence, Cigarettes', groups:[
+      { label:'Diagnostic criteria', note:'2–3 symptoms = mild; 4–5 = moderate; 6+ = severe; within a 12-month period', min:2,
+        criteria:['Tobacco is often used in larger amounts or over a longer period than was intended','Persistent desire or unsuccessful efforts to cut down or control tobacco use','A great deal of time is spent in activities necessary to obtain or use tobacco','Craving or a strong desire or urge to use tobacco','Recurrent tobacco use resulting in a failure to fulfill major role obligations at work, school, or home','Continued tobacco use despite having persistent or recurrent social or interpersonal problems caused or exacerbated by tobacco use','Important social, occupational, or recreational activities are given up or reduced because of tobacco use','Recurrent tobacco use in situations in which it is physically hazardous','Continued tobacco use despite knowledge of having a persistent or recurrent physical or psychological problem likely caused or exacerbated by tobacco','Tolerance: a need for markedly increased amounts of tobacco to achieve the desired effect; or markedly diminished effect with continued use of the same amount','Withdrawal: characteristic tobacco withdrawal syndrome; or tobacco is used to relieve or avoid withdrawal symptoms'] },
+    ]},
+    // ─── ADHD Unspecified ─────────────────────────────────────────────────────
+    { code:'F90.9', name:'Attention-Deficit/Hyperactivity Disorder, Unspecified', groups:[
+      { label:'Clinical presentation', note:'ADHD presentation not further specified; symptoms do not clearly meet criteria for predominantly inattentive, predominantly hyperactive-impulsive, or combined presentation', min:1,
+        criteria:['Clinically significant inattention and/or hyperactivity-impulsivity symptoms causing functional impairment','Symptoms present in two or more settings (e.g., at home, school, or work)','Symptoms do not meet full criteria for a specific ADHD presentation type'] },
+    ]},
+    // ─── Neurodevelopmental ───────────────────────────────────────────────────
+    { code:'F84.0', name:'Autism Spectrum Disorder', groups:[
+      { label:'Criterion A — Social communication deficits', note:'All 3 required, across multiple contexts', min:3,
+        criteria:['Deficits in social-emotional reciprocity (e.g., abnormal social approach, failure of normal back-and-forth conversation, reduced sharing of interests/emotions, failure to initiate or respond to social interactions)','Deficits in nonverbal communicative behaviors used for social interaction (e.g., poorly integrated verbal and nonverbal communication, abnormalities in eye contact and body language, deficits in understanding gestures)','Deficits in developing, maintaining, and understanding relationships (e.g., difficulties adjusting behavior to suit various social contexts, difficulties in sharing imaginative play or making friends, absence of interest in peers)'] },
+      { label:'Criterion B — Restricted/repetitive behaviors', note:'2 of 4 required, present or by history', min:2,
+        criteria:['Stereotyped or repetitive motor movements, use of objects, or speech (e.g., simple motor stereotypies, lining up toys, echolalia, idiosyncratic phrases)','Insistence on sameness, inflexible adherence to routines, or ritualized patterns of verbal or nonverbal behavior','Highly restricted, fixated interests that are abnormal in intensity or focus','Hyper- or hyporeactivity to sensory input or unusual interest in sensory aspects of the environment'] },
+      { label:'Criteria C–E — Onset, impact, and exclusions', note:'All 3 required', min:3,
+        criteria:['Symptoms must be present in the early developmental period (but may not fully manifest until social demands exceed limited capacities)','Symptoms cause clinically significant impairment in social, occupational, or other current areas of functioning','These disturbances are not better explained by intellectual disability or global developmental delay'] },
+    ]},
+    // ─── Sleep-Wake Disorders ─────────────────────────────────────────────────
+    { code:'G47.00', name:'Insomnia Disorder, Unspecified', groups:[
+      { label:'Criterion A — Sleep complaint', note:'At least 1 required', min:1,
+        criteria:['Difficulty initiating sleep','Difficulty maintaining sleep, characterized by frequent awakenings or problems returning to sleep after awakenings','Early-morning awakening with inability to return to sleep'] },
+      { label:'Criteria B–F — Impact and context', note:'All 5 required', min:5,
+        criteria:['Sleep disturbance causes clinically significant distress or impairment in social, occupational, educational, academic, behavioral, or other important areas of functioning','Sleep difficulty occurs at least 3 nights per week','Sleep difficulty is present for at least 3 months','Sleep difficulty occurs despite adequate opportunity for sleep','The insomnia is not better explained by and does not occur exclusively during the course of another sleep-wake disorder'] },
+    ]},
   ]
 
   function buildDxPrompt({ subject, diagnosis, selectedSymptoms, observations }) {
