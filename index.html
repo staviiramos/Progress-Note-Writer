@@ -290,6 +290,20 @@ textarea { resize: vertical; }
 .sx-item.checked .sx-chk-lbl { color: var(--ink); font-weight: 500; }
 .sx-ctx { padding: 0 11px 10px; }
 .sx-ctx textarea { min-height: 54px; font-size: 12.5px; }
+
+/* Dx criterion groups */
+.sx-group { margin-bottom: 14px; }
+.sx-group:last-child { margin-bottom: 0; }
+.sx-group-hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.sx-group-label { font-size: 11.5px; font-weight: 600; color: var(--ink); letter-spacing: .01em; }
+.sx-group-badge {
+  font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  background: var(--bg-2); border: 1px solid var(--line); color: var(--muted);
+  white-space: nowrap; flex-shrink: 0;
+}
+.sx-group-badge.partial { background: color-mix(in oklab, var(--warn) 9%, var(--paper)); border-color: color-mix(in oklab, var(--warn) 28%, var(--line)); color: var(--warn); }
+.sx-group-badge.met { background: color-mix(in oklab, var(--ok) 9%, var(--paper)); border-color: color-mix(in oklab, var(--ok) 28%, var(--line)); color: var(--ok); }
+.sx-group-note { font-size: 10.5px; color: var(--muted); margin-bottom: 5px; line-height: 1.4; font-style: italic; padding-left: 1px; }
 .note-output h2.note-section { font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin: 1.6em 0 0.5em; }
 .note-output p { margin: 0 0 0.85em; }
 
@@ -942,37 +956,163 @@ window.PN_LIB = (() => {
     return parts.join('\n');
   }
 
-  const DX_DATABASE = [
-    { code:'F32.0', name:'Major Depressive Disorder, single episode, mild', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight loss/gain or appetite decrease/increase','Insomnia or hypersomnia','Psychomotor agitation or retardation observable by others','Fatigue or loss of energy nearly every day','Feelings of worthlessness or excessive/inappropriate guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','Symptoms cause clinically significant distress or functional impairment'] },
-    { code:'F32.1', name:'Major Depressive Disorder, single episode, moderate', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight loss/gain or appetite decrease/increase','Insomnia or hypersomnia','Psychomotor agitation or retardation observable by others','Fatigue or loss of energy','Feelings of worthlessness or excessive/inappropriate guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','Moderate impairment in social or occupational functioning'] },
-    { code:'F32.2', name:'Major Depressive Disorder, single episode, severe', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in nearly all activities','Significant weight loss/gain or appetite disturbance','Insomnia or hypersomnia','Psychomotor agitation or retardation','Fatigue or loss of energy','Feelings of worthlessness or excessive guilt','Diminished ability to think, concentrate, or make decisions','Recurrent thoughts of death or suicidal ideation with or without a plan','Severe functional impairment in social or occupational domains'] },
-    { code:'F32.9', name:'Major Depressive Disorder, unspecified', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight change or appetite disturbance','Insomnia or hypersomnia','Fatigue or loss of energy','Feelings of worthlessness or excessive guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','Symptoms cause clinically significant distress or impairment'] },
-    { code:'F33.0', name:'Major Depressive Disorder, recurrent, mild', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities','Appetite or weight disturbance','Insomnia or hypersomnia','Fatigue or loss of energy','Feelings of worthlessness or guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','History of at least one prior depressive episode','Mild functional impairment'] },
-    { code:'F33.1', name:'Major Depressive Disorder, recurrent, moderate', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities','Appetite or weight disturbance','Insomnia or hypersomnia','Psychomotor agitation or retardation','Fatigue or loss of energy','Feelings of worthlessness or excessive guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation','History of at least one prior depressive episode'] },
-    { code:'F33.2', name:'Major Depressive Disorder, recurrent, severe', criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in nearly all activities','Significant weight loss/gain or appetite disturbance','Insomnia or hypersomnia','Psychomotor agitation or retardation','Fatigue or loss of energy nearly every day','Feelings of worthlessness or excessive guilt','Diminished ability to think or concentrate','Recurrent thoughts of death or suicidal ideation with or without a plan','Severe functional impairment','History of at least one prior depressive episode'] },
-    { code:'F34.1', name:'Persistent Depressive Disorder (Dysthymia)', criteria:['Depressed mood for most of the day, more days than not, for at least 2 years','Poor appetite or overeating','Insomnia or hypersomnia','Low energy or fatigue','Low self-esteem','Poor concentration or difficulty making decisions','Feelings of hopelessness','No absence of symptoms for more than 2 consecutive months','Symptoms cause clinically significant distress or impairment'] },
-    { code:'F41.1', name:'Generalized Anxiety Disorder', criteria:['Excessive anxiety and worry occurring more days than not for at least 6 months','Difficulty controlling the worry','Restlessness or feeling keyed up or on edge','Being easily fatigued','Difficulty concentrating or mind going blank','Irritability','Muscle tension','Sleep disturbance (difficulty falling or staying asleep, or restless sleep)','Anxiety causes clinically significant distress or functional impairment'] },
-    { code:'F41.0', name:'Panic Disorder', criteria:['Recurrent unexpected panic attacks','At least one month of persistent concern or worry about additional attacks','Significant maladaptive change in behavior related to attacks (avoidance)','Palpitations, pounding heart, or accelerated heart rate during attacks','Sweating, trembling, or shaking during attacks','Sensations of shortness of breath or smothering','Chest pain or discomfort','Nausea or abdominal distress','Dizziness, lightheadedness, or faintness','Derealization or depersonalization','Fear of losing control or going crazy','Fear of dying','Paresthesias (numbness or tingling)','Chills or hot flushes'] },
-    { code:'F40.10', name:'Social Anxiety Disorder', criteria:['Marked fear or anxiety about social situations in which scrutiny is possible','Fear of acting in a way that will be negatively evaluated','Social situations almost always provoke fear or anxiety','Social situations are avoided or endured with intense distress','Fear or anxiety is out of proportion to the actual threat','Fear, anxiety, or avoidance is persistent (6+ months)','Causes clinically significant distress or functional impairment','Physical symptoms in social situations (blushing, sweating, trembling, nausea)'] },
-    { code:'F40.00', name:'Agoraphobia', criteria:['Marked fear or anxiety about using public transportation','Marked fear or anxiety about open spaces (parking lots, bridges)','Marked fear or anxiety about enclosed places (shops, theaters)','Marked fear or anxiety about standing in line or being in a crowd','Marked fear or anxiety about being outside of the home alone','Fear that escape would be difficult or help unavailable if panic-like symptoms occur','Situations are avoided or endured with significant distress','Persistent, typically lasting 6+ months'] },
-    { code:'F43.10', name:'Post-Traumatic Stress Disorder', criteria:['Exposure to actual or threatened death, serious injury, or sexual violence','Intrusive memories of the traumatic event','Recurrent distressing dreams related to the traumatic event','Dissociative reactions (flashbacks)','Intense psychological distress at internal or external trauma cues','Marked physiological reactions to trauma reminders','Persistent avoidance of trauma-related external stimuli','Avoidance of thoughts, feelings, or memories associated with trauma','Persistent negative beliefs about oneself, others, or the world','Persistent negative emotional state (fear, horror, anger, guilt, shame)','Diminished interest or participation in significant activities','Feelings of detachment or estrangement from others','Persistent inability to experience positive emotions','Irritable or aggressive behavior','Reckless or self-destructive behavior','Hypervigilance','Exaggerated startle response','Problems with concentration','Sleep disturbance'] },
-    { code:'F43.20', name:'Adjustment Disorder with Depressed Mood', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Significant impairment in social or occupational functioning','Symptoms developed within 3 months of the onset of the stressor','Depressed mood as primary presentation','Tearfulness or feelings of hopelessness'] },
-    { code:'F43.21', name:'Adjustment Disorder with Anxiety', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Significant impairment in social or occupational functioning','Symptoms developed within 3 months of the onset of the stressor','Nervousness, worry, or jitteriness as primary presentation'] },
-    { code:'F43.22', name:'Adjustment Disorder with Mixed Anxiety and Depressed Mood', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Significant impairment in social or occupational functioning','Symptoms developed within 3 months of the onset of the stressor','Combination of depressed mood and anxiety symptoms','Tearfulness, hopelessness, nervousness, or worry'] },
-    { code:'F43.23', name:'Adjustment Disorder with Disturbance of Conduct', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Symptoms developed within 3 months of onset of the stressor','Primary presentation involves conduct problems','Violation of others\' rights or age-appropriate societal norms'] },
-    { code:'F43.25', name:'Adjustment Disorder with Mixed Disturbance of Emotions and Conduct', criteria:['Emotional or behavioral symptoms in response to an identifiable stressor','Marked distress out of proportion to the severity of the stressor','Significant impairment in social or occupational functioning','Both emotional symptoms (depression/anxiety) and conduct disturbances present'] },
-    { code:'F42.2', name:'Obsessive-Compulsive Disorder', criteria:['Recurrent and persistent intrusive, unwanted thoughts, urges, or images (obsessions)','Attempts to suppress, neutralize, or ignore obsessions','Repetitive behaviors or mental acts aimed at reducing distress (compulsions)','Compulsions are not connected to the feared event in a realistic way','Obsessions and/or compulsions are time-consuming (more than 1 hour per day)','Causes clinically significant distress or functional impairment'] },
-    { code:'F90.0', name:'ADHD, predominantly inattentive presentation', criteria:['Often fails to give close attention to details or makes careless mistakes','Often has difficulty sustaining attention in tasks or play','Often does not seem to listen when spoken to directly','Often does not follow through on instructions or fails to finish tasks','Often has difficulty organizing tasks and activities','Often avoids tasks requiring sustained mental effort','Often loses things necessary for tasks (keys, glasses, paperwork, tools)','Often easily distracted by extraneous stimuli','Often forgetful in daily activities','Symptoms present in two or more settings','Symptoms interfere with or reduce quality of social, academic, or occupational functioning'] },
-    { code:'F90.1', name:'ADHD, predominantly hyperactive-impulsive presentation', criteria:['Often fidgets with or taps hands/feet, or squirms in seat','Often leaves seat when remaining seated is expected','Often runs about or climbs in situations where it is inappropriate','Often unable to play or engage in leisure activities quietly','Often "on the go" or acts as if "driven by a motor"','Often talks excessively','Often blurts out an answer before a question has been completed','Often has difficulty waiting their turn','Often interrupts or intrudes on others'] },
-    { code:'F90.2', name:'ADHD, combined presentation', criteria:['Often fails to give close attention to details or makes careless mistakes','Often has difficulty sustaining attention','Often does not follow through on instructions or fails to finish tasks','Often has difficulty organizing tasks and activities','Often easily distracted or forgetful in daily activities','Often fidgets, squirms, or leaves seat when remaining seated is expected','Often talks excessively or blurts out answers','Often has difficulty waiting turn or interrupts others','Symptoms present in two or more settings','Symptoms interfere with social, academic, or occupational functioning'] },
-    { code:'F31.81', name:'Bipolar II Disorder', criteria:['At least one current or past hypomanic episode','At least one current or past major depressive episode','No history of manic episodes','Elevated, expansive, or irritable mood during hypomanic episode','Increased activity or energy during hypomanic episode','Inflated self-esteem or grandiosity','Decreased need for sleep (feels rested after only 3 hours)','More talkative than usual or pressured speech','Flight of ideas or racing thoughts','Distractibility','Increased goal-directed activity or psychomotor agitation','Excessive involvement in activities with high potential for harm'] },
-    { code:'F31.9', name:'Bipolar I Disorder, unspecified', criteria:['At least one lifetime manic episode','Distinct period of abnormally elevated, expansive, or irritable mood','Abnormally increased activity or energy','Inflated self-esteem or grandiosity','Decreased need for sleep','Pressured speech or more talkative than usual','Flight of ideas or racing thoughts','Distractibility','Increased goal-directed activity or psychomotor agitation','Excessive involvement in activities with high potential for harm','Marked impairment in social or occupational functioning'] },
-    { code:'F60.3', name:'Borderline Personality Disorder', criteria:['Frantic efforts to avoid real or imagined abandonment','Pattern of unstable and intense interpersonal relationships (idealization/devaluation)','Identity disturbance: markedly unstable self-image or sense of self','Impulsivity in at least two self-damaging areas','Recurrent suicidal behavior, gestures, threats, or self-mutilating behavior','Affective instability due to marked reactivity of mood','Chronic feelings of emptiness','Inappropriate, intense anger or difficulty controlling anger','Transient, stress-related paranoid ideation or severe dissociative symptoms'] },
-    { code:'F50.01', name:'Anorexia Nervosa, restricting type', criteria:['Restriction of energy intake relative to requirements leading to significantly low body weight','Intense fear of gaining weight or persistent behavior that interferes with weight gain','Disturbance in perception of own body weight or shape','Lack of recognition of the seriousness of the current low body weight','No regular binge-eating or purging behavior'] },
-    { code:'F50.2', name:'Bulimia Nervosa', criteria:['Recurrent episodes of binge eating (eating an unusually large amount in a discrete period)','Sense of lack of control over eating during the episode','Recurrent compensatory behaviors to prevent weight gain','Self-induced vomiting or misuse of laxatives/diuretics','Non-purging compensatory behavior (fasting, excessive exercise)','Binge eating and compensatory behaviors occur at least once a week for 3 months','Self-evaluation unduly influenced by body shape and weight','Clinically significant distress or impairment'] },
-    { code:'F10.10', name:'Alcohol Use Disorder, mild', criteria:['Alcohol often taken in larger amounts or over longer periods than intended','Persistent desire or unsuccessful efforts to cut down or control use','Great deal of time spent obtaining, using, or recovering from alcohol','Craving or strong desire to use alcohol','Recurrent use resulting in failure to fulfill major role obligations','Continued use despite persistent social or interpersonal problems caused by alcohol','Important activities given up or reduced because of alcohol use','Recurrent use in physically hazardous situations','Continued use despite knowing a physical or psychological problem is worsened by alcohol','Tolerance (need for markedly increased amounts or diminished effect)','Withdrawal symptoms'] },
-    { code:'F10.20', name:'Alcohol Use Disorder, moderate to severe', criteria:['Alcohol often taken in larger amounts or over longer periods than intended','Persistent desire or unsuccessful efforts to cut down or control use','Great deal of time spent obtaining, using, or recovering from alcohol','Craving or strong desire to use alcohol','Recurrent use resulting in failure to fulfill major role obligations','Continued use despite persistent social or interpersonal problems','Important activities given up or reduced because of alcohol use','Recurrent use in physically hazardous situations','Continued use despite knowing a physical or psychological problem','Tolerance (need for markedly increased amounts or diminished effect with same amount)','Withdrawal symptoms (sweating, tremor, anxiety, nausea, seizures)'] },
+  const _MDD_GROUPS = [
+    { label:'Criterion A — Depressive episode', note:'5 of 9 required; at least one must be depressed mood (1) or anhedonia (2)', min:5,
+      criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight loss/gain or appetite decrease/increase','Insomnia or hypersomnia','Psychomotor agitation or retardation observable by others','Fatigue or loss of energy nearly every day','Feelings of worthlessness or excessive/inappropriate guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation'] },
   ];
+  const DX_DATABASE = [
+    { code:'F32.0', name:'Major Depressive Disorder, single episode, mild', groups:_MDD_GROUPS },
+    { code:'F32.1', name:'Major Depressive Disorder, single episode, moderate', groups:_MDD_GROUPS },
+    { code:'F32.2', name:'Major Depressive Disorder, single episode, severe', groups:_MDD_GROUPS },
+    { code:'F32.9', name:'Major Depressive Disorder, unspecified', groups:_MDD_GROUPS },
+    { code:'F33.0', name:'Major Depressive Disorder, recurrent, mild', groups:_MDD_GROUPS },
+    { code:'F33.1', name:'Major Depressive Disorder, recurrent, moderate', groups:_MDD_GROUPS },
+    { code:'F33.2', name:'Major Depressive Disorder, recurrent, severe', groups:_MDD_GROUPS },
+    { code:'F34.1', name:'Persistent Depressive Disorder (Dysthymia)', groups:[
+      { label:'Criterion A — Core feature', note:'Required', min:1,
+        criteria:['Depressed mood for most of the day, more days than not, for at least 2 years'] },
+      { label:'Criterion B — Associated symptoms', note:'2 of 6 required', min:2,
+        criteria:['Poor appetite or overeating','Insomnia or hypersomnia','Low energy or fatigue','Low self-esteem','Poor concentration or difficulty making decisions','Feelings of hopelessness'] },
+    ]},
+    { code:'F41.1', name:'Generalized Anxiety Disorder', groups:[
+      { label:'Criterion A+B — Core features', note:'Both required', min:2,
+        criteria:['Excessive anxiety and worry occurring more days than not for at least 6 months','Difficulty controlling the worry'] },
+      { label:'Criterion C — Associated symptoms', note:'3 of 6 required (1 of 6 for children)', min:3,
+        criteria:['Restlessness or feeling keyed up or on edge','Being easily fatigued','Difficulty concentrating or mind going blank','Irritability','Muscle tension','Sleep disturbance (difficulty falling or staying asleep, or restless sleep)'] },
+    ]},
+    { code:'F41.0', name:'Panic Disorder', groups:[
+      { label:'Criterion A+B — Core features', note:'Both required', min:2,
+        criteria:['Recurrent unexpected panic attacks','At least one attack followed by 1+ month of persistent concern about future attacks or significant maladaptive behavioral change'] },
+      { label:'Panic attack symptoms', note:'4 of 13 required within a single attack', min:4,
+        criteria:['Palpitations, pounding heart, or accelerated heart rate','Sweating','Trembling or shaking','Sensations of shortness of breath or smothering','Feelings of choking','Chest pain or discomfort','Nausea or abdominal distress','Dizziness, lightheadedness, or faintness','Chills or hot flushes','Paresthesias (numbness or tingling sensations)','Derealization or depersonalization','Fear of losing control or going crazy','Fear of dying'] },
+    ]},
+    { code:'F40.10', name:'Social Anxiety Disorder', groups:[
+      { label:'Criterion A–E — Diagnostic features', note:'All 5 criteria required', min:5,
+        criteria:['Marked fear or anxiety about social situations in which the individual may be scrutinized','Fear of acting in a way that will show anxiety symptoms or be humiliating or embarrassing','Social situations almost always provoke fear or anxiety','Social situations are avoided or endured with intense fear or anxiety','Fear or anxiety is out of proportion to the actual threat posed by the situation'] },
+      { label:'Criterion F–H — Duration and impairment', note:'All 3 required', min:3,
+        criteria:['Persistent fear, anxiety, or avoidance lasting 6 months or more','Causes clinically significant distress or impairment in social or occupational functioning','Not attributable to a substance, medical condition, or better explained by another mental disorder'] },
+    ]},
+    { code:'F40.00', name:'Agoraphobia', groups:[
+      { label:'Criterion A — Feared situations', note:'2 of 5 required', min:2,
+        criteria:['Marked fear or anxiety about using public transportation','Marked fear or anxiety about being in open spaces (parking lots, marketplaces, bridges)','Marked fear or anxiety about being in enclosed places (shops, theaters, cinemas)','Marked fear or anxiety about standing in line or being in a crowd','Marked fear or anxiety about being outside of the home alone'] },
+      { label:'Criterion B–F — Additional criteria', note:'All 4 required', min:4,
+        criteria:['Fear that escape might be difficult or help unavailable if panic-like symptoms occur','Situations almost always provoke fear or anxiety and are avoided or require a companion','Fear or anxiety is out of proportion to the actual danger','Persistent, typically lasting 6 months or more'] },
+    ]},
+    { code:'F43.10', name:'Post-Traumatic Stress Disorder', groups:[
+      { label:'Criterion A — Trauma exposure', note:'At least 1 required (direct, witnessed, or learned of)', min:1,
+        criteria:['Direct exposure to actual or threatened death, serious injury, or sexual violence','Witnessed in person such an event occurring to others','Learned that a traumatic event occurred to a close family member or friend','Experienced repeated or extreme indirect exposure to aversive details of traumatic events (e.g., first responders)'] },
+      { label:'Criterion B — Intrusion symptoms', note:'1 of 5 required', min:1,
+        criteria:['Recurrent, involuntary, and intrusive distressing memories of the traumatic event','Recurrent distressing dreams related to the traumatic event','Dissociative reactions such as flashbacks','Intense or prolonged psychological distress at trauma-related cues','Marked physiological reactions to internal or external trauma-related cues'] },
+      { label:'Criterion C — Avoidance', note:'1 of 2 required', min:1,
+        criteria:['Avoidance of distressing memories, thoughts, or feelings related to the traumatic event','Avoidance of external reminders (people, places, activities, objects, situations) associated with the trauma'] },
+      { label:'Criterion D — Negative alterations in cognition and mood', note:'2 of 7 required', min:2,
+        criteria:['Inability to remember important aspects of the traumatic event','Persistent and exaggerated negative beliefs about oneself, others, or the world','Persistent distorted blame of self or others for the cause or consequences of the trauma','Persistent negative emotional state (fear, horror, anger, guilt, or shame)','Markedly diminished interest or participation in significant activities','Feelings of detachment or estrangement from others','Persistent inability to experience positive emotions (emotional numbing)'] },
+      { label:'Criterion E — Alterations in arousal and reactivity', note:'2 of 6 required', min:2,
+        criteria:['Irritable behavior and angry outbursts with little provocation','Reckless or self-destructive behavior','Hypervigilance','Exaggerated startle response','Problems with concentration','Sleep disturbance (difficulty falling or staying asleep, or restless sleep)'] },
+    ]},
+    { code:'F43.20', name:'Adjustment Disorder with Depressed Mood', groups:[
+      { label:'Core criteria', note:'All 4 required', min:4,
+        criteria:['Emotional or behavioral symptoms developed within 3 months of onset of an identifiable stressor','Marked distress out of proportion to the severity or intensity of the stressor','Significant impairment in social or occupational functioning','Does not meet criteria for another mental disorder and is not a normal bereavement reaction'] },
+      { label:'Presenting features', note:'Select all that apply', min:1,
+        criteria:['Depressed mood','Tearfulness','Feelings of hopelessness'] },
+    ]},
+    { code:'F43.21', name:'Adjustment Disorder with Anxiety', groups:[
+      { label:'Core criteria', note:'All 4 required', min:4,
+        criteria:['Emotional or behavioral symptoms developed within 3 months of onset of an identifiable stressor','Marked distress out of proportion to the severity or intensity of the stressor','Significant impairment in social or occupational functioning','Does not meet criteria for another mental disorder and is not a normal bereavement reaction'] },
+      { label:'Presenting features', note:'Select all that apply', min:1,
+        criteria:['Nervousness or worry','Jitteriness or feeling on edge','Separation anxiety (in children)'] },
+    ]},
+    { code:'F43.22', name:'Adjustment Disorder with Mixed Anxiety and Depressed Mood', groups:[
+      { label:'Core criteria', note:'All 4 required', min:4,
+        criteria:['Emotional or behavioral symptoms developed within 3 months of onset of an identifiable stressor','Marked distress out of proportion to the severity or intensity of the stressor','Significant impairment in social or occupational functioning','Does not meet criteria for another mental disorder and is not a normal bereavement reaction'] },
+      { label:'Presenting features', note:'Select all that apply', min:1,
+        criteria:['Depressed mood or tearfulness','Feelings of hopelessness','Nervousness, worry, or jitteriness'] },
+    ]},
+    { code:'F43.23', name:'Adjustment Disorder with Disturbance of Conduct', groups:[
+      { label:'Core criteria', note:'All 4 required', min:4,
+        criteria:['Emotional or behavioral symptoms developed within 3 months of onset of an identifiable stressor','Marked distress out of proportion to the severity or intensity of the stressor','Significant impairment in social or occupational functioning','Does not meet criteria for another mental disorder and is not a normal bereavement reaction'] },
+      { label:'Conduct disturbance features', note:'Select all that apply', min:1,
+        criteria:['Violation of the rights of others','Age-inappropriate violations of major societal norms (truancy, vandalism, reckless driving, fighting)'] },
+    ]},
+    { code:'F43.25', name:'Adjustment Disorder with Mixed Disturbance of Emotions and Conduct', groups:[
+      { label:'Core criteria', note:'All 4 required', min:4,
+        criteria:['Emotional or behavioral symptoms developed within 3 months of onset of an identifiable stressor','Marked distress out of proportion to the severity or intensity of the stressor','Significant impairment in social or occupational functioning','Does not meet criteria for another mental disorder and is not a normal bereavement reaction'] },
+      { label:'Combined presenting features', note:'Select all that apply', min:1,
+        criteria:['Depressed mood, anxiety, or mixed emotional symptoms','Conduct disturbance violating rights of others or major societal norms'] },
+    ]},
+    { code:'F42.2', name:'Obsessive-Compulsive Disorder', groups:[
+      { label:'Obsessions (both criteria required if obsessions are present)', note:'Obsessions, compulsions, or both must be present', min:2,
+        criteria:['Recurrent and persistent thoughts, urges, or images that are intrusive, unwanted, and cause marked distress','The individual attempts to suppress or neutralize obsessions with another thought or action (e.g., a compulsion)'] },
+      { label:'Compulsions (both criteria required if compulsions are present)', note:'Obsessions, compulsions, or both must be present', min:2,
+        criteria:['Repetitive behaviors or mental acts the individual feels driven to perform in response to an obsession or rigid rules','The behaviors or mental acts are aimed at preventing or reducing distress but are not realistically connected to the feared event'] },
+      { label:'Functional impact', note:'Both required', min:2,
+        criteria:['Obsessions or compulsions are time-consuming (more than 1 hour per day)','Obsessions or compulsions cause clinically significant distress or impairment in functioning'] },
+    ]},
+    { code:'F90.0', name:'ADHD, predominantly inattentive presentation', groups:[
+      { label:'Inattentive symptoms', note:'6 of 9 for children/adolescents; 5 of 9 for adults age 17+', min:5,
+        criteria:['Often fails to give close attention to details or makes careless mistakes','Often has difficulty sustaining attention in tasks or play activities','Often does not seem to listen when spoken to directly','Often does not follow through on instructions; fails to finish schoolwork, chores, or workplace duties','Often has difficulty organizing tasks and activities','Often avoids or is reluctant to engage in tasks requiring sustained mental effort','Often loses things necessary for tasks (keys, glasses, paperwork, tools, wallet)','Often easily distracted by extraneous stimuli','Often forgetful in daily activities'] },
+      { label:'Impairment criteria', note:'Both required', min:2,
+        criteria:['Several inattentive symptoms present in two or more settings (home, school, work, social)','Symptoms interfere with or reduce the quality of social, academic, or occupational functioning'] },
+    ]},
+    { code:'F90.1', name:'ADHD, predominantly hyperactive-impulsive presentation', groups:[
+      { label:'Hyperactive-impulsive symptoms', note:'6 of 9 for children/adolescents; 5 of 9 for adults age 17+', min:5,
+        criteria:['Often fidgets with or taps hands or feet, or squirms in seat','Often leaves seat in situations when remaining seated is expected','Often runs about or climbs in situations where it is inappropriate','Often unable to play or engage in leisure activities quietly','Often "on the go" or acts as if "driven by a motor"','Often talks excessively','Often blurts out an answer before a question has been completed','Often has difficulty waiting their turn','Often interrupts or intrudes on others'] },
+      { label:'Impairment criteria', note:'Both required', min:2,
+        criteria:['Several hyperactive-impulsive symptoms present in two or more settings','Symptoms interfere with or reduce the quality of social, academic, or occupational functioning'] },
+    ]},
+    { code:'F90.2', name:'ADHD, combined presentation', groups:[
+      { label:'Inattentive symptoms', note:'6 of 9 for children/adolescents; 5 of 9 for adults age 17+', min:5,
+        criteria:['Often fails to give close attention to details or makes careless mistakes','Often has difficulty sustaining attention in tasks or play activities','Often does not seem to listen when spoken to directly','Often does not follow through on instructions; fails to finish schoolwork, chores, or duties','Often has difficulty organizing tasks and activities','Often avoids tasks requiring sustained mental effort','Often loses things necessary for tasks','Often easily distracted by extraneous stimuli','Often forgetful in daily activities'] },
+      { label:'Hyperactive-impulsive symptoms', note:'6 of 9 for children/adolescents; 5 of 9 for adults age 17+', min:5,
+        criteria:['Often fidgets with or taps hands or feet, or squirms in seat','Often leaves seat when remaining seated is expected','Often runs about or climbs inappropriately','Often unable to play or engage in leisure activities quietly','Often "on the go" or acts as if "driven by a motor"','Often talks excessively','Often blurts out an answer before a question has been completed','Often has difficulty waiting their turn','Often interrupts or intrudes on others'] },
+      { label:'Impairment criteria', note:'Both required', min:2,
+        criteria:['Symptoms present in two or more settings (home, school, work, social)','Symptoms interfere with or reduce the quality of social, academic, or occupational functioning'] },
+    ]},
+    { code:'F31.81', name:'Bipolar II Disorder', groups:[
+      { label:'Hypomanic episode — core mood', note:'Both required; lasting at least 4 consecutive days', min:2,
+        criteria:['Distinct period of persistently elevated, expansive, or irritable mood','Distinct period of abnormally and persistently increased activity or energy'] },
+      { label:'Hypomanic episode — associated symptoms', note:'3 of 7 required; 4 of 7 if mood is irritable only', min:3,
+        criteria:['Inflated self-esteem or grandiosity','Decreased need for sleep (feels rested after only 3 hours)','More talkative than usual or pressure to keep talking','Flight of ideas or racing thoughts','Distractibility (attention easily drawn to unimportant stimuli)','Increase in goal-directed activity or psychomotor agitation','Excessive involvement in activities with high potential for harm'] },
+      { label:'Major depressive episode', note:'5 of 9 required; at least one must be depressed mood (1) or anhedonia (2)', min:5,
+        criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight loss/gain or appetite decrease/increase','Insomnia or hypersomnia','Psychomotor agitation or retardation','Fatigue or loss of energy','Feelings of worthlessness or excessive guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation'] },
+      { label:'Course specifiers', note:'Both required to distinguish Bipolar II from Bipolar I', min:2,
+        criteria:['No lifetime history of a full manic episode','The hypomanic episode is not severe enough to cause marked impairment or require hospitalization'] },
+    ]},
+    { code:'F31.9', name:'Bipolar I Disorder, unspecified', groups:[
+      { label:'Manic episode — core mood', note:'Both required; lasting at least 7 days (or any duration if hospitalization required)', min:2,
+        criteria:['Distinct period of abnormally and persistently elevated, expansive, or irritable mood','Abnormally and persistently increased activity or energy, present most of the day, nearly every day'] },
+      { label:'Manic episode — associated symptoms', note:'3 of 7 required; 4 of 7 if mood is irritable only', min:3,
+        criteria:['Inflated self-esteem or grandiosity','Decreased need for sleep (feels rested after only 3 hours)','More talkative than usual or pressure to keep talking','Flight of ideas or racing thoughts','Distractibility (attention easily drawn to unimportant stimuli)','Increase in goal-directed activity or psychomotor agitation','Excessive involvement in activities with high potential for painful consequences'] },
+      { label:'Severity and impairment', note:'At least 1 required', min:1,
+        criteria:['Manic episode sufficiently severe to cause marked impairment in social or occupational functioning','Manic episode necessitated hospitalization to prevent harm to self or others','Manic episode included psychotic features'] },
+    ]},
+    { code:'F60.3', name:'Borderline Personality Disorder', groups:[
+      { label:'Diagnostic criteria', note:'5 of 9 required; pervasive pattern beginning by early adulthood', min:5,
+        criteria:['Frantic efforts to avoid real or imagined abandonment','Pattern of unstable and intense interpersonal relationships alternating between idealization and devaluation','Identity disturbance: markedly and persistently unstable self-image or sense of self','Impulsivity in at least two self-damaging areas (spending, sex, substance use, reckless driving, binge eating)','Recurrent suicidal behavior, gestures, threats, or self-mutilating behavior','Affective instability due to marked reactivity of mood (intense episodic dysphoria, irritability, or anxiety lasting hours to a few days)','Chronic feelings of emptiness','Inappropriate, intense anger or difficulty controlling anger','Transient, stress-related paranoid ideation or severe dissociative symptoms'] },
+    ]},
+    { code:'F50.01', name:'Anorexia Nervosa, restricting type', groups:[
+      { label:'Criterion A–C — Core diagnostic features', note:'All 3 required', min:3,
+        criteria:['Restriction of energy intake leading to a significantly low body weight in the context of age, sex, developmental trajectory, and physical health','Intense fear of gaining weight or becoming fat, or persistent behavior that interferes with weight gain','Disturbance in body image: undue influence of weight/shape on self-evaluation, or lack of recognition of the seriousness of the current low body weight'] },
+      { label:'Subtype specifier', note:'Required to specify restricting subtype', min:1,
+        criteria:['No recurrent episodes of binge eating or purging (self-induced vomiting, laxatives, diuretics, enemas) in the past 3 months'] },
+    ]},
+    { code:'F50.2', name:'Bulimia Nervosa', groups:[
+      { label:'Criterion A+B — Binge eating', note:'Both required; occurring at least once per week for 3 months', min:2,
+        criteria:['Recurrent episodes of binge eating: eating an amount of food that is larger than most people would eat in a similar time and circumstance','Sense of lack of control over eating during the episode'] },
+      { label:'Criterion C — Compensatory behaviors', note:'At least 1 required; occurring at least once per week for 3 months', min:1,
+        criteria:['Recurrent self-induced vomiting or misuse of laxatives, diuretics, or other medications','Fasting or excessive exercise to prevent weight gain following a binge'] },
+      { label:'Criterion D+E — Evaluation and exclusion', note:'Both required', min:2,
+        criteria:['Self-evaluation is unduly influenced by body shape and weight','The disturbance does not occur exclusively during episodes of Anorexia Nervosa'] },
+    ]},
+    { code:'F10.10', name:'Alcohol Use Disorder, mild', groups:[
+      { label:'Diagnostic criteria', note:'2–3 symptoms = mild; 4–5 = moderate; 6+ = severe; within a 12-month period', min:2,
+        criteria:['Alcohol often taken in larger amounts or over a longer period than intended','Persistent desire or unsuccessful efforts to cut down or control use','Great deal of time spent obtaining, using, or recovering from alcohol','Craving or a strong desire to use alcohol','Recurrent use resulting in failure to fulfill major role obligations at work, school, or home','Continued use despite persistent or recurrent social or interpersonal problems caused or exacerbated by alcohol','Important social, occupational, or recreational activities given up or reduced','Recurrent use in situations in which it is physically hazardous','Continued use despite knowing a persistent physical or psychological problem is caused or worsened by alcohol','Tolerance: need for markedly increased amounts for effect, or markedly diminished effect with the same amount','Withdrawal: characteristic alcohol withdrawal syndrome, or alcohol taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+    { code:'F10.20', name:'Alcohol Use Disorder, moderate to severe', groups:[
+      { label:'Diagnostic criteria', note:'4–5 symptoms = moderate; 6+ symptoms = severe; within a 12-month period', min:4,
+        criteria:['Alcohol often taken in larger amounts or over a longer period than intended','Persistent desire or unsuccessful efforts to cut down or control use','Great deal of time spent obtaining, using, or recovering from alcohol','Craving or a strong desire to use alcohol','Recurrent use resulting in failure to fulfill major role obligations at work, school, or home','Continued use despite persistent or recurrent social or interpersonal problems caused or exacerbated by alcohol','Important social, occupational, or recreational activities given up or reduced','Recurrent use in situations in which it is physically hazardous','Continued use despite knowing a persistent physical or psychological problem is caused or worsened by alcohol','Tolerance: need for markedly increased amounts for effect, or markedly diminished effect with the same amount','Withdrawal: characteristic alcohol withdrawal syndrome, or alcohol taken to relieve or avoid withdrawal symptoms'] },
+    ]},
+  ]
 
   function buildDxPrompt({ subject, diagnosis, selectedSymptoms, observations }) {
     const parts = [];
@@ -1689,6 +1829,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
   const [showDrop, setShowDrop] = useState(false);
   const [focusedIdx, setFocusedIdx] = useState(-1);
   const [selectedDx, setSelectedDx] = useState(null);
+  // checkedSet keys are "groupIdx:criteriaIdx" strings
   const [checkedSet, setCheckedSet] = useState(new Set());
   const [ctxMap, setCtxMap] = useState({});
   const [observations, setObservations] = useState('');
@@ -1727,11 +1868,11 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
     setNote('');
   };
 
-  const toggleSymptom = (idx) => {
-    setCheckedSet(prev => { const n = new Set(prev); n.has(idx) ? n.delete(idx) : n.add(idx); return n; });
+  const toggleSymptom = (key) => {
+    setCheckedSet(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
   };
 
-  const setCtx = (idx, val) => setCtxMap(prev => ({ ...prev, [idx]: val }));
+  const setCtx = (key, val) => setCtxMap(prev => ({ ...prev, [key]: val }));
 
   const generate = async () => {
     if (loading) return;
@@ -1741,7 +1882,13 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
     if (!key) { onNeedKey(); return; }
     setLoading(true); setNote('');
     try {
-      const selectedSymptoms = Array.from(checkedSet).sort((a,b)=>a-b).map(i => ({ label: selectedDx.criteria[i], context: ctxMap[i] || '' }));
+      const selectedSymptoms = [];
+      selectedDx.groups.forEach((group, gIdx) => {
+        group.criteria.forEach((crit, cIdx) => {
+          const k = `${gIdx}:${cIdx}`;
+          if (checkedSet.has(k)) selectedSymptoms.push({ label: crit, context: ctxMap[k] || '' });
+        });
+      });
       const diagnosis = `${selectedDx.code} — ${selectedDx.name}`;
       const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, selectedSymptoms, observations }), key);
       setNote(L.scrubText(raw));
@@ -1754,6 +1901,12 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
     try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
     catch { showToast('Copy failed — select and copy manually'); }
   };
+
+  const chkSvg = (
+    <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
 
   return (
     <>
@@ -1821,34 +1974,48 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
               Presenting symptoms
               <span className="hint">{checkedSet.size > 0 ? `${checkedSet.size} selected` : 'Select all that apply'}</span>
             </h3>
-            <div className="note-sm" style={{marginBottom:10}}>Check each symptom present, then add specific clinical context in the text box that appears.</div>
-            <div className="sx-list">
-              {selectedDx.criteria.map((criterion, idx) => (
-                <div key={idx} className={`sx-item${checkedSet.has(idx) ? ' checked' : ''}`}>
-                  <button type="button" className="sx-check" onClick={() => toggleSymptom(idx)}>
-                    <span className="sx-chk-box">
-                      {checkedSet.has(idx) && (
-                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
+            <div className="note-sm" style={{marginBottom:12}}>Check each symptom present, then add clinical context in the box that appears. Badges show DSM-5-TR minimums.</div>
+            {selectedDx.groups.map((group, gIdx) => {
+              const groupCount = group.criteria.filter((_, cIdx) => checkedSet.has(`${gIdx}:${cIdx}`)).length;
+              const isMet = groupCount >= group.min;
+              const hasAny = groupCount > 0;
+              return (
+                <div key={gIdx} className="sx-group">
+                  <div className="sx-group-hd">
+                    <span className="sx-group-label">{group.label}</span>
+                    <span className={`sx-group-badge${isMet ? ' met' : hasAny ? ' partial' : ''}`}>
+                      {groupCount} / {group.min} min
                     </span>
-                    <span className="sx-chk-lbl">{criterion}</span>
-                  </button>
-                  {checkedSet.has(idx) && (
-                    <div className="sx-ctx">
-                      <textarea
-                        className="textarea"
-                        rows="2"
-                        placeholder="Add clinical specifics or context (optional)…"
-                        value={ctxMap[idx] || ''}
-                        onChange={e => setCtx(idx, e.target.value)}
-                      />
-                    </div>
-                  )}
+                  </div>
+                  {group.note && <div className="sx-group-note">{group.note}</div>}
+                  <div className="sx-list">
+                    {group.criteria.map((criterion, cIdx) => {
+                      const k = `${gIdx}:${cIdx}`;
+                      const checked = checkedSet.has(k);
+                      return (
+                        <div key={cIdx} className={`sx-item${checked ? ' checked' : ''}`}>
+                          <button type="button" className="sx-check" onClick={() => toggleSymptom(k)}>
+                            <span className="sx-chk-box">{checked && chkSvg}</span>
+                            <span className="sx-chk-lbl">{criterion}</span>
+                          </button>
+                          {checked && (
+                            <div className="sx-ctx">
+                              <textarea
+                                className="textarea"
+                                rows="2"
+                                placeholder="Add clinical specifics or context (optional)…"
+                                value={ctxMap[k] || ''}
+                                onChange={e => setCtx(k, e.target.value)}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         )}
 
