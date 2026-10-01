@@ -1822,6 +1822,21 @@ function AllowlistEditor({ words, onAdd, onRemove }) {
   );
 }
 
+// Defined at module level so they keep a stable identity across renders —
+// defining them inside IntakeTab remounted the detail input on every keystroke.
+const StatusSeg = ({ value, onChange, opts }) => (
+  <div className="tri-seg">
+    {opts.map(o => <button key={o} type="button" aria-pressed={value===o} onClick={()=>onChange(value===o?'':o)}>{o}</button>)}
+  </div>
+);
+const StatusRow = ({ label, item, setItem, opts, detailPh, showOn }) => (
+  <div className="row" style={{marginBottom:8}}>
+    <label style={{marginBottom:4}}>{label}</label>
+    <StatusSeg value={item.status} onChange={s=>setItem(x=>({...x,status:s}))} opts={opts}/>
+    {showOn && showOn.includes(item.status) && <input className="input inline-detail" placeholder={detailPh||'Detail…'} value={item.detail} onChange={e=>setItem(x=>({...x,detail:e.target.value}))}/>}
+  </div>
+);
+
 function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
   const [subject, setSubject] = useState('Client');
   const [note, setNote] = useState('');
@@ -1908,19 +1923,6 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
     return out.length ? out : [{ heading: null, body: text.trim() }];
   };
   const sections = note ? parseIntakeNote(note) : [];
-
-  const StatusSeg = ({ value, onChange, opts }) => (
-    <div className="tri-seg">
-      {opts.map(o => <button key={o} type="button" aria-pressed={value===o} onClick={()=>onChange(value===o?'':o)}>{o}</button>)}
-    </div>
-  );
-  const StatusRow = ({ label, item, setItem, opts, detailPh, showOn }) => (
-    <div className="row" style={{marginBottom:8}}>
-      <label style={{marginBottom:4}}>{label}</label>
-      <StatusSeg value={item.status} onChange={s=>setItem(x=>({...x,status:s}))} opts={opts}/>
-      {showOn && showOn.includes(item.status) && <input className="input inline-detail" placeholder={detailPh||'Detail…'} value={item.detail} onChange={e=>setItem(x=>({...x,detail:e.target.value}))}/>}
-    </div>
-  );
 
   return (
     <>
