@@ -60,3 +60,6 @@ Generation follows this order: pre-redact the input (PHI regex plus names) → b
 
 # Output Formatting
 - **Code Block Strictness:** Markdown code blocks are strictly for executable code. Do not put conversational explanations, setup steps, or markdown text inside a code block.
+
+# Operational Safety
+- **Destructive Command Warnings:** Before suggesting any command that stops, removes, recreates, or changes ports of anything that is currently working (e.g., `docker stop`, `docker rm`, service restarts), warn me explicitly in **bold** that this will break things and ask for my confirmation before proceeding.
