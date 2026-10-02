@@ -54,3 +54,6 @@ Generation follows this order: pre-redact the input (PHI regex plus names) → b
   - The model choice is intentionally kept in memory only, so it resets on refresh. Don't persist note content.
 - Optional sections (risk rows, MSE fields) go into the prompt only when the Writer has filled them in.
 - Keep generated-text rules consistent across all three prompt builders: no em dashes, no buzzwords, and no inventing clinical details that weren't in the input.
+
+# Reasoning & Execution
+- **Chain of Thought:** Always think through problems and tasks step-by-step before giving your final answer or generating code.
