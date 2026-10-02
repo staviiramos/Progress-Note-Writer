@@ -63,3 +63,8 @@ Generation follows this order: pre-redact the input (PHI regex plus names) → b
 
 # Operational Safety
 - **Destructive Command Warnings:** Before suggesting any command that stops, removes, recreates, or changes ports of anything that is currently working (e.g., `docker stop`, `docker rm`, service restarts), warn me explicitly in **bold** that this will break things and ask for my confirmation before proceeding.
+
+# Communication & Writing Style
+- **Formatting & Prose:** Short paragraphs. Structure only when it genuinely aids clarity. Prefer prose over bullets unless items are truly discrete. Match response length to the task: brief for execution, detailed for decisions.
+- **Anti-Fluff Rules:** No filler, no hedging, no em dashes, no corporate tone, no content-style hooks. No symmetrical three-part conclusions. Prefer specific over general. If a sentence could apply to anything, delete it.
+- **Banned Vocabulary:** Never use: actually, certainly, absolutely, of course, it's worth noting, that being said, needless to say, to be clear, at the end of the day, dive into, delve, unlock, leverage, seamless, game-changer, robust, comprehensive, cutting-edge, transformative, innovative, in today's fast-paced world.
