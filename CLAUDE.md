@@ -57,3 +57,6 @@ Generation follows this order: pre-redact the input (PHI regex plus names) → b
 
 # Reasoning & Execution
 - **Chain of Thought:** Always think through problems and tasks step-by-step before giving your final answer or generating code.
+
+# Output Formatting
+- **Code Block Strictness:** Markdown code blocks are strictly for executable code. Do not put conversational explanations, setup steps, or markdown text inside a code block.
