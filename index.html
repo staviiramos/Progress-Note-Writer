@@ -551,6 +551,24 @@ textarea { resize: vertical; }
 .stt-wrap .textarea { padding-bottom: 38px; }
 
 /* Screenings tab */
+/* Safety Plan tab */
+.safety-main { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); gap: 24px; overflow-y: auto; padding: 28px 32px 80px; align-items: start; }
+.safety-fields { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.safety-side { position: sticky; top: 0; display: flex; flex-direction: column; gap: 14px; }
+.sp-intro { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 0; }
+.sp-section { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; box-shadow: var(--shadow-paper); }
+.sp-section h4 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 4px; display: flex; align-items: center; }
+.sp-hint { font-size: 11.5px; color: var(--muted); margin-bottom: 8px; display: block; }
+.sp-section textarea { width: 100%; resize: vertical; }
+.sp-step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: var(--paper); font-size: 11px; font-weight: 700; margin-right: 8px; flex-shrink: 0; }
+.sp-progress { display: flex; gap: 4px; margin: 8px 0 4px; }
+.sp-progress span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
+.sp-progress span.on { background: var(--accent); }
+.sp-preview { font-size: 12.5px; color: var(--ink-2); line-height: 1.55; }
+.sp-preview div { margin-bottom: 4px; overflow-wrap: anywhere; }
+.sp-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+@media (max-width: 860px) { .safety-main { grid-template-columns: 1fr; padding: 20px 16px 60px; } .safety-side { position: static; } }
+
 .screening-main { grid-column: 1 / -1; display: flex; flex-direction: column; overflow-y: auto; padding: 28px 32px 80px; gap: 24px; }
 .screening-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; align-items: start; }
 .screening-tool { background: var(--paper); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-paper); }
@@ -578,6 +596,40 @@ textarea { resize: vertical; }
 .st-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .st-clear { font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; }
 .st-clear:hover { color: var(--danger); }
+.tool-selector-wrap { background: var(--paper); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-paper); }
+.tool-selector-wrap h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 12px; }
+.tool-selector { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool-card { border: 1.5px solid var(--line); border-radius: var(--r); padding: 10px 13px; cursor: pointer; background: var(--bg); transition: border-color .12s, background .12s; text-align: left; font: inherit; min-width: 140px; }
+.tool-card:hover, .tool-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+.tool-card .tc-label { font-weight: 600; font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.tool-card .tc-desc { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
+.tool-card .tc-sub { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+.tool-card .tc-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: var(--line-2); }
+.tool-card.selected .tc-dot { background: var(--accent); }
+.tool-card.done .tc-dot { background: var(--ok); }
+.tool-sections { display: flex; flex-direction: column; gap: 12px; }
+.tool-section { border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); box-shadow: var(--shadow-sm); overflow: hidden; }
+.tool-sec-header { display: flex; align-items: center; padding: 11px 14px; gap: 10px; }
+.tool-sec-toggle { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; background: none; border: none; padding: 0; cursor: pointer; font: inherit; color: inherit; text-align: left; }
+.tool-sec-header:hover { background: var(--bg); }
+.ts-chevron { font-size: 9px; color: var(--muted); transition: transform .15s; flex-shrink: 0; }
+.ts-chevron.open { transform: rotate(90deg); }
+.ts-title { font-weight: 600; font-size: 13.5px; flex: 1; }
+.ts-title .ts-full { font-weight: 400; color: var(--muted); margin-left: 6px; font-size: 12.5px; }
+.ts-meta { font-size: 11.5px; color: var(--muted); }
+.ts-rm { font-size: 18px; line-height: 1; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.ts-rm:hover { color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, transparent); }
+.tool-sec-body { border-top: 1px solid var(--line); padding: 16px; }
+.tool-sec-body .st-meta { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.st-part { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; padding-bottom: 6px; border-bottom: 1px solid var(--line-2, var(--line)); }
+.st-part:first-of-type { margin-top: 0; }
+.st-part-label { font-family: var(--serif); font-size: 15px; font-weight: 500; color: var(--ink); }
+.st-part-note { font-size: 11.5px; color: var(--muted); }
+.st-part .score-badge { margin-left: auto; }
+.st-question.skipped { opacity: 0.45; }
+.st-skip-note { margin-left: 8px; font-family: var(--sans); font-style: italic; }
+.st-opt:disabled { cursor: not-allowed; }
+.screening-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 28px 16px; border: 1px dashed var(--line-2); border-radius: var(--r); }
 .screening-integration { background: var(--paper); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-paper); }
 .screening-integration h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 10px; }
 .si-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 14px; }
@@ -821,6 +873,35 @@ window.PN_LIB = (() => {
     return out;
   }
 
+  // Words from diagnosis names (e.g. "Major", "Disorder") are clinical terms, never names.
+  let _dxWords = null;
+  const dxWords = () => _dxWords || (_dxWords = Array.from(new Set(
+    DX_DATABASE.flatMap(d => d.name.split(/[^A-Za-z'\-]+/)).filter(w => /^[A-Z]/.test(w))
+  )));
+
+  // Shared de-identification for tabs with several free-text fields: detect names and PHI
+  // across all of them, then clean() each one before it goes into a prompt.
+  function makeSanitizer(texts, { subject, allowlist, safeHarbor }) {
+    const allow = [...(allowlist || []), ...dxWords()];
+    const names = new Set(), phi = [], seen = new Set();
+    (texts || []).forEach((t) => {
+      if (!t || typeof t !== 'string') return;
+      detectNames(t, [], allow).forEach((n) => names.add(n));
+      if (safeHarbor) detectPHI(t).forEach((p) => {
+        const key = p.kind + '::' + p.value.toLowerCase();
+        if (!seen.has(key)) { seen.add(key); phi.push(p); }
+      });
+    });
+    const nameList = Array.from(names);
+    const clean = (s) => {
+      if (!s || typeof s !== 'string') return s;
+      let o = redactNames(s, nameList, subject);
+      if (safeHarbor) o = redactPHI(o);
+      return o;
+    };
+    return { names: nameList, phi, clean };
+  }
+
   const AI_BUZZWORDS = [
     /\bdelv(e|ed|es|ing)\b/gi, /\bnavigat(e|ed|es|ing)\b/gi,
     /\btapestry\b/gi, /\bunderscore(s|d)?\b/gi,
@@ -871,7 +952,7 @@ window.PN_LIB = (() => {
     detailed: { label: 'Detailed', words: '300-500', guidance: 'Write 300-500 words total. Three to five sentences per section where clinically warranted. Include clinical reasoning, functional status, treatment trajectory, and any relevant history context raised this session.' },
   };
 
-  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames, sessionDate, sessionStart, sessionEnd, sessionDuration, sessionLocation, sessionCredentials, screeningScores, activeGoals }) {
+  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames, sessionDate, sessionStart, sessionEnd, sessionDuration, sessionLocation, sessionCredentials, screeningScores, activeGoals, safetyPlanLines }) {
     const fmt = FORMATS[format];
     const toneInfo = TONES[tone];
     const conc = CONCISENESS[conciseness] || CONCISENESS.standard;
@@ -955,10 +1036,17 @@ window.PN_LIB = (() => {
       parts.push('');
       parts.push('Risk: not assessed this session — omit from note.');
     }
-    if (redactedNames && redactedNames.length) { parts.push(''); parts.push(`Names redacted and replaced with "${subject}": ${redactedNames.join(', ')}. Do not reintroduce them.`); }
+    // Never list the redacted names themselves: that would send them to the model.
+    if (redactedNames && redactedNames.length) { parts.push(''); parts.push(`Names in the input were replaced with "${subject}". Do not introduce any personal names.`); }
     if (screeningScores && Array.isArray(screeningScores) && screeningScores.length) {
       parts.push('');
       parts.push(`Standardized screening scores administered this session: ${screeningScores.join('; ')}. Include these scores with their clinical interpretation in the note.`);
+    }
+    if (Array.isArray(safetyPlanLines) && safetyPlanLines.length) {
+      parts.push('');
+      parts.push('Safety plan completed or reviewed this session:');
+      safetyPlanLines.forEach(l => parts.push(`  ${l}`));
+      parts.push('Reference the safety plan briefly in the risk/safety part of the note. Do not add content that is not listed.');
     }
     if (activeGoals && activeGoals.length) {
       parts.push('');
@@ -996,7 +1084,7 @@ window.PN_LIB = (() => {
 
   function buildIntakePrompt({ subject, sessionDate, duration, location, therapistCredentials,
     chiefComplaint, onset, severity, stressors, functioning, safety, history,
-    mseData, primaryDx, secondaryDx, zCodes, conceptualization, treatmentModality, frequency, txDuration, referrals, screeningScores }) {
+    mseData, primaryDx, secondaryDx, zCodes, conceptualization, treatmentModality, frequency, txDuration, referrals, screeningScores, safetyPlanLines }) {
     const parts = [];
     parts.push(`You are a licensed psychotherapist completing a psychiatric diagnostic evaluation (CPT 90791). Using only the information provided below, write a professional narrative clinical intake assessment note. Do not add clinical content not present in the intake data.`);
     parts.push('');
@@ -1059,6 +1147,12 @@ window.PN_LIB = (() => {
     if (screeningScores && Array.isArray(screeningScores) && screeningScores.length) {
       parts.push('');
       parts.push(`Standardized screening scores: ${screeningScores.join('; ')}. Include these scores with their clinical interpretation under the appropriate section.`);
+    }
+    if (Array.isArray(safetyPlanLines) && safetyPlanLines.length) {
+      parts.push('');
+      parts.push('Safety plan completed or reviewed this session:');
+      safetyPlanLines.forEach(l => parts.push(`  ${l}`));
+      parts.push('Reference the safety plan briefly in the Safety Assessment section. Do not add content that is not listed.');
     }
     parts.push('');
     parts.push('--- END INTAKE DATA ---');
@@ -1558,7 +1652,48 @@ window.PN_LIB = (() => {
     return parts.join('\n');
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote };
+  // ASRS-v1.1 scoring. answers: { itemIndex: 0-4 } (0 Never ... 4 Very often), 18 items.
+  // Part A = items 1-6: items 1-3 count at >= 2 (Sometimes), items 4-6 at >= 3 (Often).
+  // 4 or more Part A items in that range = positive screen. Total = sum of all 18 items (0-72).
+  const ASRS_PART_A_THRESHOLDS = [2, 2, 2, 3, 3, 3];
+  // C-SSRS screen scoring. answers: { itemIndex: 1 (Yes) | 0 (No) }.
+  // Index 0-5 = items 1-6; index 6 = item 6 follow-up (within the past 3 months).
+  // Items 3-5 apply only when item 2 is Yes; the follow-up only when item 6 is Yes.
+  // Risk level per the screener's triage: items 1-2 -> low, item 3 -> moderate,
+  // items 4-5 -> high, item 6 -> moderate (high if within the past 3 months).
+  function cssrsApplies(i, answers) {
+    if (i >= 2 && i <= 4) return answers[1] === 1;
+    if (i === 6) return answers[5] === 1;
+    return true;
+  }
+  function scoreCSSRS(answers) {
+    const yes = (i) => cssrsApplies(i, answers) && answers[i] === 1;
+    const required = [0, 1, 2, 3, 4, 5, 6].filter(i => cssrsApplies(i, answers));
+    const answered = required.filter(i => answers[i] === 0 || answers[i] === 1).length;
+    const endorsed = [0, 1, 2, 3, 4, 5].filter(yes).map(i => i + 1);
+    const recentBehavior = yes(5) && yes(6);
+    let level = 'none';
+    if (yes(3) || yes(4) || recentBehavior) level = 'high';
+    else if (yes(2) || yes(5)) level = 'moderate';
+    else if (yes(0) || yes(1)) level = 'low';
+    return { answered, required: required.length, complete: answered === required.length, endorsed, recentBehavior, level };
+  }
+
+  function scoreASRS(answers) {
+    const has = (i) => answers[i] !== undefined && answers[i] !== null;
+    const partAAnswered = ASRS_PART_A_THRESHOLDS.filter((_, i) => has(i)).length;
+    const partAPositives = ASRS_PART_A_THRESHOLDS.filter((t, i) => has(i) && answers[i] >= t).length;
+    let total = 0, answered = 0;
+    for (let i = 0; i < 18; i++) if (has(i)) { total += answers[i]; answered++; }
+    return {
+      total, answered, complete: answered === 18,
+      partAAnswered, partAPositives,
+      partAComplete: partAAnswered === 6,
+      partAPositive: partAPositives >= 4,
+    };
+  }
+
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, scoreASRS, scoreCSSRS, cssrsApplies };
 })();
 </script>
 
@@ -1905,6 +2040,22 @@ function fmtTime12(t) {
   return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
 }
 
+// Shows what was de-identified before the last generation (shared by Intake, Dx and Treatment Plan tabs).
+function RedactionFlags({ flags }) {
+  if (!flags || (!flags.names.length && !flags.phi.length)) return null;
+  return (
+    <div className="flag-bar">
+      <div style={{flex:1}}>
+        <div className="lbl">De-identified before generation</div>
+        <ul>
+          {flags.names.map(n=><li key={'n-'+n}>Name: {n}</li>)}
+          {flags.phi.map((p,i)=><li key={'p-'+i}>{p.kind}: {p.value}</li>)}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 function AllowlistEditor({ words, onAdd, onRemove }) {
   const [draft, setDraft] = useState('');
   const [open, setOpen] = useState(false);
@@ -2011,6 +2162,69 @@ function scoreSeverity(tool, val) {
   return null;
 }
 
+// ═══ ASRS-v1.1 ITEM WORDING: PASTE HERE ═══
+// Replace each 'Item N' below with the official WHO ASRS-v1.1 wording for that item, in order.
+// Items 1-6 are Part A, items 7-18 are Part B. Only change the text inside the quotes;
+// scoring does not depend on the wording.
+const ASRS_ITEM_TEXT = [
+  'How often do you have trouble wrapping up the final details of a project,
+once the challenging parts have been done?',
+  'How often do you have difficulty getting things in order when you have to do
+a task that requires organization?',
+  'How often do you have problems remembering appointments or obligations?',
+  'When you have a task that requires a lot of thought, how often do you avoid
+or delay getting started?',
+  'How often do you fidget or squirm with your hands or feet when you have
+to sit down for a long time?',
+  'How often do you feel overly active and compelled to do things, like you
+were driven by a motor?',
+  'How often do you make careless mistakes when you have to work on a boring or
+difficult project?',
+  'How often do you have difficulty keeping your attention when you are doing boring
+or repetitive work?',
+  'How often do you have difficulty concentrating on what people say to you,
+even when they are speaking to you directly?',
+  'How often do you misplace or have difficulty finding things at home or at work?',
+  ' How often are you distracted by activity or noise around you?',
+  'How often do you leave your seat in meetings or other situations in which
+you are expected to remain seated?',
+  ' How often do you feel restless or fidgety?',
+  ' How often do you have difficulty unwinding and relaxing when you have time
+to yourself?',
+  'How often do you find yourself talking too much when you are in social situations?',
+  'When you’re in a conversation, how often do you find yourself finishing
+the sentences of the people you are talking to, before they can finish
+them themselves?',
+  'How often do you have difficulty waiting your turn in situations when
+turn taking is required?',
+  'How often do you interrupt others when they are busy?',
+];
+// ═══ END ASRS-v1.1 ITEM WORDING ═══
+
+// ═══ C-SSRS SCREEN ITEM WORDING: PASTE HERE ═══
+// Replace each placeholder below with the official C-SSRS screen version wording, in order.
+// Entries 1-6 are screen items 1-6. The last entry is the item 6 follow-up about the
+// past 3 months. Only change the text inside the quotes; scoring does not depend on it.
+const CSSRS_ITEM_TEXT = [
+  'Have you wished you were dead or wished you could go to sleep and not wake up?',
+  'Have you actually had any thoughts of killing yourself?',
+  'Have you been thinking about how you might do this?',
+  'Have you had these thoughts and had some intention of acting on them?',
+  'Have you started to work out or worked out the details of how to kill yourself?
+Do you intend to carry out this plan?',
+  'Have you ever done anything, started to do anything, or prepared to do anything to YES NO
+end your life?',
+  'If yes, Was this within the past three months?',
+];
+// ═══ END C-SSRS SCREEN ITEM WORDING ═══
+
+const CSSRS_LEVELS = {
+  none: { level: 'minimal', label: 'No items endorsed', pct: 0 },
+  low: { level: 'mild', label: 'Low risk', pct: 33 },
+  moderate: { level: 'moderate', label: 'Moderate risk', pct: 66 },
+  high: { level: 'severe', label: 'High risk', pct: 100 },
+};
+
 const SCREENING_TOOLS = {
   phq9: {
     key: 'phq9',
@@ -2116,61 +2330,168 @@ const SCREENING_TOOLS = {
       return { level: 'severe', label: 'Severe PTSD symptoms', range: '50–80' };
     },
   },
+  asrs: {
+    key: 'asrs',
+    label: 'ASRS-v1.1',
+    full: 'Adult ADHD Self-Report Scale',
+    meta: 'Adult ADHD screener · Part A (items 1–6) is the screen · Total 0–72 · WHO / Kessler et al. (2005)',
+    max: 72,
+    stem: 'Rate each item for the past 6 months.',
+    options: [
+      { value: 0, label: 'Never' },
+      { value: 1, label: 'Rarely' },
+      { value: 2, label: 'Sometimes' },
+      { value: 3, label: 'Often' },
+      { value: 4, label: 'Very often' },
+    ],
+    questions: ASRS_ITEM_TEXT,
+    parts: [
+      { start: 0, label: 'Part A', note: 'Items 1–6 · screening items' },
+      { start: 6, label: 'Part B', note: 'Items 7–18 · additional symptom detail' },
+    ],
+    // ASRS has no total-score bands; the screen result comes from Part A.
+    severity: (n, answers = {}) => {
+      const r = L.scoreASRS(answers);
+      const detail = `${r.partAPositives} of 6 Part A items in the positive range, 4 or more needed for a positive screen`;
+      return r.partAPositive
+        ? { level: 'moderate', label: 'Part A positive', range: `${n}/72`, detail }
+        : { level: 'minimal', label: 'Part A negative', range: `${n}/72`, detail };
+    },
+  },
+  cssrs: {
+    key: 'cssrs',
+    label: 'C-SSRS',
+    full: 'Columbia Suicide Severity Rating Scale, Screen',
+    meta: 'Clinician-administered screen · Yes/No · Risk level per screener triage · Posner et al. (2011)',
+    stem: 'Ask items 1 and 2. If item 2 is Yes, ask items 3–5. Always ask item 6; if Yes, ask the follow-up.',
+    kind: 'triage',
+    itemCount: 6,
+    numberLabels: ['1', '2', '3', '4', '5', '6', '6b'],
+    options: [
+      { value: 0, label: 'No' },
+      { value: 1, label: 'Yes' },
+    ],
+    questions: CSSRS_ITEM_TEXT,
+    applies: (i, answers) => L.cssrsApplies(i, answers),
+    skipNote: (i) => i === 6 ? 'Asked only if item 6 is Yes' : 'Asked only if item 2 is Yes',
+    score: (answers) => {
+      const r = L.scoreCSSRS(answers);
+      const lv = CSSRS_LEVELS[r.level];
+      const detail = r.endorsed.length ? `Yes on item${r.endorsed.length > 1 ? 's' : ''} ${r.endorsed.join(', ')}${r.recentBehavior ? '; item 6 within the past 3 months' : ''}` : 'No on all items asked';
+      return {
+        answered: r.answered, required: r.required, complete: r.complete, total: r.endorsed.length,
+        sev: r.complete ? { level: lv.level, label: lv.label, pct: lv.pct, detail } : null,
+      };
+    },
+  },
 };
 
-function ScreeningTool({ tool, answers, onChange, onClear }) {
-  const answered = tool.questions.filter((_, i) => answers[i] !== undefined && answers[i] !== null).length;
-  const total = tool.questions.reduce((sum, _, i) => sum + (answers[i] ?? 0), 0);
-  const complete = answered === tool.questions.length;
-  const sev = complete ? tool.severity(total) : null;
-  const pct = complete ? Math.round((total / tool.max) * 100) : 0;
+// Score summary for one tool; null when not every item is answered.
+// `scoreText` is the "n/max" part (null for triage tools); `summary` is the note line after the label.
+function screeningResult(tool, answers) {
+  let r;
+  if (tool.score) r = tool.score(answers);
+  else {
+    const answered = tool.questions.filter((_, i) => answers[i] !== undefined && answers[i] !== null).length;
+    const total = tool.questions.reduce((sum, _, i) => sum + (answers[i] ?? 0), 0);
+    const complete = answered === tool.questions.length;
+    r = { answered, required: tool.questions.length, total, complete, sev: complete ? tool.severity(total, answers) : null };
+  }
+  r.scoreText = tool.kind === 'triage' ? null : `${r.total}/${tool.max}`;
+  r.summary = r.sev
+    ? (r.scoreText ? `${r.scoreText} (${r.sev.label}${r.sev.detail ? `; ${r.sev.detail}` : ''})` : `${r.sev.label} per screener triage (${r.sev.detail})`)
+    : '';
+  return r;
+}
+
+// One selected screening, shown as a collapsible panel.
+function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, onToggleCollapse }) {
+  const { answered, required, total, sev, scoreText } = screeningResult(tool, answers);
+  const pct = sev ? (sev.pct ?? Math.round((total / tool.max) * 100)) : 0;
 
   return (
-    <div className="screening-tool">
-      <h3>{tool.label} <span style={{fontFamily:'var(--sans)',fontSize:13,fontWeight:400,color:'var(--muted)',marginLeft:6}}>{tool.full}</span></h3>
-      <div className="st-meta">{tool.meta}</div>
-      {tool.stem && <div style={{fontSize:12.5,color:'var(--ink-2)',marginBottom:12,fontStyle:'italic',lineHeight:1.5}}>{tool.stem}</div>}
-      {tool.questions.map((q, i) => (
-        <div className="st-question" key={i}>
-          <div className="st-q-num">{i + 1}.</div>
-          <div className="st-q-text">{q}</div>
-          <div className="st-options">
-            {tool.options.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                className={`st-opt${answers[i] === opt.value ? ' sel' : ''}`}
-                onClick={() => onChange(i, opt.value)}
-              >
-                {opt.value} — {opt.label}
-              </button>
+    <div className="tool-section">
+      <div className="tool-sec-header">
+        <button type="button" className="tool-sec-toggle" onClick={onToggleCollapse} aria-expanded={!collapsed}>
+          <span className={`ts-chevron${collapsed ? '' : ' open'}`}>▶</span>
+          <span className="ts-title">{tool.label}<span className="ts-full">{tool.full}</span></span>
+          {sev
+            ? <span className={`score-badge ${sev.level}`}>{scoreText ? `${scoreText} · ` : ''}{sev.label}</span>
+            : <span className="ts-meta">{answered}/{required} answered</span>}
+        </button>
+        <button type="button" className="ts-rm" onClick={onRemove} title={`Remove ${tool.label} and clear its answers`} aria-label={`Remove ${tool.label}`}>×</button>
+      </div>
+      {!collapsed && (
+        <div className="tool-sec-body">
+          <div className="st-meta">{tool.meta}</div>
+          {tool.stem && <div style={{fontSize:12.5,color:'var(--ink-2)',marginBottom:12,fontStyle:'italic',lineHeight:1.5}}>{tool.stem}</div>}
+          {tool.questions.map((q, i) => (
+            <React.Fragment key={i}>
+            {tool.parts && tool.parts.filter(p => p.start === i).map(p => (
+              <div className="st-part" key={p.label}>
+                <span className="st-part-label">{p.label}</span>
+                <span className="st-part-note">{p.note}</span>
+                {tool.key === 'asrs' && p.start === 0 && (() => {
+                  const a = L.scoreASRS(answers);
+                  return a.partAComplete
+                    ? <span className={`score-badge ${a.partAPositive ? 'moderate' : 'minimal'}`}>{a.partAPositive ? 'Positive' : 'Negative'} · {a.partAPositives}/6</span>
+                    : <span className="st-part-note">{a.partAAnswered}/6 answered</span>;
+                })()}
+              </div>
             ))}
+            {(() => {
+              const skipped = tool.applies && !tool.applies(i, answers);
+              return (
+                <div className={`st-question${skipped ? ' skipped' : ''}`}>
+                  <div className="st-q-num">{tool.numberLabels ? tool.numberLabels[i] : i + 1}.{skipped && <span className="st-skip-note">{tool.skipNote(i)}</span>}</div>
+                  <div className="st-q-text">{q}</div>
+                  <div className="st-options">
+                    {tool.options.map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        disabled={skipped}
+                        className={`st-opt${!skipped && answers[i] === opt.value ? ' sel' : ''}`}
+                        onClick={() => onChange(i, opt.value)}
+                      >
+                        {tool.kind === 'triage' ? opt.label : `${opt.value} — ${opt.label}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+            </React.Fragment>
+          ))}
+          <div className="st-score-bar">
+            {scoreText !== null && <div className="st-score-num">{answered > 0 ? total : '—'}</div>}
+            <div className="st-score-detail">
+              {sev ? (
+                <>
+                  <div className={`sev score-badge ${sev.level}`} style={{display:'inline-block',marginBottom:4}}>{sev.label}</div>
+                  <div className="range">{!scoreText ? sev.detail : sev.detail ? <>Total {sev.range} · {sev.detail}</> : <>{sev.range} out of {tool.max}</>}</div>
+                  <div className="progress"><div className={`progress-fill ${sev.level}`} style={{width: `${pct}%`}}/></div>
+                </>
+              ) : (
+                <div className="range">{answered}/{required} questions answered{answered > 0 && scoreText ? ` · subtotal: ${total}` : ''}</div>
+              )}
+            </div>
+          </div>
+          <div className="st-actions">
+            {answered > 0 && <button className="st-clear" type="button" onClick={onClear}>Clear responses</button>}
           </div>
         </div>
-      ))}
-      <div className="st-score-bar">
-        <div className="st-score-num">{answered > 0 ? total : '—'}</div>
-        <div className="st-score-detail">
-          {sev ? (
-            <>
-              <div className={`sev score-badge ${sev.level}`} style={{display:'inline-block',marginBottom:4}}>{sev.label}</div>
-              <div className="range">{sev.range} out of {tool.max}</div>
-              <div className="progress"><div className={`progress-fill ${sev.level}`} style={{width: `${pct}%`}}/></div>
-            </>
-          ) : (
-            <div className="range">{answered}/{tool.questions.length} questions answered{answered > 0 ? ` · subtotal: ${total}` : ''}</div>
-          )}
-        </div>
-      </div>
-      <div className="st-actions">
-        {answered > 0 && <button className="st-clear" type="button" onClick={onClear}>Clear responses</button>}
-      </div>
+      )}
     </div>
   );
 }
 
 function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
   const tools = Object.values(SCREENING_TOOLS);
+  // Tools that already have answers start open, so switching tabs never hides a score.
+  const [activeKeys, setActiveKeys] = useState(() =>
+    tools.filter(t => Object.keys(screeningAnswers[t.key] || {}).length).map(t => t.key));
+  const [collapsed, setCollapsed] = useState({});
 
   const setAnswer = useCallback((toolKey, qIdx, val) => {
     setScreeningAnswers(prev => ({
@@ -2183,21 +2504,28 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
     setScreeningAnswers(prev => ({ ...prev, [toolKey]: {} }));
   }, [setScreeningAnswers]);
 
-  const getResult = (tool) => {
-    const answers = screeningAnswers[tool.key] || {};
-    const answered = tool.questions.filter((_, i) => answers[i] !== undefined && answers[i] !== null).length;
-    if (answered !== tool.questions.length) return null;
-    const total = tool.questions.reduce((sum, _, i) => sum + (answers[i] ?? 0), 0);
-    return { total, sev: tool.severity(total) };
+  const hasAnswers = (key) => Object.keys(screeningAnswers[key] || {}).length > 0;
+
+  // Removing a tool also clears its answers, so a hidden score never reaches a note.
+  const removeTool = (key) => {
+    if (hasAnswers(key)) { clearTool(key); showToast(`${SCREENING_TOOLS[key].label} removed and its answers cleared`); }
+    setActiveKeys(prev => prev.filter(k => k !== key));
   };
 
-  const completedTools = tools.filter(t => getResult(t) !== null);
+  const toggleTool = (key) => {
+    if (activeKeys.includes(key)) { removeTool(key); return; }
+    setActiveKeys(prev => [...prev, key]);
+    setCollapsed(prev => ({ ...prev, [key]: false }));
+  };
+
+  const activeTools = activeKeys.map(k => SCREENING_TOOLS[k]);
+  const completedTools = activeTools.filter(t => screeningResult(t, screeningAnswers[t.key] || {}).complete);
 
   const copySummary = async () => {
     if (!completedTools.length) { showToast('Complete at least one screening first'); return; }
     const lines = completedTools.map(t => {
-      const r = getResult(t);
-      return `${t.label} (${t.full}): ${r.total}/${t.max} — ${r.sev.label}`;
+      const r = screeningResult(t, screeningAnswers[t.key] || {});
+      return `${t.label} (${t.full}): ${r.summary}`;
     });
     const text = 'Standardized Screening Results\n\n' + lines.join('\n');
     try { await navigator.clipboard.writeText(text); showToast('Results copied'); }
@@ -2206,23 +2534,35 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
 
   return (
     <div className="screening-main">
+      <div className="tool-selector-wrap">
+        <h3>Choose screenings <span style={{fontFamily:'var(--sans)',fontSize:12,fontWeight:400,color:'var(--muted)'}}>— select one or more</span></h3>
+        <div className="tool-selector">
+          {tools.map(t => {
+            const on = activeKeys.includes(t.key);
+            const done = on && screeningResult(t, screeningAnswers[t.key] || {}).complete;
+            return (
+              <button key={t.key} type="button" aria-pressed={on} onClick={() => toggleTool(t.key)}
+                className={`tool-card${on ? ' selected' : ''}${done ? ' done' : ''}`}>
+                <div className="tc-label"><span className="tc-dot"/>{t.label}</div>
+                <div className="tc-desc">{t.full}</div>
+                <div className="tc-sub">{t.itemCount || t.questions.length} items</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {completedTools.length > 0 && (
         <div className="screening-integration">
           <h3>Completed screenings <span style={{fontFamily:'var(--sans)',fontSize:12,fontWeight:400,color:'var(--muted)'}}>— scores auto-included in any generated note</span></h3>
           <div className="si-grid">
-            {tools.map(tool => {
-              const r = getResult(tool);
+            {completedTools.map(tool => {
+              const r = screeningResult(tool, screeningAnswers[tool.key] || {});
               return (
-                <div key={tool.key} className={`si-result${r ? '' : ' empty'}`}>
+                <div key={tool.key} className="si-result">
                   <div className="name">{tool.label}</div>
-                  {r ? (
-                    <>
-                      <div className="score">{r.total}<span style={{fontSize:14,color:'var(--muted)',fontFamily:'var(--sans)',fontWeight:400}}>/{tool.max}</span></div>
-                      <div className={`sev-label score-badge ${r.sev.level}`} style={{display:'inline-block',marginTop:4}}>{r.sev.label}</div>
-                    </>
-                  ) : (
-                    <div className="score">Incomplete</div>
-                  )}
+                  {r.scoreText && <div className="score">{r.total}<span style={{fontSize:14,color:'var(--muted)',fontFamily:'var(--sans)',fontWeight:400}}>/{tool.max}</span></div>}
+                  <div className={`sev-label score-badge ${r.sev.level}`} style={{display:'inline-block',marginTop:4}}>{r.sev.label}</div>
                 </div>
               );
             })}
@@ -2230,17 +2570,94 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
           <button className="btn" type="button" onClick={copySummary}><Icon.copy/>Copy results summary</button>
         </div>
       )}
-      <div className="screening-tools">
-        {tools.map(tool => (
-          <ScreeningTool
-            key={tool.key}
-            tool={tool}
-            answers={screeningAnswers[tool.key] || {}}
-            onChange={(i, v) => setAnswer(tool.key, i, v)}
-            onClear={() => clearTool(tool.key)}
-          />
+
+      {activeTools.length === 0
+        ? <div className="screening-empty">No screenings selected. Choose one or more above.</div>
+        : (
+          <div className="tool-sections">
+            {activeTools.map(tool => (
+              <ScreeningTool
+                key={tool.key}
+                tool={tool}
+                answers={screeningAnswers[tool.key] || {}}
+                onChange={(i, v) => setAnswer(tool.key, i, v)}
+                onClear={() => clearTool(tool.key)}
+                onRemove={() => removeTool(tool.key)}
+                collapsed={!!collapsed[tool.key]}
+                onToggleCollapse={() => setCollapsed(prev => ({ ...prev, [tool.key]: !prev[tool.key] }))}
+              />
+            ))}
+          </div>
+        )}
+    </div>
+  );
+}
+
+// Safety plan steps (Stanley-Brown format). Text lives in App state only and is
+// de-identified by each tab's sanitizer before it reaches a prompt.
+const SAFETY_PLAN_STEPS = [
+  { key: 'warningSigns', label: 'Warning signs', hint: 'Thoughts, moods, situations or behaviors that signal a crisis may be developing' },
+  { key: 'copingStrategies', label: 'Internal coping strategies', hint: 'Things to do alone to take the mind off problems' },
+  { key: 'socialSupports', label: 'People and places for support and distraction', hint: 'Use roles, not names (e.g. "sibling", "neighbor", "community center")' },
+  { key: 'professionalContacts', label: 'Professionals and agencies to contact', hint: 'Use roles, not names or numbers (e.g. "outpatient therapist", "988 crisis line")' },
+  { key: 'safeEnvironment', label: 'Making the environment safe', hint: 'Steps agreed on to limit access to means' },
+  { key: 'reasonsForLiving', label: 'Reasons for living', hint: 'What matters most and is worth living for' },
+];
+const EMPTY_SAFETY_PLAN = Object.fromEntries(SAFETY_PLAN_STEPS.map(s => [s.key, '']));
+
+// Filled steps as { label, text }. Run name/PHI detection on `text` only: the fixed
+// label in front would make the first word look mid-sentence and get flagged as a name.
+function safetyPlanEntries(plan) {
+  return SAFETY_PLAN_STEPS
+    .filter(s => (plan[s.key] || '').trim())
+    .map(s => ({ label: s.label, text: plan[s.key].trim().replace(/\s*\n+\s*/g, '; ') }));
+}
+const safetyPlanToLines = (entries, clean = (t) => t) => entries.map(e => `${e.label}: ${clean(e.text)}`);
+
+function SafetyPlanTab({ safetyPlan, setSafetyPlan, showToast }) {
+  const setField = useCallback((key, val) => setSafetyPlan(prev => ({ ...prev, [key]: val })), [setSafetyPlan]);
+  const lines = useMemo(() => safetyPlanToLines(safetyPlanEntries(safetyPlan)), [safetyPlan]);
+  const filled = SAFETY_PLAN_STEPS.filter(s => (safetyPlan[s.key] || '').trim()).length;
+  const total = SAFETY_PLAN_STEPS.length;
+
+  const copyPlan = async () => {
+    if (!lines.length) { showToast('Fill in at least one step first'); return; }
+    const text = 'Safety Plan\n\n' + SAFETY_PLAN_STEPS.map((s, i) => `${i + 1}. ${s.label}\n${(safetyPlan[s.key] || '').trim() || '(not completed)'}`).join('\n\n');
+    try { await navigator.clipboard.writeText(text); showToast('Safety plan copied'); }
+    catch { showToast('Copy failed'); }
+  };
+
+  return (
+    <div className="safety-main">
+      <div className="safety-fields">
+        <p className="sp-intro">Fill in the steps completed with the client. Filled steps are added to the Progress Note, Intake and Treatment Plan prompts, after names and identifiers are removed. Nothing here is saved; "Note completed" on the Progress Note clears it.</p>
+        {SAFETY_PLAN_STEPS.map((step, i) => (
+          <div key={step.key} className={`sp-section${(safetyPlan[step.key] || '').trim() ? ' filled' : ''}`}>
+            <h4><span className="sp-step-num">{i + 1}</span>{step.label}</h4>
+            <label className="sp-hint" htmlFor={`sp-${step.key}`}>{step.hint}</label>
+            <textarea id={`sp-${step.key}`} className="textarea" rows="3" value={safetyPlan[step.key] || ''} onChange={e => setField(step.key, e.target.value)}/>
+          </div>
         ))}
       </div>
+      <aside className="safety-side">
+        <div className="card">
+          <h3>Completion <span className="hint">{filled} of {total} steps</span></h3>
+          <div className="sp-progress" aria-label={`${filled} of ${total} steps filled`}>
+            {SAFETY_PLAN_STEPS.map(s => <span key={s.key} className={(safetyPlan[s.key] || '').trim() ? 'on' : ''}/>)}
+          </div>
+          <div style={{fontSize:12,color:'var(--muted)'}}>{filled === total ? 'All steps filled.' : filled ? 'Partly filled. Only filled steps go into notes.' : 'No steps filled yet.'}</div>
+        </div>
+        <div className="card">
+          <h3>Included in notes</h3>
+          {lines.length
+            ? <div className="sp-preview">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>
+            : <div style={{fontSize:12,color:'var(--muted)'}}>Nothing yet.</div>}
+          <div className="sp-actions">
+            <button className="btn" type="button" onClick={copyPlan}><Icon.copy/>Copy safety plan</button>
+            {filled > 0 && <button className="btn" type="button" onClick={() => { setSafetyPlan(EMPTY_SAFETY_PLAN); showToast('Safety plan cleared'); }}>Clear</button>}
+          </div>
+        </div>
+      </aside>
     </div>
   );
 }
@@ -2279,9 +2696,10 @@ const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
   );
 });
 
-function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines }) {
+function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines, safetyPlanItems, privacy }) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [flags, setFlags] = useState(null);
 
   const addGoal = () => {
     const id = Date.now().toString(36);
@@ -2304,23 +2722,29 @@ function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLine
     if (!key) { showToast('Set your Groq API key first'); return; }
     if (!activeGoals.length) { showToast('Add at least one active goal first'); return; }
     setLoading(true); setNote('');
+    const planItems = safetyPlanItems || [];
+    const san = L.makeSanitizer([...activeGoals.map(g => g.text), ...planItems.map(e => e.text)], { subject: 'Client', ...privacy });
+    setFlags(san);
     const goalsList = activeGoals.map((g, i) => {
-      let line = `${i + 1}. ${g.text.trim()}`;
+      let line = `${i + 1}. ${san.clean(g.text.trim())}`;
       if (g.targetDate) line += ` (target: ${g.targetDate})`;
       return line;
     }).join('\n');
     const screeningSection = screeningLines && screeningLines.length
       ? `\n\nSTANDARDIZED SCREENING RESULTS:\n${screeningLines.join('\n')}`
       : '';
+    const safetySection = planItems.length
+      ? `\n\nSAFETY PLAN (completed or reviewed; mention briefly, do not add content):\n${safetyPlanToLines(planItems, san.clean).join('\n')}`
+      : '';
     const prompt = `You are a licensed psychotherapist writing a treatment plan narrative. Based on the following client treatment goals${screeningLines && screeningLines.length ? ' and screening scores' : ''}, write a concise, professional treatment plan summary (2-3 paragraphs). Use past tense and clinical language. Refer to the client as "Client". Do not invent content not present in the goals. No em-dashes or AI filler phrases.
 
 TREATMENT GOALS:
-${goalsList}${screeningSection}
+${goalsList}${screeningSection}${safetySection}
 
 Write the treatment plan narrative now:`;
     try {
       const raw = await callGroq(prompt, key);
-      setNote(raw.trim());
+      setNote(L.redactNames(L.scrubText(raw), san.names, 'Client'));
     } catch(err) {
       showToast(err.message || 'Generation failed', true);
     } finally { setLoading(false); }
@@ -2372,6 +2796,7 @@ Write the treatment plan narrative now:`;
             </button>
           </div>
         </div>
+        <RedactionFlags flags={flags}/>
         <article className={`paper ${loading ? 'loading' : ''}`}>
           {note ? (
             <>
@@ -2479,10 +2904,11 @@ const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholde
   );
 });
 
-function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines }) {
+function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlanItems, privacy }) {
   const [subject, setSubject] = useState('Client');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [flags, setFlags] = useState(null);
   const [sessionDate, setSessionDate] = useState('');
   const [sessionStart, setSessionStart] = useState('');
   const [sessionEnd, setSessionEnd] = useState('');
@@ -2528,19 +2954,29 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines }) {
     const key = apiKeyRef.current;
     if (!key) { onNeedKey(); return; }
     setLoading(true); setNote('');
+    // Every free-text field is de-identified on-device before it reaches the prompt.
+    const functioning = { occupational: fmt(occ), social: fmt(soc), adl: fmt(adl) };
+    const safety = { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), safetyPlan };
+    const history = { prevTherapy: fmt(prevTherapy), medications: fmt(medications), medConditions: fmt(medConds), substance: fmt(substance) };
+    const freeText = { chiefComplaint: symptoms, onset, severity, stressors, primaryDx, secondaryDx, zCodes, conceptualization };
+    const planItems = safetyPlanItems || [];
+    const san = L.makeSanitizer([...Object.values(freeText), ...Object.values(functioning), ...Object.values(safety), ...Object.values(history), ...planItems.map(e => e.text)], { subject, ...privacy });
+    const cleanAll = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, san.clean(v)]));
+    setFlags(san);
     try {
       const raw = await callGroq(L.buildIntakePrompt({
         subject, sessionDate,
         duration: sessionStart && sessionEnd && sessionDuration ? `${fmtTime12(sessionStart)} to ${fmtTime12(sessionEnd)} (${sessionDuration} minutes)` : '',
-        chiefComplaint: symptoms, onset, severity, stressors,
-        functioning: { occupational: fmt(occ), social: fmt(soc), adl: fmt(adl) },
-        safety: { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), safetyPlan },
-        history: { prevTherapy: fmt(prevTherapy), medications: fmt(medications), medConditions: fmt(medConds), substance: fmt(substance) },
-        mseData: mse, primaryDx, secondaryDx, zCodes, conceptualization,
+        ...cleanAll(freeText),
+        functioning: cleanAll(functioning),
+        safety: cleanAll(safety),
+        history: cleanAll(history),
+        mseData: mse,
         treatmentModality: modality, frequency, txDuration, referrals,
         screeningScores: screeningLines || [],
+        safetyPlanLines: safetyPlanToLines(planItems, san.clean),
       }), key);
-      setNote(L.scrubText(raw));
+      setNote(L.redactNames(L.scrubText(raw), san.names, subject));
     } catch(err) {
       showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
     } finally { setLoading(false); }
@@ -2751,6 +3187,7 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines }) {
             </button>
           </div>
         </div>
+        <RedactionFlags flags={flags}/>
         <article className={`paper ${loading?'loading':''}`}>
           {note ? (
             <div className="note-output">
@@ -2817,7 +3254,7 @@ const SxItem = React.memo(function SxItem({ criterion, itemKey, checked, onToggl
   );
 });
 
-function DxTab({ apiKeyRef, showToast, onNeedKey }) {
+function DxTab({ apiKeyRef, showToast, onNeedKey, privacy }) {
   const [subject, setSubject] = useState('Client');
   const [dxQuery, setDxQuery] = useState('');
   const [showDrop, setShowDrop] = useState(false);
@@ -2830,6 +3267,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
   const [observations, setObservations] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [flags, setFlags] = useState(null);
   const acWrapRef = useRef(null);
 
   const filtered = useMemo(() => {
@@ -2887,8 +3325,12 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
         });
       });
       const diagnosis = `${selectedDx.code} — ${selectedDx.name}`;
-      const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, selectedSymptoms, observations }), key);
-      setNote(L.scrubText(raw));
+      // Criteria labels come from DX_DATABASE; only the Writer's own text needs de-identifying.
+      const san = L.makeSanitizer([...selectedSymptoms.map(s => s.context), observations], { subject, ...privacy });
+      setFlags(san);
+      const cleanSymptoms = selectedSymptoms.map(s => ({ ...s, context: san.clean(s.context) }));
+      const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, selectedSymptoms: cleanSymptoms, observations: san.clean(observations) }), key);
+      setNote(L.redactNames(L.scrubText(raw), san.names, subject));
     } catch(err) {
       showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
     } finally { setLoading(false); }
@@ -3020,6 +3462,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
             </button>
           </div>
         </div>
+        <RedactionFlags flags={flags}/>
         <article className={`paper ${loading?'loading':''}`} style={{padding:'40px 48px'}}>
           {note ? (
             <div style={{fontFamily:'var(--serif)',fontSize:'16px',lineHeight:1.85,color:'var(--ink)',maxWidth:620}}>
@@ -3094,6 +3537,7 @@ function App() {
   const [safeHarbor, setSafeHarbor] = useState(true);
   const [allowlist, setAllowlist] = useState(() => { try { return JSON.parse(localStorage.getItem('pn.allowlist') || '[]'); } catch { return []; } });
   const addAllowedWord = (w) => { const next = [...allowlist, w]; setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
+  const privacy = useMemo(() => ({ allowlist, safeHarbor }), [allowlist, safeHarbor]);
   const removeAllowedWord = (w) => { const next = allowlist.filter(x => x !== w); setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
   const [confirming, setConfirming] = useState(false);
   const [sessionDate, setSessionDate] = useState('');
@@ -3103,6 +3547,10 @@ function App() {
   const [sessionCredentials, setSessionCredentials] = useState('');
   const [goals, setGoals] = useState([]);
   const [screeningAnswers, setScreeningAnswers] = useState({});
+  const [safetyPlan, setSafetyPlan] = useState(EMPTY_SAFETY_PLAN);
+  // Bumped by wipeAll to remount the tabs that keep their drafts in local state.
+  const [resetKey, setResetKey] = useState(0);
+  const safetyPlanItems = useMemo(() => safetyPlanEntries(safetyPlan), [safetyPlan]);
   const sessionDuration = useMemo(() => {
     if (!sessionStart || !sessionEnd) return null;
     const [sh, sm] = sessionStart.split(':').map(Number);
@@ -3137,8 +3585,13 @@ function App() {
     const key = apiKeyRef.current;
     if (!key) { pendingGenRef.current = true; setShowKeyModal(true); return; }
     pendingGenRef.current = false;
-    setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(detectedNames); setPhiFlags(detectedPHI);
-    const allNames = detectedNames;
+    // Active treatment goals also go into the prompt, so names in them are redacted too.
+    const activeGoals = goals.filter(g => g.status === 'active' && g.text.trim());
+    // So do safety plan lines.
+    const extraTexts = [...activeGoals.map(g => g.text), ...safetyPlanItems.map(e => e.text)];
+    const allNames = Array.from(new Set([...detectedNames, ...extraTexts.flatMap(t => L.detectNames(t, [], allowlist))]));
+    const goalPHI = safeHarbor ? extraTexts.flatMap(t => L.detectPHI(t)) : [];
+    setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(allNames); setPhiFlags([...detectedPHI, ...goalPHI]);
     const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
     const truncate = (s, max = 2500) => s.length > max ? s.slice(0, max) + '…' : s;
     const prompt = L.buildPrompt({
@@ -3155,7 +3608,8 @@ function App() {
       sessionLocation,
       sessionCredentials,
       screeningScores: screeningLines,
-      activeGoals: goals.filter(g => g.status === 'active' && g.text.trim()),
+      activeGoals: activeGoals.map(g => ({ ...g, text: sanitize(g.text) })),
+      safetyPlanLines: safetyPlanToLines(safetyPlanItems, sanitize),
     });
     try {
       const raw = await callGroq(prompt, key);
@@ -3176,13 +3630,8 @@ function App() {
   const screeningLines = useMemo(() => {
     const lines = [];
     Object.values(SCREENING_TOOLS).forEach(tool => {
-      const ans = screeningAnswers[tool.key] || {};
-      const answered = tool.questions.filter((_, i) => ans[i] !== undefined && ans[i] !== null).length;
-      if (answered === tool.questions.length) {
-        const total = tool.questions.reduce((s, _, i) => s + (ans[i] ?? 0), 0);
-        const sev = tool.severity(total);
-        lines.push(`${tool.label}: ${total}/${tool.max} (${sev.label})`);
-      }
+      const r = screeningResult(tool, screeningAnswers[tool.key] || {});
+      if (r.complete) lines.push(`${tool.label}: ${r.summary}`);
     });
     return lines;
   }, [screeningAnswers]);
@@ -3200,8 +3649,11 @@ function App() {
     setVoiceOn(false); setInterventions([]); setOtherIntervention('');
     setSessionDate(''); setSessionStart(''); setSessionEnd(''); setSessionLocation('In-Office (POS 11)'); setSessionCredentials('');
     setMse({}); setRisk(L.RISK_ITEMS.reduce((acc,r)=>{ acc[r.key]={status:null,note:''}; return acc; },{}));
+    // Clear everything entered for this client. Intake, Dx, Treatment Plan and Screenings keep
+    // drafts in their own state, so remount them with a new key.
+    setSafetyPlan(EMPTY_SAFETY_PLAN); setScreeningAnswers({}); setGoals([]); setResetKey(k => k + 1);
     setConfirming(false); try { localStorage.removeItem('pn.drafts'); } catch {}
-    showToast('Note erased');
+    showToast('Everything erased');
   };
 
   const sections = useMemo(() => { if (!note) return []; return L.parseNote(note, generatedMeta?.format || format); }, [note, format, generatedMeta]);
@@ -3224,6 +3676,7 @@ function App() {
           <button type="button" role="tab" aria-pressed={appMode==='dx'} onClick={()=>setAppMode('dx')}>Dx Justification</button>
           <button type="button" role="tab" aria-pressed={appMode==='plan'} onClick={()=>setAppMode('plan')}>Treatment Plan</button>
           <button type="button" role="tab" aria-pressed={appMode==='screenings'} onClick={()=>setAppMode('screenings')}>Screenings</button>
+          <button type="button" role="tab" aria-pressed={appMode==='safety'} onClick={()=>setAppMode('safety')}>Safety Plan</button>
         </div>
         <div className="meta">
           <span className="hipaa-badge" title="HIPAA Safe Harbor de-identification runs on-device before any content is sent to the AI.">
@@ -3239,10 +3692,12 @@ function App() {
         </div>
       </header>
 
-      {appMode === 'intake' && <IntakeTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines}/>}
-      {appMode === 'dx' && <DxTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)}/>}
-      {appMode === 'plan' && <TreatmentPlanTab goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines}/>}
-      {appMode === 'screenings' && <ScreeningsTab screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} showToast={showToast}/>}
+      {/* These tabs stay mounted while hidden so their drafts survive tab switches. */}
+      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} privacy={privacy}/></div>
+      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      {appMode === 'safety' && <SafetyPlanTab safetyPlan={safetyPlan} setSafetyPlan={setSafetyPlan} showToast={showToast}/>}
+      <div style={{display: appMode === 'screenings' ? 'contents' : 'none'}}><ScreeningsTab key={resetKey} screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} showToast={showToast}/></div>
       {appMode === 'progress' && <aside className="sidebar">
         <div className="card hipaa-card">
           <h3>Privacy <span className="hint">HIPAA Safe Harbor</span></h3>
@@ -3421,7 +3876,7 @@ function App() {
             ))}
           </div>
         </div>
-        {(screeningLines.length > 0 || goals.filter(g=>g.status==='active'&&g.text.trim()).length > 0) && (
+        {(screeningLines.length > 0 || safetyPlanItems.length > 0 || goals.filter(g=>g.status==='active'&&g.text.trim()).length > 0) && (
           <div className="card">
             {screeningLines.length > 0 && (
               <>
@@ -3432,6 +3887,12 @@ function App() {
             {goals.filter(g=>g.status==='active'&&g.text.trim()).length > 0 && (
               <div style={{marginTop: screeningLines.length > 0 ? 10 : 0}}>
                 <strong style={{fontSize:12.5}}>{goals.filter(g=>g.status==='active'&&g.text.trim()).length} active treatment goal{goals.filter(g=>g.status==='active'&&g.text.trim()).length!==1?'s':''}</strong>
+                <span style={{fontSize:12,color:'var(--muted)'}}> referenced in note</span>
+              </div>
+            )}
+            {safetyPlanItems.length > 0 && (
+              <div style={{marginTop: screeningLines.length > 0 || goals.some(g=>g.status==='active'&&g.text.trim()) ? 10 : 0}}>
+                <strong style={{fontSize:12.5}}>Safety plan: {safetyPlanItems.length} of {SAFETY_PLAN_STEPS.length} steps</strong>
                 <span style={{fontSize:12,color:'var(--muted)'}}> referenced in note</span>
               </div>
             )}
@@ -3520,8 +3981,8 @@ function App() {
       {confirming && (
         <div className="modal-backdrop" onClick={()=>setConfirming(false)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <h3>Erase this note?</h3>
-            <p>This permanently wipes the note, the session content you entered, and every side-panel selection. <strong>It cannot be recovered.</strong> Make sure you have already copied the note into your record before continuing.</p>
+            <h3>Erase everything?</h3>
+            <p>This permanently wipes the note, the session content you entered, every side-panel selection, screening answers, treatment goals, the safety plan, and any Intake, Dx or Treatment Plan drafts. Your settings and Groq key are kept. <strong>It cannot be recovered.</strong> Make sure you have already copied the note into your record before continuing.</p>
             <div className="modal-actions">
               <button className="btn" onClick={()=>setConfirming(false)}>Cancel</button>
               <button className="btn danger solid" onClick={wipeAll}>Yes, erase permanently</button>
