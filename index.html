@@ -239,8 +239,18 @@ textarea { resize: vertical; }
 .mode-sel { display: flex; gap: 2px; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 3px; flex-shrink: 0; }
 .mode-sel button { flex: 0 0 auto; appearance: none; border: 0; background: transparent; padding: 6px 14px; border-radius: 5px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; white-space: nowrap; font-family: inherit; transition: color .12s; }
 .mode-sel button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px oklch(20% 0 0 / .1); }
-.topbar .brand { flex: 1; }
-.topbar .meta { flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 14px; font-size: 12px; color: var(--muted); }
+.topbar .brand { flex: 1 1 0; min-width: max-content; }
+.brand h1, .brand .tag { white-space: nowrap; }
+.topbar .meta { flex: 1 1 0; display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.mode-sel .tl-short { display: none; }
+.tab-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 6px; vertical-align: middle; position: relative; top: -1px; }
+@media (max-width: 1560px) { .topbar .brand .tag { display: none; } }
+@media (max-width: 1060px) and (min-width: 901px) {
+  .mode-sel button { padding: 6px 10px; }
+  .hipaa-badge .hb-text { display: none; }
+  .topbar { gap: 10px; }
+}
+@media (max-width: 1400px) { .mode-sel .tl-long { display: none; } .mode-sel .tl-short { display: inline; } .hb-extra { display: none; } }
 .topbar .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); display: inline-block; margin-right: 6px; vertical-align: middle; }
 
 /* Intake & Dx helpers */
@@ -593,6 +603,7 @@ textarea { resize: vertical; }
 .sp-preview { font-size: 12.5px; color: var(--ink-2); line-height: 1.55; }
 .sp-preview div { margin-bottom: 4px; overflow-wrap: anywhere; }
 .sp-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.jump-fab { display: none; }
 /* Printable safety plan: rendered into <body> through a portal, shown only while printing it. */
 .sp-print { display: none; }
 @media print {
@@ -696,13 +707,15 @@ textarea { resize: vertical; }
   .main { padding: 22px 26px 80px; }
 }
 @media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; height: auto; min-height: 100vh; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; height: auto; min-height: 100vh; }
   .topbar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
   .topbar .brand h1 { font-size: 16px; }
   .topbar .brand .tag { display: none; }
-  .topbar .meta { font-size: 11px; gap: 8px; flex-wrap: wrap; }
-  .mode-sel { order: 3; flex-basis: 100%; }
-  .mode-sel button { flex: 1; font-size: 12px; padding: 7px 4px; }
+  .topbar .meta { font-size: 11px; gap: 6px; flex: 0 0 auto; }
+  .mode-sel { order: 3; flex-basis: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
+  .mode-sel::-webkit-scrollbar { display: none; }
+  .mode-sel button { flex: 1 0 auto; font-size: 12.5px; padding: 8px 12px; scroll-snap-align: start; }
+  .topbar .brand { min-width: 0; }
   .hipaa-badge { padding: 3px 8px; font-size: 10.5px; }
   .sidebar { border-right: 0; border-bottom: 1px solid var(--line); max-height: none; overflow-y: visible; padding: 14px; gap: 12px; }
   .main { padding: 18px 14px 100px; overflow-y: visible; }
@@ -714,6 +727,7 @@ textarea { resize: vertical; }
   .note-toolbar .actions .btn { flex: 1; min-width: 0; justify-content: center; padding: 10px 12px; }
   .hipaa-grid { grid-template-columns: 1fr; }
   .jump-fab {
+    white-space: nowrap;
     position: fixed; right: 14px; bottom: 14px; z-index: 200;
     background: var(--ink); color: var(--paper); border: 0; padding: 10px 16px;
     border-radius: 999px; font-size: 12.5px; font-weight: 500;
@@ -726,7 +740,8 @@ textarea { resize: vertical; }
   .topbar { padding: 8px 12px; }
   .brand .mark { width: 18px; height: 18px; }
   .topbar .brand h1 { font-size: 15px; }
-  .mode-sel button { font-size: 11px; padding: 6px 3px; }
+  .topbar .meta .kb-text { display: none; }
+  .mode-sel button { font-size: 12px; padding: 8px 11px; }
   .sidebar { padding: 12px; gap: 10px; }
   .card { padding: 14px; border-radius: 9px; }
   .card h3 { font-size: 13.5px; margin-bottom: 10px; }
@@ -2380,6 +2395,11 @@ const REVISE_PRESETS = [
   ['Plainer wording', 'Use plainer, more conversational wording while staying professional'],
 ];
 
+// Lets a tab tell App whether it holds any content, for the dot on its tab button.
+function useReportContent(key, has, report) {
+  useEffect(() => { if (report) report(key, !!has); }, [key, !!has, report]);
+}
+
 function scoreSeverity(tool, val) {
   const n = parseInt(val, 10);
   if (isNaN(n) || val === '') return null;
@@ -2961,10 +2981,11 @@ const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
   );
 });
 
-function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines, safetyPlanItems, privacy, privacyCtl }) {
+function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent }) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [flags, setFlags] = useState(null);
+  useReportContent('plan', note, onContent);
 
   const addGoal = () => {
     const id = Date.now().toString(36);
@@ -3049,7 +3070,7 @@ Write the treatment plan narrative now:`;
           </div>
         )}
       </aside>
-      <main className="main">
+      <main id="plan-pane" className="main">
         <div className="note-toolbar">
           <div className="left">
             {activeGoals.length > 0 && <span style={{fontSize:12}}>{activeGoals.length} active goal{activeGoals.length!==1?'s':''} ready</span>}
@@ -3170,7 +3191,7 @@ const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholde
   );
 });
 
-function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlanItems, privacy, privacyCtl }) {
+function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent }) {
   const [subject, setSubject] = useState('Client');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
@@ -3209,6 +3230,10 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
   const [frequency, setFrequency] = useState('');
   const [txDuration, setTxDuration] = useState('');
   const [referrals, setReferrals] = useState([]);
+  useReportContent('intake',
+    [note, sessionDate, sessionStart, sessionEnd, symptoms, onset, severity, stressors, safetyPlan, primaryDx, secondaryDx, zCodes, conceptualization, frequency, txDuration].some(Boolean)
+    || [occ, soc, adl, si, hi, selfHarm, prevTherapy, medications, medConds, substance].some(o => o.status || o.detail)
+    || Object.keys(mse).length > 0 || modality.length > 0 || referrals.length > 0, onContent);
 
   const toggleModality = (m) => setModality(prev => prev.includes(m) ? prev.filter(x=>x!==m) : [...prev,m]);
   const toggleReferral = (r) => setReferrals(prev => prev.includes(r) ? prev.filter(x=>x!==r) : [...prev,r]);
@@ -3529,7 +3554,7 @@ const SxItem = React.memo(function SxItem({ criterion, itemKey, checked, onToggl
   );
 });
 
-function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl }) {
+function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl, onContent }) {
   const [subject, setSubject] = useState('Client');
   const [dxQuery, setDxQuery] = useState('');
   const [showDrop, setShowDrop] = useState(false);
@@ -3543,6 +3568,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl }) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [flags, setFlags] = useState(null);
+  useReportContent('dx', note || selectedDx || observations.trim() || checkedSet.size > 0, onContent);
   const acWrapRef = useRef(null);
 
   const filtered = useMemo(() => {
@@ -3727,7 +3753,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl }) {
         </div>
       </aside>
 
-      <main className="main">
+      <main id="dx-pane" className="main">
         <div className="note-toolbar">
           <div className="left">{note && <span style={{fontSize:12}}>Diagnostic justification generated</span>}</div>
           <div className="actions">
@@ -3833,6 +3859,9 @@ function App() {
   const [safetyPlan, setSafetyPlan] = useState(EMPTY_SAFETY_PLAN);
   // Bumped by wipeAll to remount the tabs that keep their drafts in local state.
   const [resetKey, setResetKey] = useState(0);
+  // Which tabs hold content (dot on the tab button). Intake, Dx and Plan report theirs.
+  const [tabContent, setTabContent] = useState({});
+  const reportContent = useCallback((k, v) => setTabContent(prev => prev[k] === v ? prev : { ...prev, [k]: v }), []);
   const safetyPlanItems = useMemo(() => safetyPlanEntries(safetyPlan), [safetyPlan]);
   const sessionDuration = useMemo(() => {
     if (!sessionStart || !sessionEnd) return null;
@@ -4006,20 +4035,28 @@ function App() {
           <span className="tag">De-identified · for Writers</span>
         </div>
         <div className="mode-sel" role="tablist">
-          <button type="button" role="tab" aria-pressed={appMode==='progress'} onClick={()=>setAppMode('progress')}>Progress Note</button>
-          <button type="button" role="tab" aria-pressed={appMode==='intake'} onClick={()=>setAppMode('intake')}>Intake Assessment</button>
-          <button type="button" role="tab" aria-pressed={appMode==='dx'} onClick={()=>setAppMode('dx')}>Dx Justification</button>
-          <button type="button" role="tab" aria-pressed={appMode==='plan'} onClick={()=>setAppMode('plan')}>Treatment Plan</button>
-          <button type="button" role="tab" aria-pressed={appMode==='screenings'} onClick={()=>setAppMode('screenings')}>Screenings</button>
-          <button type="button" role="tab" aria-pressed={appMode==='safety'} onClick={()=>setAppMode('safety')}>Safety Plan</button>
+          {[
+            ['progress', 'Progress Note', 'Progress', !!(freeText.trim() || bullets.trim() || Object.values(structured).some(v => v.trim()) || note)],
+            ['intake', 'Intake Assessment', 'Intake', tabContent.intake],
+            ['dx', 'Dx Justification', 'Dx', tabContent.dx],
+            ['plan', 'Treatment Plan', 'Plan', tabContent.plan || goals.some(g => g.text.trim())],
+            ['screenings', 'Screenings', 'Screenings', Object.values(screeningAnswers).some(a => Object.keys(a || {}).length > 0)],
+            ['safety', 'Safety Plan', 'Safety', safetyPlanItems.length > 0],
+          ].map(([key, long, short, has]) => (
+            <button key={key} type="button" role="tab" aria-pressed={appMode===key} aria-selected={appMode===key}
+              onClick={(e) => { setAppMode(key); e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); }}
+              title={has ? `${long} (has content)` : long}>
+              <span className="tl-long">{long}</span><span className="tl-short">{short}</span>
+              {has && <span className="tab-dot" aria-label="has content"/>}
+            </button>
+          ))}
         </div>
         <div className="meta">
-          <span className="hipaa-badge" title="HIPAA Safe Harbor de-identification runs on-device before any content is sent to the AI.">
-            <Icon.shield/>HIPAA Safe Harbor
+          <span className="hipaa-badge" title="HIPAA Safe Harbor de-identification runs on this device before anything is sent to the AI. Nothing is saved: notes live in memory only and are erased by Note completed.">
+            <Icon.shield/><span className="hb-text">De-identified<span className="hb-extra"> · nothing saved</span></span>
           </span>
-          <span><span className="dot"/>Nothing saved · in-memory only</span>
           <button className={apiKey ? 'btn ghost' : 'btn'} style={{padding:'4px 10px',fontSize:11.5,height:'auto'}} onClick={() => setShowKeyModal(true)} title={apiKey ? 'Groq API key configured — click to update' : 'Enter your free Groq API key'}>
-            <Icon.key/>{apiKey ? 'Groq key ✓' : 'Set Groq key'}
+            <Icon.key/><span className="kb-text">{apiKey ? 'Groq key ✓' : 'Set Groq key'}</span>
           </button>
           <button className="btn ghost" style={{padding:'4px 8px',fontSize:11.5,height:'auto'}} onClick={openTweaks} title="Appearance settings">
             <Icon.sliders/>
@@ -4028,9 +4065,9 @@ function App() {
       </header>
 
       {/* These tabs stay mounted while hidden so their drafts survive tab switches. */}
-      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
-      <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} privacy={privacy}/></div>
-      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} privacyCtl={privacyCtl} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} onContent={reportContent} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} onContent={reportContent} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} privacy={privacy}/></div>
+      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} onContent={reportContent} privacyCtl={privacyCtl} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
       {['intake', 'dx', 'plan', 'safety'].includes(appMode) && <DictateButton key={appMode}/>}
       {appMode === 'safety' && <SafetyPlanTab privacyCtl={privacyCtl} safetyPlan={safetyPlan} setSafetyPlan={setSafetyPlan} showToast={showToast}/>}
       <div style={{display: appMode === 'screenings' ? 'contents' : 'none'}}><ScreeningsTab key={resetKey} screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} showToast={showToast}/></div>
@@ -4321,9 +4358,10 @@ function App() {
 
       {toast}
 
-      <a className="jump-fab" href="#note-pane" style={{display:'none'}} ref={(el)=>{if(!el)return;const sync=()=>{el.style.display=window.innerWidth<=900?'inline-flex':'none'};sync();window.addEventListener('resize',sync);}}>
-        <Icon.page/>Jump to note
-      </a>
+      {{ progress: ['note-pane', 'Jump to note'], intake: ['intake-pane', 'Jump to note'], dx: ['dx-pane', 'Jump to justification'], plan: ['plan-pane', 'Jump to plan'] }[appMode] && (() => {
+        const [pane, label] = { progress: ['note-pane', 'Jump to note'], intake: ['intake-pane', 'Jump to note'], dx: ['dx-pane', 'Jump to justification'], plan: ['plan-pane', 'Jump to plan'] }[appMode];
+        return <a className="jump-fab" href={'#' + pane}><Icon.page/>{label}</a>;
+      })()}
 
       {confirming && (
         <div className="modal-backdrop" onClick={()=>setConfirming(false)}>
