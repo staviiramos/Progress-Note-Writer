@@ -33,16 +33,16 @@ Line numbers drift; search for the names below.
 1. **`<style>`** (top of file, ~650 lines): design tokens on `:root` (warm paper palette, `--serif` Newsreader, `--sans`), theme/density variants, then per-tab sections (`/* Screenings tab */`, intake, dx, goal cards, ...).
 2. **`<script>` with `window.PN_LIB`** (plain JS, marked `═══ lib.js ═══`): pure logic, no React.
    - Config: `FORMATS` (SOAP, DAP, BIRP, GIRP, PIRP, EMR one-paragraph, narrative), `TONES` (conversational / balanced / clinical), `CONCISENESS`, `INTERVENTIONS`, `MSE_FIELDS`, `RISK_ITEMS`.
-   - Redaction: `PHI_PATTERNS`, `detectPHI`, `redactPHI` (SSN, phone, email, URL, IP, dates, ZIP, MRN-style IDs, age 90+), `COMMON_WORDS`, `detectNames` (capitalized words not at sentence start, minus common words and the allowlist), `redactNames` (replaces with the subject label), `makeSanitizer` (multi-field helper used by the Intake, Dx and Treatment Plan tabs).
+   - Redaction: `PHI_PATTERNS`, `detectPHI`, `redactPHI` (SSN, phone, email, URL, IP, dates, ZIP, MRN-style IDs, age 90+), `COMMON_WORDS`, `detectNames` (capitalized words minus `COMMON_WORDS` and the allowlist; a sentence-opening word counts only when possessive, followed by another capitalized word, or followed by a person verb in `NAME_FOLLOW_VERBS`, and never when it is in `SENTENCE_START_WORDS`, appears in lowercase elsewhere, or has a non-name suffix), `parseNameList` (the "Names to always redact" field), `redactNames` (replaces with the subject label), `makeSanitizer` (multi-field helper used by the Intake, Dx and Treatment Plan tabs; takes `alwaysRedact`).
    - Output cleanup: `AI_BUZZWORDS`, `BUZZWORD_REPLACE`, `scrubText`.
-   - Prompt builders: `buildPrompt` (progress note), `buildIntakePrompt`, `buildDxPrompt`; `parseNote` splits model output into format sections.
+   - Prompt builders: `buildPrompt` (progress note), `buildIntakePrompt`, `buildDxPrompt`; `parseNote` splits model output into format sections, `joinNote` rebuilds it, `plainNote` drops headings, `buildRevisePrompt` asks for a section rewrite or a whole-note revision.
    - `DX_DATABASE`: diagnosis list with criteria groups used by the Dx tab.
 3. **`<script type="text/babel">` tweaks panel** (`═══ tweaks-panel.jsx ═══`): floating appearance panel (`useTweaks`, `TweaksPanel`, `TweakRadio`, ...).
 4. **`<script type="text/babel">` app** (`═══ app.jsx ═══`):
    - `pickGroqModel` / `callGroq`: lists Groq models, skips reasoning/vision/audio models, picks the largest context window, posts to `https://api.groq.com/openai/v1/chat/completions`, strips `<think>` blocks.
-   - Shared UI: `useToast`, tone controls, `ApiKeyModal`, `AllowlistEditor`, `useSpeechRecognition` (browser dictation), `fmtTime12`.
+   - Shared UI: `useToast`, tone controls, `ApiKeyModal`, `AllowlistEditor`, `PrivacyControls` + `NamesToRedactField` (privacy card on every tab that sends text), `useSpeechRecognition` (browser dictation), `DictateButton` (floating mic on Intake/Dx/Plan/Safety that types into the last-focused box), `NoteSection` + `REVISE_PRESETS` (Progress Note section edit/regenerate/copy and revise bar), `fmtTime12`.
    - Screenings: `scoreSeverity`, `SCREENING_TOOLS` (PHQ-9, GAD-7, PCL-5, ASRS-v1.1, C-SSRS screen; ASRS and C-SSRS item wording is in the marked `ASRS_ITEM_TEXT` / `CSSRS_ITEM_TEXT` constants, filled in by the owner, never print it; scoring is `PN_LIB.scoreASRS` / `scoreCSSRS`), `screeningResult` (shared score summary), `ScreeningTool`, `ScreeningsTab`.
-   - Safety plan: `SAFETY_PLAN_STEPS`, `safetyPlanEntries`, `safetyPlanToLines`, `SafetyPlanTab`.
+   - Safety plan: `SAFETY_PLAN_STEPS`, `safetyPlanEntries`, `safetyPlanToLines`, `SafetyPlanTab`, `SafetyPlanPrint` + `printSafetyPlan` (client printout via a portal and `body.print-safety` print CSS; deliberately not de-identified, never sent anywhere).
    - Tabs: `TreatmentPlanTab` (+ `GoalCard`), `IntakeTab` (+ `DxAutocompleteInput`), `DxTab` (+ `SxItem`).
    - `App`: top bar with tab switcher (`appMode`: `progress`, `intake`, `dx`, `plan`, `screenings`, `safety`), Progress Note sidebar and paper-style output, API key handling, app-level state shared across tabs (`screeningAnswers` -> `screeningLines`, `safetyPlan` -> `safetyPlanItems`, `goals`), `generate()` for the progress note, and `wipeAll()` ("Note completed" clears all client data; add any new App-level client state to it). Intake, Dx, Treatment Plan and Screenings stay mounted while hidden so drafts survive tab switches; `wipeAll()` remounts them by bumping `resetKey`.
 
@@ -52,7 +52,7 @@ Conventions worth keeping:
 
 ## Privacy data flow
 
-Progress Note tab: `rawInput` -> `detectNames` + `detectPHI` (shown to the user as flags) -> `sanitize()` (`redactNames`, then `redactPHI` when the Safe Harbor toggle is on) -> `buildPrompt` -> `callGroq` -> `scrubText` -> `redactNames` again on the output.
+Progress Note tab: `rawInput` -> `detectNames` + `detectPHI` (shown to the user as flags) -> `sanitize()` (always-redact names in any case, then `redactNames`, then `redactPHI` when the Safe Harbor toggle is on) -> `buildPrompt` -> `callGroq` -> `scrubText` -> `redactNames` again on the output. Revisions (`revise()`) resend the stored de-identified prompt plus the current draft, which is de-identified again first because the Writer may have typed into it.
 
 Intake, Dx Justification and Treatment Plan tabs: their free-text fields go through `makeSanitizer` (in `PN_LIB`), which detects names and PHI across all fields at once, honors the allowlist and Safe Harbor toggle from `App` (passed as the `privacy` prop), and skips words from `DX_DATABASE` diagnosis names. Fixed option labels (MSE selects, modality, referrals, DSM criteria text) are sent as-is. Output gets `scrubText` and `redactNames`, and `RedactionFlags` shows what was removed. Any new tab that calls `callGroq` must do the same.
 
