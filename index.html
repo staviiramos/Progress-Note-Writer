@@ -626,6 +626,9 @@ textarea { resize: vertical; }
 .st-part-label { font-family: var(--serif); font-size: 15px; font-weight: 500; color: var(--ink); }
 .st-part-note { font-size: 11.5px; color: var(--muted); }
 .st-part .score-badge { margin-left: auto; }
+.st-question.skipped { opacity: 0.45; }
+.st-skip-note { margin-left: 8px; font-family: var(--sans); font-style: italic; }
+.st-opt:disabled { cursor: not-allowed; }
 .screening-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 28px 16px; border: 1px dashed var(--line-2); border-radius: var(--r); }
 .screening-integration { background: var(--paper); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-paper); }
 .screening-integration h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 10px; }
@@ -1653,6 +1656,29 @@ window.PN_LIB = (() => {
   // Part A = items 1-6: items 1-3 count at >= 2 (Sometimes), items 4-6 at >= 3 (Often).
   // 4 or more Part A items in that range = positive screen. Total = sum of all 18 items (0-72).
   const ASRS_PART_A_THRESHOLDS = [2, 2, 2, 3, 3, 3];
+  // C-SSRS screen scoring. answers: { itemIndex: 1 (Yes) | 0 (No) }.
+  // Index 0-5 = items 1-6; index 6 = item 6 follow-up (within the past 3 months).
+  // Items 3-5 apply only when item 2 is Yes; the follow-up only when item 6 is Yes.
+  // Risk level per the screener's triage: items 1-2 -> low, item 3 -> moderate,
+  // items 4-5 -> high, item 6 -> moderate (high if within the past 3 months).
+  function cssrsApplies(i, answers) {
+    if (i >= 2 && i <= 4) return answers[1] === 1;
+    if (i === 6) return answers[5] === 1;
+    return true;
+  }
+  function scoreCSSRS(answers) {
+    const yes = (i) => cssrsApplies(i, answers) && answers[i] === 1;
+    const required = [0, 1, 2, 3, 4, 5, 6].filter(i => cssrsApplies(i, answers));
+    const answered = required.filter(i => answers[i] === 0 || answers[i] === 1).length;
+    const endorsed = [0, 1, 2, 3, 4, 5].filter(yes).map(i => i + 1);
+    const recentBehavior = yes(5) && yes(6);
+    let level = 'none';
+    if (yes(3) || yes(4) || recentBehavior) level = 'high';
+    else if (yes(2) || yes(5)) level = 'moderate';
+    else if (yes(0) || yes(1)) level = 'low';
+    return { answered, required: required.length, complete: answered === required.length, endorsed, recentBehavior, level };
+  }
+
   function scoreASRS(answers) {
     const has = (i) => answers[i] !== undefined && answers[i] !== null;
     const partAAnswered = ASRS_PART_A_THRESHOLDS.filter((_, i) => has(i)).length;
@@ -1667,7 +1693,7 @@ window.PN_LIB = (() => {
     };
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, scoreASRS };
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, scoreASRS, scoreCSSRS, cssrsApplies };
 })();
 </script>
 
@@ -2162,6 +2188,28 @@ const ASRS_ITEM_TEXT = [
 ];
 // ═══ END ASRS-v1.1 ITEM WORDING ═══
 
+// ═══ C-SSRS SCREEN ITEM WORDING: PASTE HERE ═══
+// Replace each placeholder below with the official C-SSRS screen version wording, in order.
+// Entries 1-6 are screen items 1-6. The last entry is the item 6 follow-up about the
+// past 3 months. Only change the text inside the quotes; scoring does not depend on it.
+const CSSRS_ITEM_TEXT = [
+  'Item 1',
+  'Item 2',
+  'Item 3',
+  'Item 4',
+  'Item 5',
+  'Item 6',
+  'Item 6 follow-up (past 3 months)',
+];
+// ═══ END C-SSRS SCREEN ITEM WORDING ═══
+
+const CSSRS_LEVELS = {
+  none: { level: 'minimal', label: 'No items endorsed', pct: 0 },
+  low: { level: 'mild', label: 'Low risk', pct: 33 },
+  moderate: { level: 'moderate', label: 'Moderate risk', pct: 66 },
+  high: { level: 'severe', label: 'High risk', pct: 100 },
+};
+
 const SCREENING_TOOLS = {
   phq9: {
     key: 'phq9',
@@ -2295,20 +2343,56 @@ const SCREENING_TOOLS = {
         : { level: 'minimal', label: 'Part A negative', range: `${n}/72`, detail };
     },
   },
+  cssrs: {
+    key: 'cssrs',
+    label: 'C-SSRS',
+    full: 'Columbia Suicide Severity Rating Scale, Screen',
+    meta: 'Clinician-administered screen · Yes/No · Risk level per screener triage · Posner et al. (2011)',
+    stem: 'Ask items 1 and 2. If item 2 is Yes, ask items 3–5. Always ask item 6; if Yes, ask the follow-up.',
+    kind: 'triage',
+    itemCount: 6,
+    numberLabels: ['1', '2', '3', '4', '5', '6', '6b'],
+    options: [
+      { value: 0, label: 'No' },
+      { value: 1, label: 'Yes' },
+    ],
+    questions: CSSRS_ITEM_TEXT,
+    applies: (i, answers) => L.cssrsApplies(i, answers),
+    skipNote: (i) => i === 6 ? 'Asked only if item 6 is Yes' : 'Asked only if item 2 is Yes',
+    score: (answers) => {
+      const r = L.scoreCSSRS(answers);
+      const lv = CSSRS_LEVELS[r.level];
+      const detail = r.endorsed.length ? `Yes on item${r.endorsed.length > 1 ? 's' : ''} ${r.endorsed.join(', ')}${r.recentBehavior ? '; item 6 within the past 3 months' : ''}` : 'No on all items asked';
+      return {
+        answered: r.answered, required: r.required, complete: r.complete, total: r.endorsed.length,
+        sev: r.complete ? { level: lv.level, label: lv.label, pct: lv.pct, detail } : null,
+      };
+    },
+  },
 };
 
 // Score summary for one tool; null when not every item is answered.
+// `scoreText` is the "n/max" part (null for triage tools); `summary` is the note line after the label.
 function screeningResult(tool, answers) {
-  const answered = tool.questions.filter((_, i) => answers[i] !== undefined && answers[i] !== null).length;
-  const total = tool.questions.reduce((sum, _, i) => sum + (answers[i] ?? 0), 0);
-  const complete = answered === tool.questions.length;
-  return { answered, total, complete, sev: complete ? tool.severity(total, answers) : null };
+  let r;
+  if (tool.score) r = tool.score(answers);
+  else {
+    const answered = tool.questions.filter((_, i) => answers[i] !== undefined && answers[i] !== null).length;
+    const total = tool.questions.reduce((sum, _, i) => sum + (answers[i] ?? 0), 0);
+    const complete = answered === tool.questions.length;
+    r = { answered, required: tool.questions.length, total, complete, sev: complete ? tool.severity(total, answers) : null };
+  }
+  r.scoreText = tool.kind === 'triage' ? null : `${r.total}/${tool.max}`;
+  r.summary = r.sev
+    ? (r.scoreText ? `${r.scoreText} (${r.sev.label}${r.sev.detail ? `; ${r.sev.detail}` : ''})` : `${r.sev.label} per screener triage (${r.sev.detail})`)
+    : '';
+  return r;
 }
 
 // One selected screening, shown as a collapsible panel.
 function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, onToggleCollapse }) {
-  const { answered, total, sev } = screeningResult(tool, answers);
-  const pct = sev ? Math.round((total / tool.max) * 100) : 0;
+  const { answered, required, total, sev, scoreText } = screeningResult(tool, answers);
+  const pct = sev ? (sev.pct ?? Math.round((total / tool.max) * 100)) : 0;
 
   return (
     <div className="tool-section">
@@ -2317,8 +2401,8 @@ function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, 
           <span className={`ts-chevron${collapsed ? '' : ' open'}`}>▶</span>
           <span className="ts-title">{tool.label}<span className="ts-full">{tool.full}</span></span>
           {sev
-            ? <span className={`score-badge ${sev.level}`}>{total}/{tool.max} · {sev.label}</span>
-            : <span className="ts-meta">{answered}/{tool.questions.length} answered</span>}
+            ? <span className={`score-badge ${sev.level}`}>{scoreText ? `${scoreText} · ` : ''}{sev.label}</span>
+            : <span className="ts-meta">{answered}/{required} answered</span>}
         </button>
         <button type="button" className="ts-rm" onClick={onRemove} title={`Remove ${tool.label} and clear its answers`} aria-label={`Remove ${tool.label}`}>×</button>
       </div>
@@ -2340,35 +2424,41 @@ function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, 
                 })()}
               </div>
             ))}
-            <div className="st-question">
-              <div className="st-q-num">{i + 1}.</div>
-              <div className="st-q-text">{q}</div>
-              <div className="st-options">
-                {tool.options.map(opt => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    className={`st-opt${answers[i] === opt.value ? ' sel' : ''}`}
-                    onClick={() => onChange(i, opt.value)}
-                  >
-                    {opt.value} — {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {(() => {
+              const skipped = tool.applies && !tool.applies(i, answers);
+              return (
+                <div className={`st-question${skipped ? ' skipped' : ''}`}>
+                  <div className="st-q-num">{tool.numberLabels ? tool.numberLabels[i] : i + 1}.{skipped && <span className="st-skip-note">{tool.skipNote(i)}</span>}</div>
+                  <div className="st-q-text">{q}</div>
+                  <div className="st-options">
+                    {tool.options.map(opt => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        disabled={skipped}
+                        className={`st-opt${!skipped && answers[i] === opt.value ? ' sel' : ''}`}
+                        onClick={() => onChange(i, opt.value)}
+                      >
+                        {tool.kind === 'triage' ? opt.label : `${opt.value} — ${opt.label}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
             </React.Fragment>
           ))}
           <div className="st-score-bar">
-            <div className="st-score-num">{answered > 0 ? total : '—'}</div>
+            {scoreText !== null && <div className="st-score-num">{answered > 0 ? total : '—'}</div>}
             <div className="st-score-detail">
               {sev ? (
                 <>
                   <div className={`sev score-badge ${sev.level}`} style={{display:'inline-block',marginBottom:4}}>{sev.label}</div>
-                  <div className="range">{sev.detail ? <>Total {sev.range} · {sev.detail}</> : <>{sev.range} out of {tool.max}</>}</div>
+                  <div className="range">{!scoreText ? sev.detail : sev.detail ? <>Total {sev.range} · {sev.detail}</> : <>{sev.range} out of {tool.max}</>}</div>
                   <div className="progress"><div className={`progress-fill ${sev.level}`} style={{width: `${pct}%`}}/></div>
                 </>
               ) : (
-                <div className="range">{answered}/{tool.questions.length} questions answered{answered > 0 ? ` · subtotal: ${total}` : ''}</div>
+                <div className="range">{answered}/{required} questions answered{answered > 0 && scoreText ? ` · subtotal: ${total}` : ''}</div>
               )}
             </div>
           </div>
@@ -2420,7 +2510,7 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
     if (!completedTools.length) { showToast('Complete at least one screening first'); return; }
     const lines = completedTools.map(t => {
       const r = screeningResult(t, screeningAnswers[t.key] || {});
-      return `${t.label} (${t.full}): ${r.total}/${t.max} — ${r.sev.label}`;
+      return `${t.label} (${t.full}): ${r.summary}`;
     });
     const text = 'Standardized Screening Results\n\n' + lines.join('\n');
     try { await navigator.clipboard.writeText(text); showToast('Results copied'); }
@@ -2440,7 +2530,7 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
                 className={`tool-card${on ? ' selected' : ''}${done ? ' done' : ''}`}>
                 <div className="tc-label"><span className="tc-dot"/>{t.label}</div>
                 <div className="tc-desc">{t.full}</div>
-                <div className="tc-sub">{t.questions.length} items</div>
+                <div className="tc-sub">{t.itemCount || t.questions.length} items</div>
               </button>
             );
           })}
@@ -2456,7 +2546,7 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
               return (
                 <div key={tool.key} className="si-result">
                   <div className="name">{tool.label}</div>
-                  <div className="score">{r.total}<span style={{fontSize:14,color:'var(--muted)',fontFamily:'var(--sans)',fontWeight:400}}>/{tool.max}</span></div>
+                  {r.scoreText && <div className="score">{r.total}<span style={{fontSize:14,color:'var(--muted)',fontFamily:'var(--sans)',fontWeight:400}}>/{tool.max}</span></div>}
                   <div className={`sev-label score-badge ${r.sev.level}`} style={{display:'inline-block',marginTop:4}}>{r.sev.label}</div>
                 </div>
               );
@@ -3524,7 +3614,7 @@ function App() {
     const lines = [];
     Object.values(SCREENING_TOOLS).forEach(tool => {
       const r = screeningResult(tool, screeningAnswers[tool.key] || {});
-      if (r.complete) lines.push(`${tool.label}: ${r.total}/${tool.max} (${r.sev.label}${r.sev.detail ? `; ${r.sev.detail}` : ''})`);
+      if (r.complete) lines.push(`${tool.label}: ${r.summary}`);
     });
     return lines;
   }, [screeningAnswers]);

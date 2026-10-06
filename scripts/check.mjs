@@ -117,6 +117,22 @@ for (const c of cases) {
   check('ASRS partial answers are not complete', !partial.complete && !partial.partAComplete && partial.partAAnswered === 2, JSON.stringify(partial));
 }
 
+// 3e. C-SSRS screen scoring: skip logic and triage level. Answers are 1 (Yes) / 0 (No) by item index.
+{
+  const c = (a) => L.scoreCSSRS(a);
+  const allNo = c({ 0: 0, 1: 0, 5: 0 });
+  check('C-SSRS all No: complete with items 3-5 skipped', allNo.complete && allNo.required === 3 && allNo.level === 'none', JSON.stringify(allNo));
+  check('C-SSRS item 1 only: low', c({ 0: 1, 1: 0, 5: 0 }).level === 'low');
+  check('C-SSRS item 2 Yes requires items 3-5', !c({ 0: 1, 1: 1, 5: 0 }).complete && c({ 0: 1, 1: 1, 2: 0, 3: 0, 4: 0, 5: 0 }).complete);
+  check('C-SSRS item 3: moderate', c({ 0: 1, 1: 1, 2: 1, 3: 0, 4: 0, 5: 0 }).level === 'moderate');
+  check('C-SSRS item 4 or 5: high', c({ 0: 1, 1: 1, 2: 0, 3: 1, 4: 0, 5: 0 }).level === 'high' && c({ 0: 1, 1: 1, 2: 0, 3: 0, 4: 1, 5: 0 }).level === 'high');
+  check('C-SSRS items 3-5 ignored when item 2 is No', c({ 0: 0, 1: 0, 3: 1, 4: 1, 5: 0 }).level === 'none');
+  check('C-SSRS item 6 Yes requires follow-up', !c({ 0: 0, 1: 0, 5: 1 }).complete);
+  check('C-SSRS item 6 not recent: moderate', c({ 0: 0, 1: 0, 5: 1, 6: 0 }).level === 'moderate');
+  const recent = c({ 0: 0, 1: 0, 5: 1, 6: 1 });
+  check('C-SSRS item 6 recent: high', recent.level === 'high' && recent.recentBehavior && recent.endorsed.join() === '6', JSON.stringify(recent));
+}
+
 // 4. AI-buzzword scrub removes em dashes and banned words.
 const scrubbed = L.scrubText('Writer will delve into goals — moreover, review plan.');
 check('scrubText removes em dash and buzzwords', !/—|delve|moreover/i.test(scrubbed), `output: ${scrubbed}`);
