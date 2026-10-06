@@ -23,6 +23,24 @@ if (Babel) {
   });
 }
 
+// 1b. Screening item wording areas: right number of items, one item per line.
+// Reports counts and line numbers only; never print the item text (see CLAUDE.md).
+{
+  const lines = html.split('\n');
+  for (const [name, start, end, expected] of [
+    ['ASRS-v1.1', 'ASRS-v1.1 ITEM WORDING: PASTE HERE', 'END ASRS-v1.1 ITEM WORDING', 18],
+    ['C-SSRS', 'C-SSRS SCREEN ITEM WORDING: PASTE HERE', 'END C-SSRS SCREEN ITEM WORDING', 7],
+  ]) {
+    const s = lines.findIndex(l => l.includes(start)), e = lines.findIndex(l => l.includes(end));
+    if (s < 0 || e < 0) { check(`${name} item wording area present`, false, 'marker comment missing'); continue; }
+    const body = lines.slice(s + 1, e).map((l, i) => ({ t: l.trim(), n: s + 2 + i }))
+      .filter(x => x.t && !x.t.startsWith('//') && !x.t.startsWith('const ') && x.t !== '];');
+    const broken = body.filter(x => !/^'.*',$/.test(x.t)).map(x => x.n);
+    check(`${name} item wording: ${expected} items, one per line`, body.length === expected && !broken.length,
+      `found ${body.length} entries; lines not in 'text', form: ${broken.join(', ') || 'none'}`);
+  }
+}
+
 // 2. Load window.PN_LIB (the plain <script> block) in a sandbox.
 const libSrc = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).find(s => s.includes('window.PN_LIB'));
 const sandbox = { window: {} };
