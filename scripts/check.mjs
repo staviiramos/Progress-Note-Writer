@@ -195,6 +195,14 @@ for (const c of cases) {
   check('whole-note revise prompt keeps headings', wp.includes('Revise the whole draft: Make it shorter') && wp.includes('Keep the same section headings'));
 }
 
+// 3g. Dx justification prompt cites screening results only when given.
+{
+  const base = { subject: 'Client', diagnosis: 'Placeholder diagnosis', selectedSymptoms: [{ label: 'Placeholder symptom', context: '' }], observations: '' };
+  const withScores = L.buildDxPrompt({ ...base, screeningScores: ['PHQ-9: 12/27 (Moderate depression)'] });
+  check('buildDxPrompt includes screening results', withScores.includes('Standardized screening results: PHQ-9: 12/27') && withScores.includes('supporting evidence'));
+  check('buildDxPrompt omits screening section when empty', !L.buildDxPrompt({ ...base, screeningScores: [] }).includes('screening'));
+}
+
 // 4. AI-buzzword scrub removes em dashes and banned words.
 const scrubbed = L.scrubText('Writer will delve into goals — moreover, review plan.');
 check('scrubText removes em dash and buzzwords', !/—|delve|moreover/i.test(scrubbed), `output: ${scrubbed}`);
