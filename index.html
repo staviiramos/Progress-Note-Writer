@@ -547,6 +547,12 @@ textarea { resize: vertical; }
 .stt-btn:hover { border-color: var(--accent); color: var(--accent); }
 .stt-btn.active { border-color: var(--danger); color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, var(--paper)); animation: stt-pulse 1.2s ease-in-out infinite; }
 .stt-btn.active .ico { animation: none; }
+.dictate-fab { position: fixed; right: 20px; bottom: 20px; z-index: 40; display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; background: var(--paper); border: 1px solid var(--line-2); border-radius: 999px; box-shadow: var(--shadow-paper); font-size: 12px; color: var(--ink-2); max-width: calc(100vw - 32px); }
+.dictate-fab .stt-btn { position: static; width: 34px; height: 34px; flex-shrink: 0; }
+.dictate-fab .stt-btn:disabled { opacity: 0.45; cursor: default; }
+.dictate-fab.active { border-color: var(--danger); }
+.dictate-target { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 900px) { .dictate-fab { right: auto; left: 16px; bottom: 16px; max-width: calc(100vw - 150px); } }
 @keyframes stt-pulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--danger) 30%, transparent); } 50% { box-shadow: 0 0 0 5px color-mix(in oklab, var(--danger) 0%, transparent); } }
 .stt-wrap .textarea { padding-bottom: 38px; }
 
@@ -2217,6 +2223,58 @@ function useSpeechRecognition(onResult) {
   return { active, supported, toggle };
 }
 
+// Dictation for any text box: speech goes into the box the Writer last clicked in, at the cursor.
+const isDictatable = (el) => el && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && /^(text|search|)$/.test(el.type || ''))) && !el.disabled && !el.readOnly;
+function fieldLabel(el) {
+  if (!el) return '';
+  if (el.dataset.dictateLabel) return el.dataset.dictateLabel;
+  const byFor = el.id && document.querySelector(`label[for="${el.id}"]`);
+  const near = el.closest('.row, .sp-section, .goal-card, .card');
+  const lab = byFor || (near && near.querySelector('label, h4, h3'));
+  // First text node only, so hint badges like "Optional" are left out.
+  const text = (lab && (lab.firstChild && lab.firstChild.nodeType === 3 ? lab.firstChild.textContent : lab.textContent))
+    || el.getAttribute('aria-label') || el.placeholder || 'text box';
+  return text.replace(/\s+/g, ' ').trim().slice(0, 40);
+}
+function insertAtCursor(el, text) {
+  const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+  const setValue = Object.getOwnPropertyDescriptor(proto, 'value').set;
+  const start = el.selectionStart ?? el.value.length, end = el.selectionEnd ?? start;
+  const before = el.value.slice(0, start);
+  const sep = before && !/\s$/.test(before) ? ' ' : '';
+  setValue.call(el, before + sep + text + el.value.slice(end));
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  const caret = start + sep.length + text.length;
+  try { el.setSelectionRange(caret, caret); } catch {}
+}
+
+function DictateButton() {
+  const targetRef = useRef(null);
+  const [label, setLabel] = useState('');
+  useEffect(() => {
+    const onFocus = (e) => { if (isDictatable(e.target)) { targetRef.current = e.target; setLabel(fieldLabel(e.target)); } };
+    document.addEventListener('focusin', onFocus);
+    return () => document.removeEventListener('focusin', onFocus);
+  }, []);
+  const onResult = useCallback((text) => {
+    const el = targetRef.current;
+    if (el && el.isConnected && el.offsetParent !== null) insertAtCursor(el, text);
+  }, []);
+  const stt = useSpeechRecognition(onResult);
+  if (!stt.supported) return null;
+  const ready = !!label;
+  return (
+    <div className={`dictate-fab${stt.active ? ' active' : ''}`}>
+      <span className="dictate-target">{stt.active ? `Dictating into: ${label}` : ready ? `Dictate into: ${label}` : 'Click a text box, then dictate'}</span>
+      <button type="button" className={`stt-btn${stt.active ? ' active' : ''}`} disabled={!ready && !stt.active}
+        onMouseDown={e => e.preventDefault()} onClick={stt.toggle}
+        title={stt.active ? 'Stop dictation' : 'Dictate (Chrome/Edge only)'} aria-label={stt.active ? 'Stop dictation' : 'Start dictation'}>
+        <Icon.mic/>
+      </button>
+    </div>
+  );
+}
+
 function scoreSeverity(tool, val) {
   const n = parseInt(val, 10);
   if (isNaN(n) || val === '') return null;
@@ -2700,7 +2758,7 @@ function SafetyPlanTab({ safetyPlan, setSafetyPlan, showToast, privacyCtl }) {
           <div key={step.key} className={`sp-section${(safetyPlan[step.key] || '').trim() ? ' filled' : ''}`}>
             <h4><span className="sp-step-num">{i + 1}</span>{step.label}</h4>
             <label className="sp-hint" htmlFor={`sp-${step.key}`}>{step.hint}</label>
-            <textarea id={`sp-${step.key}`} className="textarea" rows="3" value={safetyPlan[step.key] || ''} onChange={e => setField(step.key, e.target.value)}/>
+            <textarea id={`sp-${step.key}`} data-dictate-label={step.label} className="textarea" rows="3" value={safetyPlan[step.key] || ''} onChange={e => setField(step.key, e.target.value)}/>
           </div>
         ))}
       </div>
@@ -2757,7 +2815,7 @@ const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
         </div>
         <button className="goal-rm" type="button" onClick={onRemove} title="Remove goal">×</button>
       </div>
-      <textarea className="textarea" rows="2" placeholder="Measurable goal (e.g. Client will identify 3 coping strategies for anxiety by target date)…" value={text} onChange={handleChange}/>
+      <textarea className="textarea" rows="2" data-dictate-label="Treatment goal" placeholder="Measurable goal (e.g. Client will identify 3 coping strategies for anxiety by target date)…" value={text} onChange={handleChange}/>
     </div>
   );
 });
@@ -3768,6 +3826,7 @@ function App() {
       <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
       <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} privacy={privacy}/></div>
       <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} privacyCtl={privacyCtl} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      {['intake', 'dx', 'plan', 'safety'].includes(appMode) && <DictateButton key={appMode}/>}
       {appMode === 'safety' && <SafetyPlanTab privacyCtl={privacyCtl} safetyPlan={safetyPlan} setSafetyPlan={setSafetyPlan} showToast={showToast}/>}
       <div style={{display: appMode === 'screenings' ? 'contents' : 'none'}}><ScreeningsTab key={resetKey} screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} showToast={showToast}/></div>
       {appMode === 'progress' && <aside className="sidebar">
