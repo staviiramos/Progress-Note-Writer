@@ -40,7 +40,7 @@ Line numbers drift; search for the names below.
 4. **`<script type="text/babel">` app** (`═══ app.jsx ═══`):
    - `pickGroqModel` / `callGroq`: lists Groq models, skips reasoning/vision/audio models, picks the largest context window, posts to `https://api.groq.com/openai/v1/chat/completions`, strips `<think>` blocks.
    - Shared UI: `useToast`, tone controls, `ApiKeyModal`, `AllowlistEditor`, `useSpeechRecognition` (browser dictation), `fmtTime12`.
-   - Screenings: `scoreSeverity`, `SCREENING_TOOLS` (PHQ-9, GAD-7, PCL-5 items and severity bands), `ScreeningTool`, `ScreeningsTab`.
+   - Screenings: `scoreSeverity`, `SCREENING_TOOLS` (PHQ-9, GAD-7, PCL-5, ASRS-v1.1; the ASRS item wording goes in the marked `ASRS_ITEM_TEXT` constant and its scoring is `PN_LIB.scoreASRS`), `ScreeningTool`, `ScreeningsTab`.
    - Tabs: `TreatmentPlanTab` (+ `GoalCard`), `IntakeTab` (+ `DxAutocompleteInput`), `DxTab` (+ `SxItem`).
    - `App`: top bar with tab switcher (`appMode`: `progress`, `intake`, `dx`, `plan`, `screenings`), Progress Note sidebar and paper-style output, API key handling, app-level state shared across tabs (`screeningAnswers` -> `screeningLines`, `goals`), `generate()` for the progress note, and `wipeAll()` ("mark completed" clears everything).
 

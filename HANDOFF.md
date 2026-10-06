@@ -34,7 +34,7 @@ Owner's request, paraphrased: don't show every screening open at once; let the W
 
 Progress (owner asked for one step at a time, pushed after each):
 - [x] Step 1, screening picker (2026-10-06): `ScreeningsTab` now has "Choose screenings" cards; selected tools render as collapsible `ScreeningTool` panels; removing a tool clears its answers so its score leaves the notes. Covers items 2 and 3 below for PHQ-9, GAD-7 and PCL-5. New tools only need an entry in `SCREENING_TOOLS` (C-SSRS will need its own panel body).
-- [ ] Step 2, ASRS-v1.1.
+- [x] Step 2, ASRS-v1.1 (2026-10-06): `asrs` entry in `SCREENING_TOOLS` with Part A / Part B dividers (`parts` field), a live Part A positive/negative badge, total out of 72, and a note line with the total and Part A result. Scoring is `L.scoreASRS` in `PN_LIB`, covered by `npm test`. **Item wording is not in the file:** the 18 items show as "Item 1" ... "Item 18". The owner pastes the official WHO wording into the marked `ASRS_ITEM_TEXT` constant (search for `ASRS-v1.1 ITEM WORDING`). Agents should not write or print the item text; scoring does not depend on it.
 - [ ] Step 3, Safety Plan tab.
 - [ ] Step 4, C-SSRS with placeholder item text.
 

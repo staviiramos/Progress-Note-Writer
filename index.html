@@ -603,6 +603,11 @@ textarea { resize: vertical; }
 .ts-rm:hover { color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, transparent); }
 .tool-sec-body { border-top: 1px solid var(--line); padding: 16px; }
 .tool-sec-body .st-meta { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.st-part { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; padding-bottom: 6px; border-bottom: 1px solid var(--line-2, var(--line)); }
+.st-part:first-of-type { margin-top: 0; }
+.st-part-label { font-family: var(--serif); font-size: 15px; font-weight: 500; color: var(--ink); }
+.st-part-note { font-size: 11.5px; color: var(--muted); }
+.st-part .score-badge { margin-left: auto; }
 .screening-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 28px 16px; border: 1px dashed var(--line-2); border-radius: var(--r); }
 .screening-integration { background: var(--paper); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-paper); }
 .screening-integration h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 10px; }
@@ -1614,7 +1619,25 @@ window.PN_LIB = (() => {
     return parts.join('\n');
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote };
+  // ASRS-v1.1 scoring. answers: { itemIndex: 0-4 } (0 Never ... 4 Very often), 18 items.
+  // Part A = items 1-6: items 1-3 count at >= 2 (Sometimes), items 4-6 at >= 3 (Often).
+  // 4 or more Part A items in that range = positive screen. Total = sum of all 18 items (0-72).
+  const ASRS_PART_A_THRESHOLDS = [2, 2, 2, 3, 3, 3];
+  function scoreASRS(answers) {
+    const has = (i) => answers[i] !== undefined && answers[i] !== null;
+    const partAAnswered = ASRS_PART_A_THRESHOLDS.filter((_, i) => has(i)).length;
+    const partAPositives = ASRS_PART_A_THRESHOLDS.filter((t, i) => has(i) && answers[i] >= t).length;
+    let total = 0, answered = 0;
+    for (let i = 0; i < 18; i++) if (has(i)) { total += answers[i]; answered++; }
+    return {
+      total, answered, complete: answered === 18,
+      partAAnswered, partAPositives,
+      partAComplete: partAAnswered === 6,
+      partAPositive: partAPositives >= 4,
+    };
+  }
+
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, scoreASRS };
 })();
 </script>
 
@@ -2083,6 +2106,32 @@ function scoreSeverity(tool, val) {
   return null;
 }
 
+// ═══ ASRS-v1.1 ITEM WORDING: PASTE HERE ═══
+// Replace each 'Item N' below with the official WHO ASRS-v1.1 wording for that item, in order.
+// Items 1-6 are Part A, items 7-18 are Part B. Only change the text inside the quotes;
+// scoring does not depend on the wording.
+const ASRS_ITEM_TEXT = [
+  'Item 1',
+  'Item 2',
+  'Item 3',
+  'Item 4',
+  'Item 5',
+  'Item 6',
+  'Item 7',
+  'Item 8',
+  'Item 9',
+  'Item 10',
+  'Item 11',
+  'Item 12',
+  'Item 13',
+  'Item 14',
+  'Item 15',
+  'Item 16',
+  'Item 17',
+  'Item 18',
+];
+// ═══ END ASRS-v1.1 ITEM WORDING ═══
+
 const SCREENING_TOOLS = {
   phq9: {
     key: 'phq9',
@@ -2188,6 +2237,34 @@ const SCREENING_TOOLS = {
       return { level: 'severe', label: 'Severe PTSD symptoms', range: '50–80' };
     },
   },
+  asrs: {
+    key: 'asrs',
+    label: 'ASRS-v1.1',
+    full: 'Adult ADHD Self-Report Scale',
+    meta: 'Adult ADHD screener · Part A (items 1–6) is the screen · Total 0–72 · WHO / Kessler et al. (2005)',
+    max: 72,
+    stem: 'Rate each item for the past 6 months.',
+    options: [
+      { value: 0, label: 'Never' },
+      { value: 1, label: 'Rarely' },
+      { value: 2, label: 'Sometimes' },
+      { value: 3, label: 'Often' },
+      { value: 4, label: 'Very often' },
+    ],
+    questions: ASRS_ITEM_TEXT,
+    parts: [
+      { start: 0, label: 'Part A', note: 'Items 1–6 · screening items' },
+      { start: 6, label: 'Part B', note: 'Items 7–18 · additional symptom detail' },
+    ],
+    // ASRS has no total-score bands; the screen result comes from Part A.
+    severity: (n, answers = {}) => {
+      const r = L.scoreASRS(answers);
+      const detail = `${r.partAPositives} of 6 Part A items in the positive range, 4 or more needed for a positive screen`;
+      return r.partAPositive
+        ? { level: 'moderate', label: 'Part A positive', range: `${n}/72`, detail }
+        : { level: 'minimal', label: 'Part A negative', range: `${n}/72`, detail };
+    },
+  },
 };
 
 // Score summary for one tool; null when not every item is answered.
@@ -2195,7 +2272,7 @@ function screeningResult(tool, answers) {
   const answered = tool.questions.filter((_, i) => answers[i] !== undefined && answers[i] !== null).length;
   const total = tool.questions.reduce((sum, _, i) => sum + (answers[i] ?? 0), 0);
   const complete = answered === tool.questions.length;
-  return { answered, total, complete, sev: complete ? tool.severity(total) : null };
+  return { answered, total, complete, sev: complete ? tool.severity(total, answers) : null };
 }
 
 // One selected screening, shown as a collapsible panel.
@@ -2220,7 +2297,20 @@ function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, 
           <div className="st-meta">{tool.meta}</div>
           {tool.stem && <div style={{fontSize:12.5,color:'var(--ink-2)',marginBottom:12,fontStyle:'italic',lineHeight:1.5}}>{tool.stem}</div>}
           {tool.questions.map((q, i) => (
-            <div className="st-question" key={i}>
+            <React.Fragment key={i}>
+            {tool.parts && tool.parts.filter(p => p.start === i).map(p => (
+              <div className="st-part" key={p.label}>
+                <span className="st-part-label">{p.label}</span>
+                <span className="st-part-note">{p.note}</span>
+                {tool.key === 'asrs' && p.start === 0 && (() => {
+                  const a = L.scoreASRS(answers);
+                  return a.partAComplete
+                    ? <span className={`score-badge ${a.partAPositive ? 'moderate' : 'minimal'}`}>{a.partAPositive ? 'Positive' : 'Negative'} · {a.partAPositives}/6</span>
+                    : <span className="st-part-note">{a.partAAnswered}/6 answered</span>;
+                })()}
+              </div>
+            ))}
+            <div className="st-question">
               <div className="st-q-num">{i + 1}.</div>
               <div className="st-q-text">{q}</div>
               <div className="st-options">
@@ -2236,6 +2326,7 @@ function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, 
                 ))}
               </div>
             </div>
+            </React.Fragment>
           ))}
           <div className="st-score-bar">
             <div className="st-score-num">{answered > 0 ? total : '—'}</div>
@@ -2243,7 +2334,7 @@ function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, 
               {sev ? (
                 <>
                   <div className={`sev score-badge ${sev.level}`} style={{display:'inline-block',marginBottom:4}}>{sev.label}</div>
-                  <div className="range">{sev.range} out of {tool.max}</div>
+                  <div className="range">{sev.detail ? <>Total {sev.range} · {sev.detail}</> : <>{sev.range} out of {tool.max}</>}</div>
                   <div className="progress"><div className={`progress-fill ${sev.level}`} style={{width: `${pct}%`}}/></div>
                 </>
               ) : (
@@ -3322,13 +3413,8 @@ function App() {
   const screeningLines = useMemo(() => {
     const lines = [];
     Object.values(SCREENING_TOOLS).forEach(tool => {
-      const ans = screeningAnswers[tool.key] || {};
-      const answered = tool.questions.filter((_, i) => ans[i] !== undefined && ans[i] !== null).length;
-      if (answered === tool.questions.length) {
-        const total = tool.questions.reduce((s, _, i) => s + (ans[i] ?? 0), 0);
-        const sev = tool.severity(total);
-        lines.push(`${tool.label}: ${total}/${tool.max} (${sev.label})`);
-      }
+      const r = screeningResult(tool, screeningAnswers[tool.key] || {});
+      if (r.complete) lines.push(`${tool.label}: ${r.total}/${tool.max} (${r.sev.label}${r.sev.detail ? `; ${r.sev.detail}` : ''})`);
     });
     return lines;
   }, [screeningAnswers]);

@@ -86,6 +86,19 @@ for (const c of cases) {
   check('buildPrompt does not list redacted names', !/Jordan|Placeholder/.test(prompt) && prompt.includes('replaced with "Client"'));
 }
 
+// 3d. ASRS-v1.1 scoring: Part A thresholds (items 1-3 at >= 2, items 4-6 at >= 3), 4+ = positive, total 0-72.
+{
+  const fill = (partA, rest = 0) => Object.fromEntries([...partA, ...Array(12).fill(rest)].map((v, i) => [i, v]));
+  const pos = L.scoreASRS(fill([2, 2, 2, 3, 0, 0]));
+  check('ASRS Part A positive at 4 items in range', pos.partAComplete && pos.partAPositives === 4 && pos.partAPositive && pos.complete, JSON.stringify(pos));
+  const neg = L.scoreASRS(fill([2, 2, 2, 2, 2, 2]));
+  check('ASRS items 4-6 need Often (3) to count', neg.partAPositives === 3 && !neg.partAPositive, JSON.stringify(neg));
+  const max = L.scoreASRS(fill([4, 4, 4, 4, 4, 4], 4));
+  check('ASRS total out of 72', max.total === 72 && max.answered === 18, JSON.stringify(max));
+  const partial = L.scoreASRS({ 0: 4, 1: 4 });
+  check('ASRS partial answers are not complete', !partial.complete && !partial.partAComplete && partial.partAAnswered === 2, JSON.stringify(partial));
+}
+
 // 4. AI-buzzword scrub removes em dashes and banned words.
 const scrubbed = L.scrubText('Writer will delve into goals — moreover, review plan.');
 check('scrubText removes em dash and buzzwords', !/—|delve|moreover/i.test(scrubbed), `output: ${scrubbed}`);
