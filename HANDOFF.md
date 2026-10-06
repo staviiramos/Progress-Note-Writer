@@ -20,6 +20,10 @@ What the WIP file contains, relative to `main`:
 3. `buildPrompt` and `buildIntakePrompt` accept `safetyPlanLines` and add a short "Safety plan completed this session" section to the prompt.
 4. A one-word copy change in the PHQ-9 `meta` line of `SCREENING_TOOLS`.
 
+A second, newer variant of the same edits (styling tweaks, a reworked Safety Plan preview, no `type` field in `TOOL_CATALOG`) appeared uncommitted in a later session's copy of `index.html` with no known author. It is saved as `handoff/screenings-wip-v2.patch` against the redaction-fix commit (`git apply handoff/screenings-wip-v2.patch`). It has the same problem: styling without the matching components.
+
+Avoiding the content filter: earlier attempts were cut off while writing out the full C-SSRS item wording and triage text. Build the C-SSRS with numbered placeholder items ("Item 1", ...) and the scoring logic only, and let the owner paste the official wording into one marked constant. Keep each edit small.
+
 Easiest path: start from the WIP file, finish the steps below, check every tab, then replace `index.html` with it.
 
 ## Open work, in order
