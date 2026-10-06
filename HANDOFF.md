@@ -20,13 +20,28 @@ What the WIP file contains, relative to `main`:
 3. `buildPrompt` and `buildIntakePrompt` accept `safetyPlanLines` and add a short "Safety plan completed this session" section to the prompt.
 4. A one-word copy change in the PHQ-9 `meta` line of `SCREENING_TOOLS`.
 
+A second, newer variant of the same edits (styling tweaks, a reworked Safety Plan preview, no `type` field in `TOOL_CATALOG`) appeared uncommitted in a later session's copy of `index.html` with no known author. It is saved as `handoff/screenings-wip-v2.patch` against the redaction-fix commit (`git apply handoff/screenings-wip-v2.patch`). It has the same problem: styling without the matching components.
+
+Avoiding the content filter: earlier attempts were cut off while writing out the full C-SSRS item wording and triage text. Build the C-SSRS with numbered placeholder items ("Item 1", ...) and the scoring logic only, and let the owner paste the official wording into one marked constant. Keep each edit small.
+
 Easiest path: start from the WIP file, finish the steps below, check every tab, then replace `index.html` with it.
+
+## Branch and deploy state (2026-10-06)
+
+- The owner pasted the official ASRS-v1.1 and C-SSRS wording into `index.html` and uploaded it to `main` (commit `892be19`, after a fix for items split across lines). `claude/blissful-meitner-vvuv9z` has `main` merged in, so its `index.html` is identical to the live site, wording included.
+- **Do not print the item wording** (see CLAUDE.md ground rules). Future work: branch from or merge `origin/main`, change things, open a PR into `main`.
 
 ## Open work, in order
 
 ### A. Screenings tab redesign plus a Safety Plan tab (owner's active request)
 
 Owner's request, paraphrased: don't show every screening open at once; let the Writer pick which ones to use (more than one can be open). Add an adult ADHD screener (ASRS-v1.1) and the Columbia (C-SSRS) screen. Safety planning gets its **own tab**, not part of Screenings. Results from all of these feed note generation in the Progress Note, Intake and Treatment Plan tabs.
+
+Progress (owner asked for one step at a time, pushed after each):
+- [x] Step 1, screening picker (2026-10-06): `ScreeningsTab` now has "Choose screenings" cards; selected tools render as collapsible `ScreeningTool` panels; removing a tool clears its answers so its score leaves the notes. Covers items 2 and 3 below for PHQ-9, GAD-7 and PCL-5. New tools only need an entry in `SCREENING_TOOLS` (C-SSRS will need its own panel body).
+- [x] Step 2, ASRS-v1.1 (2026-10-06): `asrs` entry in `SCREENING_TOOLS` with Part A / Part B dividers (`parts` field), a live Part A positive/negative badge, total out of 72, and a note line with the total and Part A result. Scoring is `L.scoreASRS` in `PN_LIB`, covered by `npm test`. The owner has since pasted the official wording into the marked `ASRS_ITEM_TEXT` constant. Agents must not print or rewrite it.
+- [x] Step 3, Safety Plan tab (2026-10-06): `SafetyPlanTab` with the six steps in `SAFETY_PLAN_STEPS`, a completion bar, an "Included in notes" preview, copy and clear buttons. App state `safetyPlan`; `safetyPlanItems` (`{label, text}` per filled step) is passed to Progress Note, Intake and Treatment Plan. Each tab runs the step **text** (not the "Label: text" line) through its sanitizer, then adds the label with `safetyPlanToLines`; running detection on the full line made the first word look like a name. `buildPrompt` / `buildIntakePrompt` take `safetyPlanLines`; Treatment Plan appends a SAFETY PLAN section. "Note completed" (`wipeAll`) clears it. Covered by `npm test` and a browser run with a mocked Groq endpoint (no names or phone numbers in any of the three prompts).
+- [x] Step 4, C-SSRS screen (2026-10-06): `cssrs` entry in `SCREENING_TOOLS` (`kind: 'triage'`, Yes/No, no total). Six items plus an item 6 follow-up ("6b"). Items 3-5 are greyed out unless item 2 is Yes; 6b unless item 6 is Yes. Risk level (none / low / moderate / high) follows the screener's triage rules in `L.scoreCSSRS`, covered by `npm test`. Note line: "C-SSRS: <level> per screener triage (Yes on items ...)". Tools can now supply `score(answers)` instead of `severity(total)`, and `screeningResult` returns `scoreText` / `summary` used by every display. The owner has since pasted the official wording into the marked `CSSRS_ITEM_TEXT` constant. Agents must not print or rewrite it.
 
 Remaining steps (line numbers refer to the WIP file and are approximate):
 1. `SCREENING_TOOLS` (~2089, right after `TOOL_CATALOG`): add `asrs` and `cssrs` entries.
@@ -44,11 +59,16 @@ Remaining steps (line numbers refer to the WIP file and are approximate):
 
 Practical tip: these items are long. Write them in small edits (one tool or component per edit) and keep the item text in code, not in chat messages.
 
-### B. Redaction gap in the other tabs (privacy, high priority)
+### B. Redaction gap in the other tabs: done (2026-10-06)
 
-Only the Progress Note tab redacts before calling Groq. Intake (`IntakeTab.generate`), Dx Justification (`DxTab.generate`, the `observations` text) and Treatment Plan (`TreatmentPlanTab.generate`, goal text) send their free text as typed. Fix: run each free-text field through the same `detectNames` + `redactNames` + `redactPHI` path (honoring the allowlist and Safe Harbor toggle), and post-process output with `redactNames` like the Progress Note tab does. Ideally lift `sanitize` into a shared helper. Add cases to `scripts/check.mjs`.
+Intake, Dx Justification and Treatment Plan now de-identify their free text with `L.makeSanitizer` before calling Groq, post-process output with `scrubText` + `redactNames`, and show a "De-identified before generation" bar. Two related Progress Note leaks were fixed at the same time: active treatment-goal text went into its prompt unredacted, and `buildPrompt` listed the redacted names back to the model ("Names redacted ...: <names>"); it now says only that names were replaced. Note that the Safe Harbor toggle and allowlist editor are still only visible in the Progress Note sidebar, though the setting applies to all tabs. If you add the Safety Plan tab (A), its fields feed other tabs' prompts, so run them through the same sanitizer.
 
 ### C. Smaller notes
+
+- Suggested enhancements discussed with the owner (2026-10-06), not started: redact names at sentence start (privacy, top priority); privacy toggle and allowlist visible on every tab; dictation on all tabs; edit or regenerate one section of a note; printable safety plan; plain-text and per-section copy; faster loading (React production builds); tidier top bar and phone tab bar; dots on tabs that hold content; dead-code cleanup.
+
+- `wipeAll()` ("Note completed") clears everything entered for the client (owner's decision, 2026-10-06): the Progress Note, screening answers, treatment goals, the safety plan, and the Intake, Dx, Treatment Plan and Screenings drafts. Settings, allowlist and the Groq key are kept. Any new App-level client data must be added to `wipeAll()`.
+- Drafts survive tab switches (2026-10-06): Intake, Dx, Treatment Plan and Screenings stay mounted and are hidden with a `display: none` / `display: contents` wrapper instead of being unmounted. They keep their fields in local state, so `wipeAll()` bumps `resetKey`, which is their React `key`, to remount them empty. Hidden tabs are still in the DOM, so browser tests should target `:visible` elements.
 
 - `detectNames` skips the first word of each sentence, so a name that opens a sentence is not caught. Consider a per-input "names to redact" field (the original design had one) or a check of sentence-initial words against `COMMON_WORDS`.
 - `sessionLocation` / `sessionCredentials` state is still passed to `buildPrompt` although their inputs were removed. That's harmless dead code you can remove.
