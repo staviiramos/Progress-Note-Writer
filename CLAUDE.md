@@ -30,7 +30,7 @@ Start every session by reading `HANDOFF.md` for current state and open work.
 
 Line numbers drift; search for the names below.
 
-1. **`<style>`** (top of file, ~650 lines): design tokens on `:root` (warm paper palette, `--serif` Newsreader, `--sans`), theme/density variants, then per-tab sections (`/* Screenings tab */`, intake, dx, goal cards, ...).
+1. **`<style>`** (top of file, ~750 lines): design tokens on `:root` (warm paper palette, `--serif` Newsreader, `--sans`), theme/density variants, then per-tab sections (`/* Screenings tab */`, intake, dx, goal cards, ...).
 2. **`<script>` with `window.PN_LIB`** (plain JS, marked `═══ lib.js ═══`): pure logic, no React.
    - Config: `FORMATS` (SOAP, DAP, BIRP, GIRP, PIRP, EMR one-paragraph, narrative), `TONES` (conversational / balanced / clinical), `CONCISENESS`, `INTERVENTIONS`, `MSE_FIELDS`, `RISK_ITEMS`.
    - Redaction: `PHI_PATTERNS`, `detectPHI`, `redactPHI` (SSN, phone, email, URL, IP, dates, ZIP, MRN-style IDs, age 90+), `COMMON_WORDS`, `detectNames` (capitalized words minus `COMMON_WORDS` and the allowlist; a sentence-opening word counts only when possessive, followed by another capitalized word, or followed by a person verb in `NAME_FOLLOW_VERBS`, and never when it is in `SENTENCE_START_WORDS`, appears in lowercase elsewhere, or has a non-name suffix), `parseNameList` (the "Names to always redact" field), `redactNames` (replaces with the subject label), `makeSanitizer` (multi-field helper used by the Intake, Dx and Treatment Plan tabs; takes `alwaysRedact`).
@@ -58,7 +58,7 @@ Intake, Dx Justification and Treatment Plan tabs: their free-text fields go thro
 
 ## Running locally
 
-No build. Open `index.html` in a browser, or serve the folder (`python3 -m http.server`) and open `http://localhost:8000/`. It needs network access to unpkg (React, ReactDOM, Babel standalone, pinned with SRI hashes), Google Fonts, and `api.groq.com`. Set a Groq key from the top bar ("Set Groq key"); get one at console.groq.com.
+No build. React and ReactDOM load as production UMD builds with SRI hashes; the two `<script type="text/babel" data-presets="react">` blocks compile with the react preset only (no env transform), so a `const` used before its declaration throws at runtime. Open `index.html` in a browser, or serve the folder (`python3 -m http.server`) and open `http://localhost:8000/`. It needs network access to unpkg (React, ReactDOM, Babel standalone, pinned with SRI hashes), Google Fonts, and `api.groq.com`. Set a Groq key from the top bar ("Set Groq key"); get one at console.groq.com.
 
 ## Testing
 
@@ -69,7 +69,7 @@ npm test      # or: node scripts/check.mjs path/to/file.html
 
 `scripts/check.mjs` compiles every JSX block and runs the redaction and buzzword-scrub functions from `window.PN_LIB` against placeholder samples. Add a case there whenever you change `PHI_PATTERNS`, `detectNames`, `redactNames`, `makeSanitizer`, `COMMON_WORDS` or `scrubText`.
 
-For UI changes, also load the page in a browser and click through all tabs with the console open. In a sandbox without unpkg access, Playwright can serve the libraries from `node_modules` (`react@18.3.1`, `react-dom@18.3.1`, `@babel/standalone@7.29.0`) via `page.route`.
+For UI changes, also load the page in a browser and click through all tabs with the console open. In a sandbox without unpkg access, Playwright can serve the libraries from `node_modules` (`react@18.3.1` and `react-dom@18.3.1` `umd/*.production.min.js`, `@babel/standalone@7.29.0`) via `page.route`. Hidden tabs stay in the DOM, so target `:visible` elements.
 
 ## Deploying
 
