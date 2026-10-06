@@ -842,35 +842,84 @@ window.PN_LIB = (() => {
     'North','South','East','West','Central',
   ]);
 
+  // Ordinary words that often open a sentence in session notes, followed by a verb
+  // ("Mood was ...", "Mother reported ..."). Never treated as names at sentence start.
+  const SENTENCE_START_WORDS = new Set([
+    'A','Also','After','Again','All','Although','As','At','Before','Both','By','During','Each','Either','Every','Everyone','Everything',
+    'For','From','However','If','In','Initially','Later','Many','Most','Much','No','Nobody','None','Not','Nothing','Now','Of','On','One',
+    'Only','Other','Others','Overall','Per','Since','Some','Someone','Something','Still','Then','Therefore','Though','Throughout','To',
+    'Today','Tonight','Tomorrow','Yesterday','Until','Upon','When','Where','Whether','While','Who','Why','With','Without',
+    'Mood','Affect','Sleep','Appetite','Energy','Anxiety','Depression','Stress','Symptoms','Risk','Safety','Insight','Judgment',
+    'Speech','Thought','Thoughts','Behavior','Attention','Concentration','Memory','Orientation','Hygiene','Appearance','Eye',
+    'Progress','Plan','Plans','Goal','Goals','Homework','Therapy','Medication','Medications','Meds','Group','Family','Work',
+    'School','Home','Housing','Court','Probation','Recovery','Relapse','Sobriety','Use','Substance','Alcohol','Cravings',
+    'Mother','Father','Mom','Dad','Parent','Parents','Sister','Brother','Sibling','Siblings','Husband','Wife','Spouse','Partner',
+    'Boyfriend','Girlfriend','Son','Daughter','Child','Children','Kids','Baby','Grandmother','Grandfather','Grandma','Grandpa',
+    'Aunt','Uncle','Cousin','Friend','Friends','Roommate','Boss','Coworker','Coworkers','Supervisor','Manager','Teacher',
+    'Doctor','Psychiatrist','Provider','Nurse','Staff','Caseworker','Pet','Dog','Cat',
+    'Stepfather','Stepmother','Stepdad','Stepmom','Stepson','Stepdaughter','Fiance','Fiancee','Ex','Neighbor','Neighbors','Landlord',
+    'Pastor','Priest','Rabbi','Imam','Coach','Mentor','Sponsor','Prescriber','Pharmacy','Pharmacist','Insurance','Twins','Grandparents',
+    'Everybody','Somebody','Anyone','Anybody','Nobody','Police','Officer','Judge','Lawyer','Attorney','Employer','Principal','Counselor',
+    'Attendance','Compliance','Adherence','Resistance','Avoidance','Independence','Patience','Confidence','Presence','Experience',
+    'Sessions','Reports','Discussed','Reviewed','Explored','Processed','Provided','Practiced','Will','Next','Continue',
+  ]);
+  // A sentence-opening word followed by one of these is likely a person ("Jordan said ...").
+  const NAME_FOLLOW_VERBS = new Set([
+    'said','says','reported','reports','stated','states','shared','shares','told','tells','asked','asks',
+    'explained','explains','mentioned','mentions','admitted','admits','verbalized','verbalizes','expressed','expresses',
+    'endorsed','endorses','denied','denies','agreed','agrees','arrived','attended','attends','called','calls','texted','texts',
+    'feels','felt','wants','wanted','lives','works','thinks','thought','believes','believed','cried','laughed','yelled',
+  ]);
+  const NOT_NAME_SUFFIX = /(ing|ed|ly|tion|sion|ness|ment|ity|ies|ful|less|ous|ive|able)$/;
+
   function detectNames(text, extraNames, allowlist) {
     if (!text) return [];
     const found = new Set();
     (extraNames || []).forEach((n) => { if (n && n.trim()) found.add(n.trim()); });
     const allowSet = new Set((allowlist || []).map(w => w.toLowerCase()));
-    const sentences = text.split(/([.!?]\s+)/);
+    // Words that also appear in lowercase are ordinary words, not names.
+    const lowerWords = new Set((text.match(/\b[a-z][a-z'\-]+\b/g) || []));
+    const toName = (w) => w.replace(/[^A-Za-z'\-]/g, '').replace(/['\u2019]s$/, '').replace(/^['\-]+|['\-]+$/g, '');
+    const isCandidate = (n) => n && n.length >= 2 && /^[A-Z][a-z'\-]+$/.test(n)
+      && !COMMON_WORDS.has(n) && !allowSet.has(n.toLowerCase());
+    const sentences = text.split(/([.!?]\s+|\n+)/);
     sentences.forEach((seg, idx) => {
       if (idx % 2 !== 0) return;
-      seg.split(/\s+/).forEach((w, wIdx) => {
-        const clean = w.replace(/[^A-Za-z'\-]/g, '');
-        if (!clean || clean.length < 2) return;
-        if (!/^[A-Z][a-z'\-]+$/.test(clean)) return;
-        if (COMMON_WORDS.has(clean)) return;
-        if (allowSet.has(clean.toLowerCase())) return;
-        if (wIdx === 0) return;
-        found.add(clean);
+      const words = seg.split(/\s+/).filter(Boolean);
+      words.forEach((w, wIdx) => {
+        const clean = toName(w);
+        if (!isCandidate(clean)) return;
+        if (wIdx > 0) { found.add(clean); return; }
+        // Sentence-opening word: only a name when the context points to a person.
+        if (SENTENCE_START_WORDS.has(clean) || lowerWords.has(clean.toLowerCase()) || NOT_NAME_SUFFIX.test(clean.toLowerCase())) return;
+        const next = words[1] ? words[1].replace(/[^A-Za-z'\-]/g, '') : '';
+        const possessive = /['\u2019]s\W*$/.test(w);
+        const nextIsName = isCandidate(toName(words[1] || ''));
+        if (possessive || nextIsName || NAME_FOLLOW_VERBS.has(next.toLowerCase())) found.add(clean);
       });
     });
     return Array.from(found);
   }
 
-  function redactNames(text, names, subjectLabel) {
+  // ignoreCase is for names the Writer typed into "Names to always redact".
+  function redactNames(text, names, subjectLabel, ignoreCase = false) {
     if (!text || !names || !names.length) return text;
     let out = text;
     [...names].sort((a, b) => b.length - a.length).forEach((n) => {
-      const re = new RegExp('\\b' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'g');
+      const re = new RegExp('\\b' + n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', ignoreCase ? 'gi' : 'g');
       out = out.replace(re, subjectLabel);
     });
     return out;
+  }
+
+  // Splits the "Names to always redact" field into single words and full names.
+  function parseNameList(str) {
+    const out = new Set();
+    String(str || '').split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length >= 2).forEach((full) => {
+      out.add(full);
+      full.split(/\s+/).filter(p => p.replace(/[^A-Za-z]/g, '').length >= 2).forEach(p => out.add(p.replace(/[^A-Za-z'\-]/g, '')));
+    });
+    return Array.from(out).filter(Boolean);
   }
 
   // Words from diagnosis names (e.g. "Major", "Disorder") are clinical terms, never names.
@@ -881,8 +930,10 @@ window.PN_LIB = (() => {
 
   // Shared de-identification for tabs with several free-text fields: detect names and PHI
   // across all of them, then clean() each one before it goes into a prompt.
-  function makeSanitizer(texts, { subject, allowlist, safeHarbor }) {
+  // alwaysRedact: names from the "Names to always redact" field, matched in any letter case.
+  function makeSanitizer(texts, { subject, allowlist, safeHarbor, alwaysRedact }) {
     const allow = [...(allowlist || []), ...dxWords()];
+    const always = parseNameList(alwaysRedact);
     const names = new Set(), phi = [], seen = new Set();
     (texts || []).forEach((t) => {
       if (!t || typeof t !== 'string') return;
@@ -892,10 +943,12 @@ window.PN_LIB = (() => {
         if (!seen.has(key)) { seen.add(key); phi.push(p); }
       });
     });
+    always.forEach((n) => names.add(n));
     const nameList = Array.from(names);
     const clean = (s) => {
       if (!s || typeof s !== 'string') return s;
-      let o = redactNames(s, nameList, subject);
+      let o = redactNames(s, always, subject, true);
+      o = redactNames(o, nameList, subject);
       if (safeHarbor) o = redactPHI(o);
       return o;
     };
@@ -1693,7 +1746,7 @@ window.PN_LIB = (() => {
     };
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, scoreASRS, scoreCSSRS, cssrsApplies };
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, parseNameList, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, scoreASRS, scoreCSSRS, cssrsApplies };
 })();
 </script>
 
@@ -2041,6 +2094,33 @@ function fmtTime12(t) {
 }
 
 // Shows what was de-identified before the last generation (shared by Intake, Dx and Treatment Plan tabs).
+// "Names to always redact": session-only list (never saved), cleared by "Note completed".
+function NamesToRedactField({ value, onChange }) {
+  return (
+    <div className="row" style={{marginTop:10,marginBottom:0}}>
+      <label htmlFor="always-redact">Names to always redact</label>
+      <input id="always-redact" className="input" type="text" autoComplete="off" spellCheck={false}
+        placeholder="First and last names, comma separated" value={value} onChange={e => onChange(e.target.value)}/>
+      <div className="note-sm" style={{marginTop:4}}>Replaced in any capitalization, including at the start of a sentence. Not saved; cleared by "Note completed".</div>
+    </div>
+  );
+}
+
+// Compact privacy settings shown on every tab that sends text to the model. Same App state everywhere.
+function PrivacyControls({ ctl }) {
+  return (
+    <div className="card privacy-card">
+      <h3>Privacy <span className="hint">same settings on every tab</span></h3>
+      <div className="row h" style={{marginBottom:0}}>
+        <label style={{margin:0}}>Safe Harbor de-identification</label>
+        <button className="tg" type="button" aria-label="Safe Harbor de-identification" data-on={ctl.safeHarbor?'1':'0'} onClick={()=>ctl.setSafeHarbor(!ctl.safeHarbor)}><i/></button>
+      </div>
+      {ctl.safeHarbor && <AllowlistEditor words={ctl.allowlist} onAdd={ctl.addAllowedWord} onRemove={ctl.removeAllowedWord}/>}
+      <NamesToRedactField value={ctl.alwaysRedact} onChange={ctl.setAlwaysRedact}/>
+    </div>
+  );
+}
+
 function RedactionFlags({ flags }) {
   if (!flags || (!flags.names.length && !flags.phi.length)) return null;
   return (
@@ -2599,7 +2679,7 @@ function safetyPlanEntries(plan) {
 }
 const safetyPlanToLines = (entries, clean = (t) => t) => entries.map(e => `${e.label}: ${clean(e.text)}`);
 
-function SafetyPlanTab({ safetyPlan, setSafetyPlan, showToast }) {
+function SafetyPlanTab({ safetyPlan, setSafetyPlan, showToast, privacyCtl }) {
   const setField = useCallback((key, val) => setSafetyPlan(prev => ({ ...prev, [key]: val })), [setSafetyPlan]);
   const lines = useMemo(() => safetyPlanToLines(safetyPlanEntries(safetyPlan)), [safetyPlan]);
   const filled = SAFETY_PLAN_STEPS.filter(s => (safetyPlan[s.key] || '').trim()).length;
@@ -2625,6 +2705,7 @@ function SafetyPlanTab({ safetyPlan, setSafetyPlan, showToast }) {
         ))}
       </div>
       <aside className="safety-side">
+        <PrivacyControls ctl={privacyCtl}/>
         <div className="card">
           <h3>Completion <span className="hint">{filled} of {total} steps</span></h3>
           <div className="sp-progress" aria-label={`${filled} of ${total} steps filled`}>
@@ -2681,7 +2762,7 @@ const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
   );
 });
 
-function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines, safetyPlanItems, privacy }) {
+function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines, safetyPlanItems, privacy, privacyCtl }) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [flags, setFlags] = useState(null);
@@ -2748,6 +2829,7 @@ Write the treatment plan narrative now:`;
   return (
     <>
       <aside className="sidebar">
+        <PrivacyControls ctl={privacyCtl}/>
         <div className="card">
           <h3>Treatment goals <span className="hint">{goals.length} total</span></h3>
           {goals.length === 0 && (
@@ -2889,7 +2971,7 @@ const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholde
   );
 });
 
-function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlanItems, privacy }) {
+function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlanItems, privacy, privacyCtl }) {
   const [subject, setSubject] = useState('Client');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
@@ -3003,6 +3085,7 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
   return (
     <>
       <aside className="sidebar">
+        <PrivacyControls ctl={privacyCtl}/>
         <div className="card">
           <h3>Session info <span className="hint">CPT 90791</span></h3>
           <div className="row">
@@ -3239,7 +3322,7 @@ const SxItem = React.memo(function SxItem({ criterion, itemKey, checked, onToggl
   );
 });
 
-function DxTab({ apiKeyRef, showToast, onNeedKey, privacy }) {
+function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl }) {
   const [subject, setSubject] = useState('Client');
   const [dxQuery, setDxQuery] = useState('');
   const [showDrop, setShowDrop] = useState(false);
@@ -3329,6 +3412,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey, privacy }) {
   return (
     <>
       <aside className="sidebar">
+        <PrivacyControls ctl={privacyCtl}/>
         <div className="card">
           <h3>Diagnosis <span className="hint">Required</span></h3>
           <div className="row">
@@ -3520,9 +3604,11 @@ function App() {
   const [phiFlags, setPhiFlags] = useState([]);
   const [generatedMeta, setGeneratedMeta] = useState(null);
   const [safeHarbor, setSafeHarbor] = useState(true);
+  const [alwaysRedact, setAlwaysRedact] = useState('');
   const [allowlist, setAllowlist] = useState(() => { try { return JSON.parse(localStorage.getItem('pn.allowlist') || '[]'); } catch { return []; } });
   const addAllowedWord = (w) => { const next = [...allowlist, w]; setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
-  const privacy = useMemo(() => ({ allowlist, safeHarbor }), [allowlist, safeHarbor]);
+  const privacy = useMemo(() => ({ allowlist, safeHarbor, alwaysRedact }), [allowlist, safeHarbor, alwaysRedact]);
+  const privacyCtl = { safeHarbor, setSafeHarbor, allowlist, addAllowedWord, removeAllowedWord, alwaysRedact, setAlwaysRedact };
   const removeAllowedWord = (w) => { const next = allowlist.filter(x => x !== w); setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
   const [confirming, setConfirming] = useState(false);
   const [sessionDate, setSessionDate] = useState('');
@@ -3574,10 +3660,11 @@ function App() {
     const activeGoals = goals.filter(g => g.status === 'active' && g.text.trim());
     // So do safety plan lines.
     const extraTexts = [...activeGoals.map(g => g.text), ...safetyPlanItems.map(e => e.text)];
-    const allNames = Array.from(new Set([...detectedNames, ...extraTexts.flatMap(t => L.detectNames(t, [], allowlist))]));
+    const alwaysNames = L.parseNameList(alwaysRedact);
+    const allNames = Array.from(new Set([...detectedNames, ...alwaysNames, ...extraTexts.flatMap(t => L.detectNames(t, [], allowlist))]));
     const goalPHI = safeHarbor ? extraTexts.flatMap(t => L.detectPHI(t)) : [];
     setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(allNames); setPhiFlags([...detectedPHI, ...goalPHI]);
-    const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
+    const sanitize = (s) => { let o = L.redactNames(L.redactNames(s, alwaysNames, subject, true), allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
     const truncate = (s, max = 2500) => s.length > max ? s.slice(0, max) + '…' : s;
     const prompt = L.buildPrompt({
       format, tone, subject, conciseness, voiceMode: voiceOn, voiceStrength, inputMode,
@@ -3599,7 +3686,7 @@ function App() {
     try {
       const raw = await callGroq(prompt, key);
       const cleaned = L.scrubText(raw);
-      setNote(L.redactNames(cleaned, allNames, subject));
+      setNote(L.redactNames(L.redactNames(cleaned, alwaysNames, subject, true), allNames, subject));
       setGeneratedMeta({ format, subject, tone, at: new Date() });
     } catch(err) {
       if (err.message.startsWith('invalid_key')) {
@@ -3636,7 +3723,7 @@ function App() {
     setMse({}); setRisk(L.RISK_ITEMS.reduce((acc,r)=>{ acc[r.key]={status:null,note:''}; return acc; },{}));
     // Clear everything entered for this client. Intake, Dx, Treatment Plan and Screenings keep
     // drafts in their own state, so remount them with a new key.
-    setSafetyPlan(EMPTY_SAFETY_PLAN); setScreeningAnswers({}); setGoals([]); setResetKey(k => k + 1);
+    setSafetyPlan(EMPTY_SAFETY_PLAN); setScreeningAnswers({}); setGoals([]); setAlwaysRedact(''); setResetKey(k => k + 1);
     setConfirming(false); try { localStorage.removeItem('pn.drafts'); } catch {}
     showToast('Everything erased');
   };
@@ -3678,10 +3765,10 @@ function App() {
       </header>
 
       {/* These tabs stay mounted while hidden so their drafts survive tab switches. */}
-      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
-      <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} privacy={privacy}/></div>
-      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
-      {appMode === 'safety' && <SafetyPlanTab safetyPlan={safetyPlan} setSafetyPlan={setSafetyPlan} showToast={showToast}/>}
+      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} privacy={privacy}/></div>
+      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} privacyCtl={privacyCtl} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      {appMode === 'safety' && <SafetyPlanTab privacyCtl={privacyCtl} safetyPlan={safetyPlan} setSafetyPlan={setSafetyPlan} showToast={showToast}/>}
       <div style={{display: appMode === 'screenings' ? 'contents' : 'none'}}><ScreeningsTab key={resetKey} screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} showToast={showToast}/></div>
       {appMode === 'progress' && <aside className="sidebar">
         <div className="card hipaa-card">
@@ -3697,6 +3784,7 @@ function App() {
             <button className="tg" data-on={safeHarbor?'1':'0'} onClick={()=>setSafeHarbor(!safeHarbor)}><i/></button>
           </div>
           {safeHarbor && <AllowlistEditor words={allowlist} onAdd={addAllowedWord} onRemove={removeAllowedWord}/>}
+          <NamesToRedactField value={alwaysRedact} onChange={setAlwaysRedact}/>
           <div className="note-sm" style={{marginTop:8}}>Notes are never stored by this tool. Use "Note completed" to permanently erase when done. Confirm your AI provider's Business Associate Agreement before entering identifiable PHI.</div>
         </div>
 
