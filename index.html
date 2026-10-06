@@ -344,7 +344,8 @@ textarea { resize: vertical; }
   justify-content: space-between; margin-bottom: 18px; gap: 12px;
 }
 .note-toolbar .left { display: flex; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
-.note-toolbar .actions { display: flex; gap: 8px; }
+.note-toolbar .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.note-toolbar .actions .btn { white-space: nowrap; }
 
 .btn {
   appearance: none; border: 1px solid var(--line-2); background: var(--paper);
@@ -406,6 +407,25 @@ textarea { resize: vertical; }
 .paper h2.note-section:first-of-type { margin-top: 0; }
 .paper p { margin: 0 0 14px; font-family: var(--serif); }
 .paper p:last-child { margin-bottom: 0; }
+.note-sec { position: relative; border-radius: 6px; margin: 0 -10px; padding: 2px 10px 4px; transition: background .15s; }
+.note-sec:hover, .note-sec.editing { background: color-mix(in oklab, var(--accent) 5%, transparent); }
+.note-sec.busy { opacity: .55; }
+.note-sec .sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-height: 22px; }
+.note-sec .sec-head h2.note-section { flex: 1; }
+.note-sec:first-of-type h2.note-section { margin-top: 0; }
+.sec-tools { display: flex; gap: 2px; opacity: 0; transition: opacity .15s; flex-shrink: 0; font-family: var(--sans); }
+.note-sec:hover .sec-tools, .note-sec:focus-within .sec-tools { opacity: 1; }
+@media (hover: none) { .sec-tools { opacity: .8; } }
+.sec-tools button { border: 0; background: none; color: var(--accent); font-size: 11.5px; padding: 3px 7px; border-radius: 5px; cursor: pointer; font-family: var(--sans); }
+.sec-tools button:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 12%, transparent); }
+.sec-tools button:disabled { color: var(--muted); cursor: default; }
+.sec-edit textarea { width: 100%; font-family: var(--serif); font-size: inherit; line-height: 1.6; margin: 4px 0 8px; }
+.sec-edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px; font-family: var(--sans); }
+.revise-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 auto 14px; max-width: 720px; width: 100%; font-size: 12px; }
+.revise-bar .lbl { color: var(--muted); margin-right: 4px; }
+.revise-bar .btn { padding: 5px 10px; font-size: 12px; }
+.revise-custom { display: flex; gap: 6px; flex: 1 1 260px; min-width: 0; }
+.revise-custom .input { flex: 1; min-width: 0; padding: 5px 10px; font-size: 12.5px; }
 .paper .empty { font-family: var(--sans); color: var(--muted); font-size: 13.5px; text-align: center; padding: 64px 20px; }
 .paper .empty .icon {
   width: 36px; height: 36px; margin: 0 auto 14px; border-radius: 50%;
@@ -1141,6 +1161,31 @@ window.PN_LIB = (() => {
     return sections.filter((s) => s.heading || s.body);
   }
 
+  // Inverse of parseNote: one "Heading:" line per section, blank line between sections.
+  function joinNote(sections) {
+    return sections.map((s) => s.heading ? `${s.heading}:\n${s.body.trim()}` : s.body.trim()).join('\n\n');
+  }
+  // Note text without section headings, for pasting into a single EHR field.
+  function plainNote(sections) {
+    return sections.map((s) => s.body.trim()).filter(Boolean).join('\n\n');
+  }
+  // Prompts for revising an existing note. `context` is the original (already de-identified)
+  // generation prompt; `note` must be de-identified by the caller before it is passed in.
+  function buildRevisePrompt({ context, note, instruction, heading }) {
+    const parts = [context, '', '--- CURRENT DRAFT OF THE NOTE ---', note, '--- END OF DRAFT ---', ''];
+    if (heading) {
+      parts.push(`Rewrite ONLY the "${heading}" section of the draft.${instruction ? ' ' + instruction + '.' : ''}`);
+      parts.push('Use only information from the session details above and the draft. Do not add new clinical content.');
+      parts.push(`Output only the new text of that section, without the "${heading}:" heading and without any other section.`);
+    } else {
+      parts.push(`Revise the whole draft: ${instruction}.`);
+      parts.push('Keep the same section headings, order and format. Use only information from the session details above and the draft. Do not add new clinical content.');
+      parts.push('Output the complete revised note only. No preamble.');
+    }
+    parts.push('No em-dashes or AI filler phrases.');
+    return parts.join('\n');
+  }
+
   function buildIntakePrompt({ subject, sessionDate, duration, location, therapistCredentials,
     chiefComplaint, onset, severity, stressors, functioning, safety, history,
     mseData, primaryDx, secondaryDx, zCodes, conceptualization, treatmentModality, frequency, txDuration, referrals, screeningScores, safetyPlanLines }) {
@@ -1752,7 +1797,7 @@ window.PN_LIB = (() => {
     };
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, parseNameList, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, scoreASRS, scoreCSSRS, cssrsApplies };
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, parseNameList, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, joinNote, plainNote, buildRevisePrompt, scoreASRS, scoreCSSRS, cssrsApplies };
 })();
 </script>
 
@@ -2274,6 +2319,47 @@ function DictateButton() {
     </div>
   );
 }
+
+// One section of the generated progress note, with edit / regenerate / copy controls.
+const NoteSection = React.memo(function NoteSection({ section, idx, editing, busy, disabled, onEdit, onSave, onCancel, onRegenerate, onCopy }) {
+  const [text, setText] = useState(section.body);
+  useEffect(() => { if (editing) setText(section.body); }, [editing]);
+  const label = section.heading || 'note';
+  return (
+    <div className={`note-sec${busy ? ' busy' : ''}${editing ? ' editing' : ''}`}>
+      <div className="sec-head">
+        {section.heading ? <h2 className="note-section">{section.heading}</h2> : <span/>}
+        {!editing && (
+          <div className="sec-tools">
+            <button type="button" disabled={disabled} onClick={() => onEdit(idx)} aria-label={`Edit ${label}`}>Edit</button>
+            <button type="button" disabled={disabled} onClick={() => onRegenerate(idx)} aria-label={`Regenerate ${label}`}>{busy ? 'Rewriting…' : 'Regenerate'}</button>
+            <button type="button" disabled={disabled} onClick={() => onCopy(idx)} aria-label={`Copy ${label}`}>Copy</button>
+          </div>
+        )}
+      </div>
+      {editing ? (
+        <div className="sec-edit">
+          <textarea className="textarea" rows={Math.min(14, Math.max(4, Math.ceil(text.length / 70)))} value={text} onChange={e => setText(e.target.value)} autoFocus/>
+          <div className="sec-edit-actions">
+            <button type="button" className="btn" onClick={onCancel}>Cancel</button>
+            <button type="button" className="btn primary" onClick={() => onSave(idx, text)}>Save</button>
+          </div>
+        </div>
+      ) : section.body.split(/\n{2,}/).map((para, j) => (
+        <p key={j}>{para.split('\n').map((line, k, arr) => (
+          <React.Fragment key={k}>{line}{k < arr.length - 1 && <br/>}</React.Fragment>
+        ))}</p>
+      ))}
+    </div>
+  );
+});
+
+const REVISE_PRESETS = [
+  ['Shorter', 'Make it about 30% shorter while keeping every key clinical point'],
+  ['More detailed', 'Add detail and specificity using only the information already provided'],
+  ['More clinical', 'Use more formal clinical language and terminology'],
+  ['Plainer wording', 'Use plainer, more conversational wording while staying professional'],
+];
 
 function scoreSeverity(tool, val) {
   const n = parseInt(val, 10);
@@ -3113,6 +3199,13 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
   };
 
   const INTAKE_HEADINGS = ['Identifying Information','Chief Complaint','History of Presenting Illness','Safety Assessment','Medical and Psychiatric History','Mental Status Examination','Clinical Impressions and Diagnosis','Treatment Recommendations'];
+  // Same note without its section headings, for pasting into one EHR field.
+  const copyPlain = async () => {
+    const headRe = new RegExp('^\\s*(' + INTAKE_HEADINGS.map(h => h.replace(/[()]/g, '\\$&')).join('|') + ')\\s*:\\s*', 'i');
+    const text = note.split('\n').map(l => l.replace(headRe, '')).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+    try { await navigator.clipboard.writeText(text); showToast('Copied without headings'); }
+    catch { showToast('Copy failed — select and copy manually'); }
+  };
   const parseIntakeNote = (text) => {
     const pat = new RegExp('(' + INTAKE_HEADINGS.map(h => h.replace(/[()]/g,'\\$&')).join('|') + '):', 'i');
     const tokens = text.split(pat).filter(Boolean);
@@ -3307,6 +3400,7 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
           <div className="left">{note && <span style={{fontSize:12}}>Intake note generated · CPT 90791</span>}</div>
           <div className="actions">
             <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
+            <button className="btn" disabled={!note||loading} onClick={copyPlain} title="Copy the note without section headings">Copy plain text</button>
             <button className="btn primary" disabled={loading} onClick={generate}>
               {loading ? <span className="spin"/> : <Icon.spark/>}
               {loading ? 'Generating…' : note ? 'Regenerate' : 'Generate intake note'}
@@ -3657,6 +3751,11 @@ function App() {
   const [mse, setMse] = useState({});
   const [risk, setRisk] = useState(L.RISK_ITEMS.reduce((acc,r) => { acc[r.key]={status:null,note:''}; return acc; }, {}));
   const [note, setNote] = useState('');
+  const [prevNote, setPrevNote] = useState(null);   // one-level undo for edits and revisions
+  const [editIdx, setEditIdx] = useState(null);
+  const [revising, setRevising] = useState(null);   // section index, 'all', or null
+  const [customRevision, setCustomRevision] = useState('');
+  const lastGenRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [nameFlags, setNameFlags] = useState([]);
   const [phiFlags, setPhiFlags] = useState([]);
@@ -3741,6 +3840,8 @@ function App() {
       activeGoals: activeGoals.map(g => ({ ...g, text: sanitize(g.text) })),
       safetyPlanLines: safetyPlanToLines(safetyPlanItems, sanitize),
     });
+    lastGenRef.current = { prompt, names: allNames, always: alwaysNames };
+    setPrevNote(null); setEditIdx(null);
     try {
       const raw = await callGroq(prompt, key);
       const cleaned = L.scrubText(raw);
@@ -3766,6 +3867,52 @@ function App() {
     return lines;
   }, [screeningAnswers]);
 
+  const copyText = async (text, msg) => {
+    try { await navigator.clipboard.writeText(text); showToast(msg); }
+    catch { showToast('Copy failed — please select and copy manually'); }
+  };
+  const copyPlain = () => note && copyText(L.plainNote(sections), 'Copied without headings');
+  const copySection = useCallback((i) => {
+    const sec = sectionsRef.current[i]; if (sec) copyText(sec.body.trim(), `Copied ${sec.heading || 'note'}`);
+  }, []);
+  const changeNote = (next) => { setPrevNote(note); setNote(next); };
+  const undo = () => { if (prevNote !== null) { setNote(prevNote); setPrevNote(null); setEditIdx(null); showToast('Change undone'); } };
+  const startEdit = useCallback((i) => setEditIdx(i), []);
+  const cancelEdit = useCallback(() => setEditIdx(null), []);
+  const saveEdit = useCallback((i, text) => {
+    const secs = sectionsRef.current.map((sec, k) => k === i ? { ...sec, body: text.trim() } : sec);
+    setPrevNote(noteRef.current); setNote(L.joinNote(secs)); setEditIdx(null);
+  }, []);
+
+  // Sends the current draft back to the model. The draft may contain the Writer's own edits,
+  // so it is de-identified again with the original names plus anything new.
+  const revise = async ({ instruction, sectionIdx = null }) => {
+    if (revising !== null || !note) return;
+    const ctx = lastGenRef.current;
+    const key = apiKeyRef.current;
+    if (!ctx) { showToast('Generate the note again first'); return; }
+    if (!key) { setShowKeyModal(true); return; }
+    const names = Array.from(new Set([...ctx.names, ...L.detectNames(note, [], allowlist)]));
+    const always = L.parseNameList(alwaysRedact);
+    const clean = (t) => { let o = L.redactNames(L.redactNames(t, [...ctx.always, ...always], subject, true), names, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
+    const heading = sectionIdx !== null ? sections[sectionIdx].heading : null;
+    setRevising(sectionIdx !== null ? sectionIdx : 'all'); setEditIdx(null);
+    try {
+      const raw = await callGroq(L.buildRevisePrompt({ context: ctx.prompt, note: clean(note), instruction, heading }), key);
+      let out = L.redactNames(L.redactNames(L.scrubText(raw), [...ctx.always, ...always], subject, true), names, subject).trim();
+      if (sectionIdx !== null) {
+        if (heading) out = out.replace(new RegExp('^\\s*' + heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*:\\s*', 'i'), '');
+        changeNote(L.joinNote(sections.map((sec, k) => k === sectionIdx ? { ...sec, body: out } : sec)));
+      } else changeNote(out);
+      showToast(sectionIdx !== null ? `${heading || 'Note'} rewritten` : 'Note revised');
+    } catch (err) {
+      showToast(err.message || 'Revision failed. Try again.', true);
+    } finally { setRevising(null); }
+  };
+  const regenerateSection = (i) => revise({ instruction: '', sectionIdx: i });
+  const regenRef = useRef(regenerateSection); useEffect(() => { regenRef.current = regenerateSection; });
+  const onRegenerate = useCallback((i) => regenRef.current(i), []);
+
   const copyNote = async () => {
     if (!note) return;
     try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
@@ -3774,6 +3921,7 @@ function App() {
 
   const wipeAll = () => {
     setNote(''); setGeneratedMeta(null); setNameFlags([]); setPhiFlags([]);
+    setPrevNote(null); setEditIdx(null); setCustomRevision(''); lastGenRef.current = null;
     setFreeText(''); setBullets('');
     setStructured({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
     setVoiceOn(false); setInterventions([]); setOtherIntervention('');
@@ -3787,6 +3935,8 @@ function App() {
   };
 
   const sections = useMemo(() => { if (!note) return []; return L.parseNote(note, generatedMeta?.format || format); }, [note, format, generatedMeta]);
+  const sectionsRef = useRef(sections); sectionsRef.current = sections;
+  const noteRef = useRef(note); noteRef.current = note;
   const toggleIntervention = (name) => setInterventions(prev => prev.includes(name) ? prev.filter(x=>x!==name) : [...prev,name]);
   const ToneControl = tweaks.toneStyle==='dial' ? ToneDial : tweaks.toneStyle==='stacked' ? ToneStacked : ToneSegmented;
   const openTweaks = () => window.postMessage({ type: '__activate_edit_mode' }, '*');
@@ -4037,7 +4187,9 @@ function App() {
             {generatedMeta && <span style={{fontSize:12}}>Generated {generatedMeta.at.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})}</span>}
           </div>
           <div className="actions">
+            {prevNote !== null && <button className="btn" disabled={loading||revising!==null} onClick={undo}>Undo</button>}
             <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
+            <button className="btn" disabled={!note||loading} onClick={copyPlain} title="Copy the note without section headings">Copy plain text</button>
             <button className="btn danger" disabled={!note||loading} onClick={()=>setConfirming(true)}><Icon.check/>Note completed</button>
             <button className="btn primary" disabled={loading} onClick={generate}>
               {loading ? <span className="spin"/> : <Icon.spark/>}
@@ -4058,22 +4210,30 @@ function App() {
           </div>
         )}
 
-        <article className={`paper ${loading?'loading':''}`}>
+        {note && !loading && (
+          <div className="revise-bar">
+            <span className="lbl">Revise whole note</span>
+            {REVISE_PRESETS.map(([label, instruction]) => (
+              <button key={label} type="button" className="btn" disabled={revising!==null} onClick={() => revise({ instruction })}>{label}</button>
+            ))}
+            <form className="revise-custom" onSubmit={e => { e.preventDefault(); if (customRevision.trim()) revise({ instruction: customRevision.trim() }); }}>
+              <input className="input" type="text" placeholder="Or describe a change, e.g. combine A and P" value={customRevision} onChange={e => setCustomRevision(e.target.value)} aria-label="Custom revision"/>
+              <button type="submit" className="btn" disabled={revising!==null || !customRevision.trim()}>{revising==='all' ? 'Revising…' : 'Apply'}</button>
+            </form>
+          </div>
+        )}
+
+        <article className={`paper ${loading||revising==='all'?'loading':''}`}>
           {note ? (
             <>
               <div className="meta">
                 <span className="fmt">{L.FORMATS[generatedMeta?.format||format].full}</span>
                 <span>Writer · De-identified</span>
               </div>
-              {sections.map((s,i) => (
-                <div key={i}>
-                  {s.heading && <h2 className="note-section">{s.heading}</h2>}
-                  {s.body.split(/\n{2,}/).map((para,j) => (
-                    <p key={j}>{para.split('\n').map((line,k) => (
-                      <React.Fragment key={k}>{line}{k<para.split('\n').length-1&&<br/>}</React.Fragment>
-                    ))}</p>
-                  ))}
-                </div>
+              {sections.map((sec,i) => (
+                <NoteSection key={i} section={sec} idx={i} editing={editIdx===i} busy={revising===i}
+                  disabled={revising!==null || (editIdx!==null && editIdx!==i)}
+                  onEdit={startEdit} onSave={saveEdit} onCancel={cancelEdit} onRegenerate={onRegenerate} onCopy={copySection}/>
               ))}
             </>
           ) : loading ? (

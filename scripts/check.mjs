@@ -182,6 +182,19 @@ for (const c of cases) {
   check('C-SSRS item 6 recent: high', recent.level === 'high' && recent.recentBehavior && recent.endorsed.join() === '6', JSON.stringify(recent));
 }
 
+// 3f. Note editing helpers: parse -> join round trip, plain text, revision prompts.
+{
+  const note = 'Subjective:\nClient described the week.\n\nObjective:\nClient was engaged.\n\nAssessment:\nProgress noted.\n\nPlan:\nContinue weekly sessions.';
+  const secs = L.parseNote(note, 'soap');
+  check('joinNote round-trips parseNote', JSON.stringify(L.parseNote(L.joinNote(secs), 'soap')) === JSON.stringify(secs));
+  const plain = L.plainNote(secs);
+  check('plainNote drops headings', !/Subjective|Objective|Assessment|Plan:/.test(plain) && plain.includes('Client was engaged.'), plain);
+  const sp = L.buildRevisePrompt({ context: 'CTX', note, instruction: '', heading: 'Assessment' });
+  check('section revise prompt targets one section', sp.startsWith('CTX') && sp.includes('Rewrite ONLY the "Assessment" section'));
+  const wp = L.buildRevisePrompt({ context: 'CTX', note, instruction: 'Make it shorter' });
+  check('whole-note revise prompt keeps headings', wp.includes('Revise the whole draft: Make it shorter') && wp.includes('Keep the same section headings'));
+}
+
 // 4. AI-buzzword scrub removes em dashes and banned words.
 const scrubbed = L.scrubText('Writer will delve into goals — moreover, review plan.');
 check('scrubText removes em dash and buzzwords', !/—|delve|moreover/i.test(scrubbed), `output: ${scrubbed}`);
