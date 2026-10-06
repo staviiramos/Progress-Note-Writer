@@ -3533,6 +3533,8 @@ function App() {
   const [goals, setGoals] = useState([]);
   const [screeningAnswers, setScreeningAnswers] = useState({});
   const [safetyPlan, setSafetyPlan] = useState(EMPTY_SAFETY_PLAN);
+  // Bumped by wipeAll to remount the tabs that keep their drafts in local state.
+  const [resetKey, setResetKey] = useState(0);
   const safetyPlanItems = useMemo(() => safetyPlanEntries(safetyPlan), [safetyPlan]);
   const sessionDuration = useMemo(() => {
     if (!sessionStart || !sessionEnd) return null;
@@ -3632,9 +3634,9 @@ function App() {
     setVoiceOn(false); setInterventions([]); setOtherIntervention('');
     setSessionDate(''); setSessionStart(''); setSessionEnd(''); setSessionLocation('In-Office (POS 11)'); setSessionCredentials('');
     setMse({}); setRisk(L.RISK_ITEMS.reduce((acc,r)=>{ acc[r.key]={status:null,note:''}; return acc; },{}));
-    // Clear everything entered for this client. Intake, Dx and Treatment Plan notes live inside
-    // their tabs and are already gone once the Writer is back on this tab.
-    setSafetyPlan(EMPTY_SAFETY_PLAN); setScreeningAnswers({}); setGoals([]);
+    // Clear everything entered for this client. Intake, Dx, Treatment Plan and Screenings keep
+    // drafts in their own state, so remount them with a new key.
+    setSafetyPlan(EMPTY_SAFETY_PLAN); setScreeningAnswers({}); setGoals([]); setResetKey(k => k + 1);
     setConfirming(false); try { localStorage.removeItem('pn.drafts'); } catch {}
     showToast('Everything erased');
   };
@@ -3675,11 +3677,12 @@ function App() {
         </div>
       </header>
 
-      {appMode === 'intake' && <IntakeTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/>}
-      {appMode === 'dx' && <DxTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} privacy={privacy}/>}
-      {appMode === 'plan' && <TreatmentPlanTab goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/>}
+      {/* These tabs stay mounted while hidden so their drafts survive tab switches. */}
+      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} privacy={privacy}/></div>
+      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
       {appMode === 'safety' && <SafetyPlanTab safetyPlan={safetyPlan} setSafetyPlan={setSafetyPlan} showToast={showToast}/>}
-      {appMode === 'screenings' && <ScreeningsTab screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} showToast={showToast}/>}
+      <div style={{display: appMode === 'screenings' ? 'contents' : 'none'}}><ScreeningsTab key={resetKey} screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} showToast={showToast}/></div>
       {appMode === 'progress' && <aside className="sidebar">
         <div className="card hipaa-card">
           <h3>Privacy <span className="hint">HIPAA Safe Harbor</span></h3>
