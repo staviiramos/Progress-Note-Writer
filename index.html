@@ -470,11 +470,35 @@ textarea { resize: vertical; }
 /* Allowlist chip editor */
 .allowlist-wrap { margin-top: 10px; }
 .allowlist-label { font-size: 11px; color: var(--ink-2); margin-bottom: 5px; font-weight: 500; letter-spacing: 0.02em; }
-.allowlist-chips {
-  display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
-  background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
-  padding: 5px 8px; min-height: 34px; cursor: text;
+.al-add-row {
+  display: flex; gap: 7px; align-items: center;
 }
+.al-add-input {
+  flex: 1; border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: var(--bg); font-size: 12.5px; color: var(--ink);
+  padding: 6px 10px; outline: none; transition: border-color .15s;
+}
+.al-add-input:focus { border-color: var(--accent); }
+.al-add-input::placeholder { color: var(--muted); }
+.al-add-btn {
+  flex-shrink: 0; padding: 6px 12px; font-size: 12px; font-weight: 500;
+  background: var(--accent-soft); border: 1px solid var(--accent);
+  color: var(--accent); border-radius: var(--r-sm); cursor: pointer; transition: background .12s;
+}
+.al-add-btn:hover { background: color-mix(in oklab, var(--accent) 18%, var(--paper)); }
+.al-manage-toggle {
+  display: flex; align-items: center; gap: 5px; margin-top: 8px;
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-size: 11.5px; color: var(--accent); font-weight: 500; line-height: 1;
+}
+.al-manage-toggle .al-arrow { font-size: 9px; transition: transform .15s; display: inline-block; }
+.al-manage-toggle.open .al-arrow { transform: rotate(180deg); }
+.al-manage-panel {
+  margin-top: 8px; padding: 10px; border: 1px solid var(--line);
+  border-radius: var(--r-sm); background: var(--bg);
+}
+.al-manage-panel-empty { font-size: 12px; color: var(--muted); }
+.al-chips-list { display: flex; flex-wrap: wrap; gap: 5px; }
 .al-chip {
   display: inline-flex; align-items: center; gap: 2px;
   background: color-mix(in oklab, var(--ok) 14%, var(--paper));
@@ -487,13 +511,7 @@ textarea { resize: vertical; }
   font-size: 14px; line-height: 1; padding: 0 3px; border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
 }
-.al-rm:hover { background: color-mix(in oklab, var(--ok) 30%, var(--paper)); color: var(--ink); }
-.al-input {
-  border: none; outline: none; background: transparent;
-  font-size: 12px; color: var(--ink); min-width: 90px; padding: 2px 2px;
-  flex: 1;
-}
-.al-input::placeholder { color: var(--muted); }
+.al-rm:hover { background: color-mix(in oklab, var(--danger) 12%, var(--paper)); color: var(--danger); }
 
 /* Scrollbars */
 .sidebar::-webkit-scrollbar, .main::-webkit-scrollbar { width: 10px; }
@@ -890,7 +908,7 @@ window.PN_LIB = (() => {
 
   function buildIntakePrompt({ subject, sessionDate, duration, location, therapistCredentials,
     chiefComplaint, onset, severity, stressors, functioning, safety, history,
-    mseData, primaryDx, secondaryDx, zCodes, conceptualization, treatmentModality, frequency, txDuration }) {
+    mseData, primaryDx, secondaryDx, zCodes, conceptualization, treatmentModality, frequency, txDuration, referrals }) {
     const parts = [];
     parts.push(`You are a licensed psychotherapist completing a psychiatric diagnostic evaluation (CPT 90791). Using only the information provided below, write a professional narrative clinical intake assessment note. Do not add clinical content not present in the intake data.`);
     parts.push('');
@@ -949,6 +967,7 @@ window.PN_LIB = (() => {
     if (treatmentModality && treatmentModality.length) parts.push(`Treatment modality: ${treatmentModality.join(', ')}`);
     if (frequency) parts.push(`Session frequency: ${frequency}`);
     if (txDuration) parts.push(`Treatment duration: ${txDuration}`);
+    if (referrals && referrals.length) parts.push(`Referrals: ${referrals.join(', ')}`);
     parts.push('');
     parts.push('--- END INTAKE DATA ---');
     parts.push('');
@@ -1794,6 +1813,8 @@ function fmtTime12(t) {
 
 function AllowlistEditor({ words, onAdd, onRemove }) {
   const [draft, setDraft] = useState('');
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef(null);
   const commit = () => {
     draft.split(',').map(w => w.trim()).filter(Boolean).forEach(w => {
       if (w && !words.some(x => x.toLowerCase() === w.toLowerCase())) onAdd(w);
@@ -1803,21 +1824,36 @@ function AllowlistEditor({ words, onAdd, onRemove }) {
   return (
     <div className="allowlist-wrap">
       <div className="allowlist-label">Allowed words <span className="hint">won't be redacted as names</span></div>
-      <div className="allowlist-chips">
-        {words.map(w => (
-          <span key={w} className="al-chip">
-            {w}<button className="al-rm" onClick={() => onRemove(w)} title={'Remove ' + w}>×</button>
-          </span>
-        ))}
+      <div className="al-add-row">
         <input
-          className="al-input"
-          placeholder={words.length ? 'Add word…' : 'Type a word, press Enter…'}
+          ref={inputRef}
+          className="al-add-input"
+          placeholder="Type a word and press Enter…"
           value={draft}
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); commit(); } }}
-          onBlur={commit}
         />
+        <button className="al-add-btn" onClick={commit} type="button">Add</button>
       </div>
+      {words.length > 0 && (
+        <>
+          <button className={`al-manage-toggle${open ? ' open' : ''}`} type="button" onClick={() => setOpen(o => !o)}>
+            Manage list ({words.length} word{words.length !== 1 ? 's' : ''})
+            <span className="al-arrow">▼</span>
+          </button>
+          {open && (
+            <div className="al-manage-panel">
+              <div className="al-chips-list">
+                {words.map(w => (
+                  <span key={w} className="al-chip">
+                    {w}<button className="al-rm" onClick={() => onRemove(w)} title={'Remove ' + w}>×</button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -1944,8 +1980,10 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
   const [modality, setModality] = useState([]);
   const [frequency, setFrequency] = useState('');
   const [txDuration, setTxDuration] = useState('');
+  const [referrals, setReferrals] = useState([]);
 
   const toggleModality = (m) => setModality(prev => prev.includes(m) ? prev.filter(x=>x!==m) : [...prev,m]);
+  const toggleReferral = (r) => setReferrals(prev => prev.includes(r) ? prev.filter(x=>x!==r) : [...prev,r]);
   const fmt = (item) => !item.status ? '' : item.status + (item.detail ? ': ' + item.detail : '');
 
   const generate = async () => {
@@ -1964,7 +2002,7 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
         safety: { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), safetyPlan },
         history: { prevTherapy: fmt(prevTherapy), medications: fmt(medications), medConditions: fmt(medConds), substance: fmt(substance) },
         mseData: mse, primaryDx, secondaryDx, zCodes, conceptualization,
-        treatmentModality: modality, frequency, txDuration,
+        treatmentModality: modality, frequency, txDuration, referrals,
       }), key);
       setNote(L.scrubText(raw));
     } catch(err) {
@@ -2154,10 +2192,18 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
               {['Weekly','Bi-weekly','As needed'].map(f => <button key={f} type="button" aria-pressed={frequency===f} onClick={()=>setFrequency(frequency===f?'':f)}>{f}</button>)}
             </div>
           </div>
-          <div className="row" style={{marginBottom:0}}>
+          <div className="row">
             <label>Duration</label>
             <div className="tri-seg">
               {['3 Months','6 Months','Ongoing'].map(d => <button key={d} type="button" aria-pressed={txDuration===d} onClick={()=>setTxDuration(txDuration===d?'':d)}>{d}</button>)}
+            </div>
+          </div>
+          <div className="row" style={{marginBottom:0}}>
+            <label>Referrals</label>
+            <div className="chk-row">
+              {['Refer for therapy','Refer to Psychiatrist for evaluation'].map(r => (
+                <button key={r} type="button" className="chk-btn" aria-pressed={referrals.includes(r)} onClick={()=>toggleReferral(r)}>{r}</button>
+              ))}
             </div>
           </div>
         </div>
