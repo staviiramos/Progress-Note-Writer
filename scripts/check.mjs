@@ -86,6 +86,24 @@ for (const c of cases) {
   check('buildPrompt does not list redacted names', !/Jordan|Placeholder/.test(prompt) && prompt.includes('replaced with "Client"'));
 }
 
+// 3c2. Safety plan lines reach the progress-note and intake prompts; the sanitizer cleans them first.
+{
+  const base = { format: 'soap', tone: 'balanced', subject: 'Client', inputMode: 'free', freeText: 'Client discussed goals.',
+    structured: {}, bullets: '', interventions: [], mse: {}, risk: {}, redactedNames: [], screeningScores: [], activeGoals: [] };
+  const lines = ['Warning signs: placeholder sign A', 'Reasons for living: placeholder reason B'];
+  const p1 = L.buildPrompt({ ...base, safetyPlanLines: lines });
+  check('buildPrompt includes safety plan lines', p1.includes('Safety plan completed or reviewed') && lines.every(l => p1.includes(l)));
+  check('buildPrompt omits safety plan section when empty', !L.buildPrompt({ ...base, safetyPlanLines: [] }).includes('Safety plan completed'));
+  const p2 = L.buildIntakePrompt({ subject: 'Client', screeningScores: [], safetyPlanLines: lines });
+  check('buildIntakePrompt includes safety plan lines', lines.every(l => p2.includes(l)));
+  // The app sanitizes each step's text on its own and adds the fixed label afterwards.
+  const sp = ['Pacing and skipping meals', 'Call Morgan Placeholder at 555-010-0000'];
+  const san = L.makeSanitizer(sp, { subject: 'Client', allowlist: [], safeHarbor: true });
+  const out = sp.map(san.clean).join(' | ');
+  check('safety plan text is de-identified', !/Morgan|Placeholder|555-010-0000/.test(out), `output: ${out}`);
+  check('safety plan text keeps its first word', out.startsWith('Pacing and skipping meals'), `output: ${out}`);
+}
+
 // 3d. ASRS-v1.1 scoring: Part A thresholds (items 1-3 at >= 2, items 4-6 at >= 3), 4+ = positive, total 0-72.
 {
   const fill = (partA, rest = 0) => Object.fromEntries([...partA, ...Array(12).fill(rest)].map((v, i) => [i, v]));

@@ -35,7 +35,7 @@ Owner's request, paraphrased: don't show every screening open at once; let the W
 Progress (owner asked for one step at a time, pushed after each):
 - [x] Step 1, screening picker (2026-10-06): `ScreeningsTab` now has "Choose screenings" cards; selected tools render as collapsible `ScreeningTool` panels; removing a tool clears its answers so its score leaves the notes. Covers items 2 and 3 below for PHQ-9, GAD-7 and PCL-5. New tools only need an entry in `SCREENING_TOOLS` (C-SSRS will need its own panel body).
 - [x] Step 2, ASRS-v1.1 (2026-10-06): `asrs` entry in `SCREENING_TOOLS` with Part A / Part B dividers (`parts` field), a live Part A positive/negative badge, total out of 72, and a note line with the total and Part A result. Scoring is `L.scoreASRS` in `PN_LIB`, covered by `npm test`. **Item wording is not in the file:** the 18 items show as "Item 1" ... "Item 18". The owner pastes the official WHO wording into the marked `ASRS_ITEM_TEXT` constant (search for `ASRS-v1.1 ITEM WORDING`). Agents should not write or print the item text; scoring does not depend on it.
-- [ ] Step 3, Safety Plan tab.
+- [x] Step 3, Safety Plan tab (2026-10-06): `SafetyPlanTab` with the six steps in `SAFETY_PLAN_STEPS`, a completion bar, an "Included in notes" preview, copy and clear buttons. App state `safetyPlan`; `safetyPlanItems` (`{label, text}` per filled step) is passed to Progress Note, Intake and Treatment Plan. Each tab runs the step **text** (not the "Label: text" line) through its sanitizer, then adds the label with `safetyPlanToLines`; running detection on the full line made the first word look like a name. `buildPrompt` / `buildIntakePrompt` take `safetyPlanLines`; Treatment Plan appends a SAFETY PLAN section. "Note completed" (`wipeAll`) clears it. Covered by `npm test` and a browser run with a mocked Groq endpoint (no names or phone numbers in any of the three prompts).
 - [ ] Step 4, C-SSRS with placeholder item text.
 
 Remaining steps (line numbers refer to the WIP file and are approximate):
@@ -59,6 +59,8 @@ Practical tip: these items are long. Write them in small edits (one tool or comp
 Intake, Dx Justification and Treatment Plan now de-identify their free text with `L.makeSanitizer` before calling Groq, post-process output with `scrubText` + `redactNames`, and show a "De-identified before generation" bar. Two related Progress Note leaks were fixed at the same time: active treatment-goal text went into its prompt unredacted, and `buildPrompt` listed the redacted names back to the model ("Names redacted ...: <names>"); it now says only that names were replaced. Note that the Safe Harbor toggle and allowlist editor are still only visible in the Progress Note sidebar, though the setting applies to all tabs. If you add the Safety Plan tab (A), its fields feed other tabs' prompts, so run them through the same sanitizer.
 
 ### C. Smaller notes
+
+- `wipeAll()` ("Note completed") clears the Progress Note and the safety plan, but not screening answers, treatment goals, or the Intake/Dx tabs' fields. Ask the owner whether it should clear everything.
 
 - `detectNames` skips the first word of each sentence, so a name that opens a sentence is not caught. Consider a per-input "names to redact" field (the original design had one) or a check of sentence-initial words against `COMMON_WORDS`.
 - `sessionLocation` / `sessionCredentials` state is still passed to `buildPrompt` although their inputs were removed. That's harmless dead code you can remove.
