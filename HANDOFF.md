@@ -32,6 +32,12 @@ Easiest path: start from the WIP file, finish the steps below, check every tab, 
 
 Owner's request, paraphrased: don't show every screening open at once; let the Writer pick which ones to use (more than one can be open). Add an adult ADHD screener (ASRS-v1.1) and the Columbia (C-SSRS) screen. Safety planning gets its **own tab**, not part of Screenings. Results from all of these feed note generation in the Progress Note, Intake and Treatment Plan tabs.
 
+Progress (owner asked for one step at a time, pushed after each):
+- [x] Step 1, screening picker (2026-10-06): `ScreeningsTab` now has "Choose screenings" cards; selected tools render as collapsible `ScreeningTool` panels; removing a tool clears its answers so its score leaves the notes. Covers items 2 and 3 below for PHQ-9, GAD-7 and PCL-5. New tools only need an entry in `SCREENING_TOOLS` (C-SSRS will need its own panel body).
+- [ ] Step 2, ASRS-v1.1.
+- [ ] Step 3, Safety Plan tab.
+- [ ] Step 4, C-SSRS with placeholder item text.
+
 Remaining steps (line numbers refer to the WIP file and are approximate):
 1. `SCREENING_TOOLS` (~2089, right after `TOOL_CATALOG`): add `asrs` and `cssrs` entries.
    - ASRS-v1.1: 18 self-report items, 0-4 scale (Never / Rarely / Sometimes / Often / Very often), max 72. Part A = items 1-6; items 1-3 count as positive at >= 2 ("Sometimes"), items 4-6 at >= 3 ("Often"); 4 or more positive Part A items = positive screen. Show Part A / Part B dividers. Use the published item wording from the WHO ASRS-v1.1 form.

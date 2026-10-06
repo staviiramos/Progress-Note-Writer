@@ -578,6 +578,32 @@ textarea { resize: vertical; }
 .st-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .st-clear { font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; }
 .st-clear:hover { color: var(--danger); }
+.tool-selector-wrap { background: var(--paper); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-paper); }
+.tool-selector-wrap h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 12px; }
+.tool-selector { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool-card { border: 1.5px solid var(--line); border-radius: var(--r); padding: 10px 13px; cursor: pointer; background: var(--bg); transition: border-color .12s, background .12s; text-align: left; font: inherit; min-width: 140px; }
+.tool-card:hover, .tool-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+.tool-card .tc-label { font-weight: 600; font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.tool-card .tc-desc { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
+.tool-card .tc-sub { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+.tool-card .tc-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: var(--line-2); }
+.tool-card.selected .tc-dot { background: var(--accent); }
+.tool-card.done .tc-dot { background: var(--ok); }
+.tool-sections { display: flex; flex-direction: column; gap: 12px; }
+.tool-section { border: 1px solid var(--line); border-radius: var(--r); background: var(--paper); box-shadow: var(--shadow-sm); overflow: hidden; }
+.tool-sec-header { display: flex; align-items: center; padding: 11px 14px; gap: 10px; }
+.tool-sec-toggle { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; background: none; border: none; padding: 0; cursor: pointer; font: inherit; color: inherit; text-align: left; }
+.tool-sec-header:hover { background: var(--bg); }
+.ts-chevron { font-size: 9px; color: var(--muted); transition: transform .15s; flex-shrink: 0; }
+.ts-chevron.open { transform: rotate(90deg); }
+.ts-title { font-weight: 600; font-size: 13.5px; flex: 1; }
+.ts-title .ts-full { font-weight: 400; color: var(--muted); margin-left: 6px; font-size: 12.5px; }
+.ts-meta { font-size: 11.5px; color: var(--muted); }
+.ts-rm { font-size: 18px; line-height: 1; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.ts-rm:hover { color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, transparent); }
+.tool-sec-body { border-top: 1px solid var(--line); padding: 16px; }
+.tool-sec-body .st-meta { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.screening-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 28px 16px; border: 1px dashed var(--line-2); border-radius: var(--r); }
 .screening-integration { background: var(--paper); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-paper); }
 .screening-integration h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 10px; }
 .si-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 14px; }
@@ -2164,59 +2190,82 @@ const SCREENING_TOOLS = {
   },
 };
 
-function ScreeningTool({ tool, answers, onChange, onClear }) {
+// Score summary for one tool; null when not every item is answered.
+function screeningResult(tool, answers) {
   const answered = tool.questions.filter((_, i) => answers[i] !== undefined && answers[i] !== null).length;
   const total = tool.questions.reduce((sum, _, i) => sum + (answers[i] ?? 0), 0);
   const complete = answered === tool.questions.length;
-  const sev = complete ? tool.severity(total) : null;
-  const pct = complete ? Math.round((total / tool.max) * 100) : 0;
+  return { answered, total, complete, sev: complete ? tool.severity(total) : null };
+}
+
+// One selected screening, shown as a collapsible panel.
+function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, onToggleCollapse }) {
+  const { answered, total, sev } = screeningResult(tool, answers);
+  const pct = sev ? Math.round((total / tool.max) * 100) : 0;
 
   return (
-    <div className="screening-tool">
-      <h3>{tool.label} <span style={{fontFamily:'var(--sans)',fontSize:13,fontWeight:400,color:'var(--muted)',marginLeft:6}}>{tool.full}</span></h3>
-      <div className="st-meta">{tool.meta}</div>
-      {tool.stem && <div style={{fontSize:12.5,color:'var(--ink-2)',marginBottom:12,fontStyle:'italic',lineHeight:1.5}}>{tool.stem}</div>}
-      {tool.questions.map((q, i) => (
-        <div className="st-question" key={i}>
-          <div className="st-q-num">{i + 1}.</div>
-          <div className="st-q-text">{q}</div>
-          <div className="st-options">
-            {tool.options.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                className={`st-opt${answers[i] === opt.value ? ' sel' : ''}`}
-                onClick={() => onChange(i, opt.value)}
-              >
-                {opt.value} — {opt.label}
-              </button>
-            ))}
+    <div className="tool-section">
+      <div className="tool-sec-header">
+        <button type="button" className="tool-sec-toggle" onClick={onToggleCollapse} aria-expanded={!collapsed}>
+          <span className={`ts-chevron${collapsed ? '' : ' open'}`}>▶</span>
+          <span className="ts-title">{tool.label}<span className="ts-full">{tool.full}</span></span>
+          {sev
+            ? <span className={`score-badge ${sev.level}`}>{total}/{tool.max} · {sev.label}</span>
+            : <span className="ts-meta">{answered}/{tool.questions.length} answered</span>}
+        </button>
+        <button type="button" className="ts-rm" onClick={onRemove} title={`Remove ${tool.label} and clear its answers`} aria-label={`Remove ${tool.label}`}>×</button>
+      </div>
+      {!collapsed && (
+        <div className="tool-sec-body">
+          <div className="st-meta">{tool.meta}</div>
+          {tool.stem && <div style={{fontSize:12.5,color:'var(--ink-2)',marginBottom:12,fontStyle:'italic',lineHeight:1.5}}>{tool.stem}</div>}
+          {tool.questions.map((q, i) => (
+            <div className="st-question" key={i}>
+              <div className="st-q-num">{i + 1}.</div>
+              <div className="st-q-text">{q}</div>
+              <div className="st-options">
+                {tool.options.map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`st-opt${answers[i] === opt.value ? ' sel' : ''}`}
+                    onClick={() => onChange(i, opt.value)}
+                  >
+                    {opt.value} — {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div className="st-score-bar">
+            <div className="st-score-num">{answered > 0 ? total : '—'}</div>
+            <div className="st-score-detail">
+              {sev ? (
+                <>
+                  <div className={`sev score-badge ${sev.level}`} style={{display:'inline-block',marginBottom:4}}>{sev.label}</div>
+                  <div className="range">{sev.range} out of {tool.max}</div>
+                  <div className="progress"><div className={`progress-fill ${sev.level}`} style={{width: `${pct}%`}}/></div>
+                </>
+              ) : (
+                <div className="range">{answered}/{tool.questions.length} questions answered{answered > 0 ? ` · subtotal: ${total}` : ''}</div>
+              )}
+            </div>
+          </div>
+          <div className="st-actions">
+            {answered > 0 && <button className="st-clear" type="button" onClick={onClear}>Clear responses</button>}
           </div>
         </div>
-      ))}
-      <div className="st-score-bar">
-        <div className="st-score-num">{answered > 0 ? total : '—'}</div>
-        <div className="st-score-detail">
-          {sev ? (
-            <>
-              <div className={`sev score-badge ${sev.level}`} style={{display:'inline-block',marginBottom:4}}>{sev.label}</div>
-              <div className="range">{sev.range} out of {tool.max}</div>
-              <div className="progress"><div className={`progress-fill ${sev.level}`} style={{width: `${pct}%`}}/></div>
-            </>
-          ) : (
-            <div className="range">{answered}/{tool.questions.length} questions answered{answered > 0 ? ` · subtotal: ${total}` : ''}</div>
-          )}
-        </div>
-      </div>
-      <div className="st-actions">
-        {answered > 0 && <button className="st-clear" type="button" onClick={onClear}>Clear responses</button>}
-      </div>
+      )}
     </div>
   );
 }
 
 function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
   const tools = Object.values(SCREENING_TOOLS);
+  // Tools that already have answers start open, so switching tabs never hides a score.
+  const [activeKeys, setActiveKeys] = useState(() =>
+    tools.filter(t => Object.keys(screeningAnswers[t.key] || {}).length).map(t => t.key));
+  const [collapsed, setCollapsed] = useState({});
 
   const setAnswer = useCallback((toolKey, qIdx, val) => {
     setScreeningAnswers(prev => ({
@@ -2229,20 +2278,27 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
     setScreeningAnswers(prev => ({ ...prev, [toolKey]: {} }));
   }, [setScreeningAnswers]);
 
-  const getResult = (tool) => {
-    const answers = screeningAnswers[tool.key] || {};
-    const answered = tool.questions.filter((_, i) => answers[i] !== undefined && answers[i] !== null).length;
-    if (answered !== tool.questions.length) return null;
-    const total = tool.questions.reduce((sum, _, i) => sum + (answers[i] ?? 0), 0);
-    return { total, sev: tool.severity(total) };
+  const hasAnswers = (key) => Object.keys(screeningAnswers[key] || {}).length > 0;
+
+  // Removing a tool also clears its answers, so a hidden score never reaches a note.
+  const removeTool = (key) => {
+    if (hasAnswers(key)) { clearTool(key); showToast(`${SCREENING_TOOLS[key].label} removed and its answers cleared`); }
+    setActiveKeys(prev => prev.filter(k => k !== key));
   };
 
-  const completedTools = tools.filter(t => getResult(t) !== null);
+  const toggleTool = (key) => {
+    if (activeKeys.includes(key)) { removeTool(key); return; }
+    setActiveKeys(prev => [...prev, key]);
+    setCollapsed(prev => ({ ...prev, [key]: false }));
+  };
+
+  const activeTools = activeKeys.map(k => SCREENING_TOOLS[k]);
+  const completedTools = activeTools.filter(t => screeningResult(t, screeningAnswers[t.key] || {}).complete);
 
   const copySummary = async () => {
     if (!completedTools.length) { showToast('Complete at least one screening first'); return; }
     const lines = completedTools.map(t => {
-      const r = getResult(t);
+      const r = screeningResult(t, screeningAnswers[t.key] || {});
       return `${t.label} (${t.full}): ${r.total}/${t.max} — ${r.sev.label}`;
     });
     const text = 'Standardized Screening Results\n\n' + lines.join('\n');
@@ -2252,23 +2308,35 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
 
   return (
     <div className="screening-main">
+      <div className="tool-selector-wrap">
+        <h3>Choose screenings <span style={{fontFamily:'var(--sans)',fontSize:12,fontWeight:400,color:'var(--muted)'}}>— select one or more</span></h3>
+        <div className="tool-selector">
+          {tools.map(t => {
+            const on = activeKeys.includes(t.key);
+            const done = on && screeningResult(t, screeningAnswers[t.key] || {}).complete;
+            return (
+              <button key={t.key} type="button" aria-pressed={on} onClick={() => toggleTool(t.key)}
+                className={`tool-card${on ? ' selected' : ''}${done ? ' done' : ''}`}>
+                <div className="tc-label"><span className="tc-dot"/>{t.label}</div>
+                <div className="tc-desc">{t.full}</div>
+                <div className="tc-sub">{t.questions.length} items</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {completedTools.length > 0 && (
         <div className="screening-integration">
           <h3>Completed screenings <span style={{fontFamily:'var(--sans)',fontSize:12,fontWeight:400,color:'var(--muted)'}}>— scores auto-included in any generated note</span></h3>
           <div className="si-grid">
-            {tools.map(tool => {
-              const r = getResult(tool);
+            {completedTools.map(tool => {
+              const r = screeningResult(tool, screeningAnswers[tool.key] || {});
               return (
-                <div key={tool.key} className={`si-result${r ? '' : ' empty'}`}>
+                <div key={tool.key} className="si-result">
                   <div className="name">{tool.label}</div>
-                  {r ? (
-                    <>
-                      <div className="score">{r.total}<span style={{fontSize:14,color:'var(--muted)',fontFamily:'var(--sans)',fontWeight:400}}>/{tool.max}</span></div>
-                      <div className={`sev-label score-badge ${r.sev.level}`} style={{display:'inline-block',marginTop:4}}>{r.sev.label}</div>
-                    </>
-                  ) : (
-                    <div className="score">Incomplete</div>
-                  )}
+                  <div className="score">{r.total}<span style={{fontSize:14,color:'var(--muted)',fontFamily:'var(--sans)',fontWeight:400}}>/{tool.max}</span></div>
+                  <div className={`sev-label score-badge ${r.sev.level}`} style={{display:'inline-block',marginTop:4}}>{r.sev.label}</div>
                 </div>
               );
             })}
@@ -2276,17 +2344,25 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
           <button className="btn" type="button" onClick={copySummary}><Icon.copy/>Copy results summary</button>
         </div>
       )}
-      <div className="screening-tools">
-        {tools.map(tool => (
-          <ScreeningTool
-            key={tool.key}
-            tool={tool}
-            answers={screeningAnswers[tool.key] || {}}
-            onChange={(i, v) => setAnswer(tool.key, i, v)}
-            onClear={() => clearTool(tool.key)}
-          />
-        ))}
-      </div>
+
+      {activeTools.length === 0
+        ? <div className="screening-empty">No screenings selected. Choose one or more above.</div>
+        : (
+          <div className="tool-sections">
+            {activeTools.map(tool => (
+              <ScreeningTool
+                key={tool.key}
+                tool={tool}
+                answers={screeningAnswers[tool.key] || {}}
+                onChange={(i, v) => setAnswer(tool.key, i, v)}
+                onClear={() => clearTool(tool.key)}
+                onRemove={() => removeTool(tool.key)}
+                collapsed={!!collapsed[tool.key]}
+                onToggleCollapse={() => setCollapsed(prev => ({ ...prev, [tool.key]: !prev[tool.key] }))}
+              />
+            ))}
+          </div>
+        )}
     </div>
   );
 }
