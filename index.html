@@ -593,6 +593,24 @@ textarea { resize: vertical; }
 .sp-preview { font-size: 12.5px; color: var(--ink-2); line-height: 1.55; }
 .sp-preview div { margin-bottom: 4px; overflow-wrap: anywhere; }
 .sp-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+/* Printable safety plan: rendered into <body> through a portal, shown only while printing it. */
+.sp-print { display: none; }
+@media print {
+  body.print-safety > *:not(.sp-print) { display: none !important; }
+  body.print-safety { background: #fff !important; }
+  body.print-safety .sp-print { display: block; color: #000; font-family: Georgia, 'Times New Roman', serif; font-size: 12pt; line-height: 1.45; }
+  .sp-print h1 { font-size: 20pt; font-weight: normal; margin: 0 0 4pt; }
+  .sp-print .sp-print-meta { display: flex; gap: 28pt; margin: 6pt 0 14pt; font-size: 11pt; }
+  .sp-print .sp-print-meta span { flex: 1; border-bottom: 1px solid #000; padding-bottom: 2pt; }
+  .sp-print .sp-print-step { break-inside: avoid; margin-bottom: 10pt; padding-bottom: 8pt; border-bottom: 1px solid #bbb; }
+  .sp-print h2 { font-size: 12.5pt; margin: 0 0 3pt; }
+  .sp-print h2 .n { display: inline-block; width: 18pt; }
+  .sp-print .hint { font-size: 9.5pt; color: #444; margin: 0 0 4pt 18pt; }
+  .sp-print .text { margin-left: 18pt; white-space: pre-wrap; }
+  .sp-print .blank { margin-left: 18pt; height: 16pt; border-bottom: 1px dotted #888; }
+  .sp-print .crisis { margin-top: 14pt; padding: 8pt 10pt; border: 1.5px solid #000; font-size: 11pt; break-inside: avoid; }
+  @page { margin: 16mm; }
+}
 @media (max-width: 860px) { .safety-main { grid-template-columns: 1fr; padding: 20px 16px 60px; } .safety-side { position: static; } }
 
 .screening-main { grid-column: 1 / -1; display: flex; flex-direction: column; overflow-y: auto; padding: 28px 32px 80px; gap: 24px; }
@@ -2805,12 +2823,12 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
 // Safety plan steps (Stanley-Brown format). Text lives in App state only and is
 // de-identified by each tab's sanitizer before it reaches a prompt.
 const SAFETY_PLAN_STEPS = [
-  { key: 'warningSigns', label: 'Warning signs', hint: 'Thoughts, moods, situations or behaviors that signal a crisis may be developing' },
-  { key: 'copingStrategies', label: 'Internal coping strategies', hint: 'Things to do alone to take the mind off problems' },
-  { key: 'socialSupports', label: 'People and places for support and distraction', hint: 'Use roles, not names (e.g. "sibling", "neighbor", "community center")' },
-  { key: 'professionalContacts', label: 'Professionals and agencies to contact', hint: 'Use roles, not names or numbers (e.g. "outpatient therapist", "988 crisis line")' },
-  { key: 'safeEnvironment', label: 'Making the environment safe', hint: 'Steps agreed on to limit access to means' },
-  { key: 'reasonsForLiving', label: 'Reasons for living', hint: 'What matters most and is worth living for' },
+  { key: 'warningSigns', label: 'Warning signs', hint: 'Thoughts, moods, situations or behaviors that signal a crisis may be developing', printHint: 'Thoughts, moods, situations or behaviors that tell me a crisis may be starting' },
+  { key: 'copingStrategies', label: 'Internal coping strategies', hint: 'Things to do alone to take the mind off problems', printHint: 'Things I can do on my own to take my mind off problems' },
+  { key: 'socialSupports', label: 'People and places for support and distraction', hint: 'Use roles, not names (e.g. "sibling", "neighbor", "community center")', printHint: 'People and places that help me feel better or take my mind off things' },
+  { key: 'professionalContacts', label: 'Professionals and agencies to contact', hint: 'Use roles, not names or numbers (e.g. "outpatient therapist", "988 crisis line")', printHint: 'Professionals and agencies I can contact during a crisis' },
+  { key: 'safeEnvironment', label: 'Making the environment safe', hint: 'Steps agreed on to limit access to means', printHint: 'Steps to make my surroundings safer' },
+  { key: 'reasonsForLiving', label: 'Reasons for living', hint: 'What matters most and is worth living for', printHint: 'What matters most to me and is worth living for' },
 ];
 const EMPTY_SAFETY_PLAN = Object.fromEntries(SAFETY_PLAN_STEPS.map(s => [s.key, '']));
 
@@ -2822,6 +2840,37 @@ function safetyPlanEntries(plan) {
     .map(s => ({ label: s.label, text: plan[s.key].trim().replace(/\s*\n+\s*/g, '; ') }));
 }
 const safetyPlanToLines = (entries, clean = (t) => t) => entries.map(e => `${e.label}: ${clean(e.text)}`);
+
+// Client-facing copy of the safety plan. Contains what the Writer typed (not de-identified),
+// because it is printed for the client and never sent anywhere.
+function SafetyPlanPrint({ safetyPlan }) {
+  return ReactDOM.createPortal(
+    <div className="sp-print" aria-hidden="true">
+      <h1>My Safety Plan</h1>
+      <div className="sp-print-meta"><span>Name:</span><span>Date:</span></div>
+      {SAFETY_PLAN_STEPS.map((step, i) => {
+        const text = (safetyPlan[step.key] || '').trim();
+        return (
+          <div className="sp-print-step" key={step.key}>
+            <h2><span className="n">{i + 1}.</span>{step.label}</h2>
+            <div className="hint">{step.printHint || step.hint}</div>
+            {text ? <div className="text">{text}</div> : <><div className="blank"/><div className="blank"/></>}
+          </div>
+        );
+      })}
+      <div className="crisis">If you are in crisis or thinking about harming yourself, call or text <b>988</b> (Suicide and Crisis Lifeline), or call <b>911</b> or go to the nearest emergency room.</div>
+    </div>,
+    document.body
+  );
+}
+
+function printSafetyPlan() {
+  const done = () => { document.body.classList.remove('print-safety'); window.removeEventListener('afterprint', done); };
+  document.body.classList.add('print-safety');
+  window.addEventListener('afterprint', done);
+  window.print();
+  setTimeout(done, 1000);
+}
 
 function SafetyPlanTab({ safetyPlan, setSafetyPlan, showToast, privacyCtl }) {
   const setField = useCallback((key, val) => setSafetyPlan(prev => ({ ...prev, [key]: val })), [setSafetyPlan]);
@@ -2864,7 +2913,12 @@ function SafetyPlanTab({ safetyPlan, setSafetyPlan, showToast, privacyCtl }) {
             : <div style={{fontSize:12,color:'var(--muted)'}}>Nothing yet.</div>}
           <div className="sp-actions">
             <button className="btn" type="button" onClick={copyPlan}><Icon.copy/>Copy safety plan</button>
+            <button className="btn" type="button" onClick={printSafetyPlan} title="Print a one-page copy for the client, or save it as a PDF">Print / Save as PDF</button>
             {filled > 0 && <button className="btn" type="button" onClick={() => { setSafetyPlan(EMPTY_SAFETY_PLAN); showToast('Safety plan cleared'); }}>Clear</button>}
+          </div>
+          <div style={{fontSize:11.5,color:'var(--muted)',marginTop:8}}>The printout is for the client: it shows the text as typed, with blank lines for empty steps, and is not de-identified.</div>
+          <div>
+            <SafetyPlanPrint safetyPlan={safetyPlan}/>
           </div>
         </div>
       </aside>
