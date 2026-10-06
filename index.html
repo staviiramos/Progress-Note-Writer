@@ -2123,6 +2123,40 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
   );
 }
 
+const _chkSvg = (
+  <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const SxItem = React.memo(function SxItem({ criterion, itemKey, checked, onToggle, onCtxChange }) {
+  const [localCtx, setLocalCtx] = useState('');
+  const handleCtxChange = useCallback((e) => {
+    const val = e.target.value;
+    setLocalCtx(val);
+    onCtxChange(itemKey, val);
+  }, [itemKey, onCtxChange]);
+  return (
+    <div className={`sx-item${checked ? ' checked' : ''}`}>
+      <button type="button" className="sx-check" onClick={() => onToggle(itemKey)}>
+        <span className="sx-chk-box">{checked && _chkSvg}</span>
+        <span className="sx-chk-lbl">{criterion}</span>
+      </button>
+      {checked && (
+        <div className="sx-ctx">
+          <textarea
+            className="textarea"
+            rows="2"
+            placeholder="Add clinical specifics or context (optional)…"
+            value={localCtx}
+            onChange={handleCtxChange}
+          />
+        </div>
+      )}
+    </div>
+  );
+});
+
 function DxTab({ apiKeyRef, showToast, onNeedKey }) {
   const [subject, setSubject] = useState('Client');
   const [dxQuery, setDxQuery] = useState('');
@@ -2131,7 +2165,8 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
   const [selectedDx, setSelectedDx] = useState(null);
   // checkedSet keys are "groupIdx:criteriaIdx" strings
   const [checkedSet, setCheckedSet] = useState(new Set());
-  const [ctxMap, setCtxMap] = useState({});
+  // ctxMap stored as a ref — context edits don't need to re-render DxTab
+  const ctxMapRef = useRef({});
   const [observations, setObservations] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
@@ -2149,30 +2184,32 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const selectDx = (dx) => {
+  const selectDx = useCallback((dx) => {
     setSelectedDx(dx);
     setDxQuery(`${dx.code} — ${dx.name}`);
     setShowDrop(false);
     setFocusedIdx(-1);
     setCheckedSet(new Set());
-    setCtxMap({});
+    ctxMapRef.current = {};
     setNote('');
-  };
+  }, []);
 
-  const clearDx = () => {
+  const clearDx = useCallback(() => {
     setSelectedDx(null);
     setDxQuery('');
     setShowDrop(false);
     setCheckedSet(new Set());
-    setCtxMap({});
+    ctxMapRef.current = {};
     setNote('');
-  };
+  }, []);
 
-  const toggleSymptom = (key) => {
+  const toggleSymptom = useCallback((key) => {
     setCheckedSet(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
-  };
+  }, []);
 
-  const setCtx = (key, val) => setCtxMap(prev => ({ ...prev, [key]: val }));
+  const setCtx = useCallback((key, val) => {
+    ctxMapRef.current = { ...ctxMapRef.current, [key]: val };
+  }, []);
 
   const generate = async () => {
     if (loading) return;
@@ -2186,7 +2223,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
       selectedDx.groups.forEach((group, gIdx) => {
         group.criteria.forEach((crit, cIdx) => {
           const k = `${gIdx}:${cIdx}`;
-          if (checkedSet.has(k)) selectedSymptoms.push({ label: crit, context: ctxMap[k] || '' });
+          if (checkedSet.has(k)) selectedSymptoms.push({ label: crit, context: ctxMapRef.current[k] || '' });
         });
       });
       const diagnosis = `${selectedDx.code} — ${selectedDx.name}`;
@@ -2201,12 +2238,6 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
     try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
     catch { showToast('Copy failed — select and copy manually'); }
   };
-
-  const chkSvg = (
-    <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
 
   return (
     <>
@@ -2229,6 +2260,8 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
                   type="text"
                   placeholder="e.g. anxiety, F41.1, depression, PTSD…"
                   value={dxQuery}
+                  autoComplete="off"
+                  spellCheck={false}
                   style={selectedDx ? {paddingRight:32,background:'var(--accent-soft)',borderColor:'var(--accent)',fontWeight:500} : {}}
                   readOnly={!!selectedDx}
                   onFocus={() => { if (!selectedDx && filtered.length) setShowDrop(true); }}
@@ -2291,25 +2324,15 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
                   <div className="sx-list">
                     {group.criteria.map((criterion, cIdx) => {
                       const k = `${gIdx}:${cIdx}`;
-                      const checked = checkedSet.has(k);
                       return (
-                        <div key={cIdx} className={`sx-item${checked ? ' checked' : ''}`}>
-                          <button type="button" className="sx-check" onClick={() => toggleSymptom(k)}>
-                            <span className="sx-chk-box">{checked && chkSvg}</span>
-                            <span className="sx-chk-lbl">{criterion}</span>
-                          </button>
-                          {checked && (
-                            <div className="sx-ctx">
-                              <textarea
-                                className="textarea"
-                                rows="2"
-                                placeholder="Add clinical specifics or context (optional)…"
-                                value={ctxMap[k] || ''}
-                                onChange={e => setCtx(k, e.target.value)}
-                              />
-                            </div>
-                          )}
-                        </div>
+                        <SxItem
+                          key={k}
+                          criterion={criterion}
+                          itemKey={k}
+                          checked={checkedSet.has(k)}
+                          onToggle={toggleSymptom}
+                          onCtxChange={setCtx}
+                        />
                       );
                     })}
                   </div>
