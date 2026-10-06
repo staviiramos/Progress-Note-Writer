@@ -60,7 +60,8 @@ Intake, Dx Justification and Treatment Plan now de-identify their free text with
 
 ### C. Smaller notes
 
-- `wipeAll()` ("Note completed") clears the Progress Note and the safety plan, but not screening answers, treatment goals, or the Intake/Dx tabs' fields. Ask the owner whether it should clear everything.
+- `wipeAll()` ("Note completed") clears everything entered for the client (owner's decision, 2026-10-06): the Progress Note, screening answers, treatment goals and the safety plan. Intake, Dx and Treatment Plan drafts live in their tab components, so they are already gone once the Writer is back on the Progress Note tab. Settings, allowlist and the Groq key are kept. Any new App-level client data must be added to `wipeAll()`.
+- Because Intake, Dx and Treatment Plan keep their fields in tab-local state, switching away from one of those tabs discards what was typed there. Lifting that state into `App` would fix it if the owner wants drafts to survive tab switches.
 
 - `detectNames` skips the first word of each sentence, so a name that opens a sentence is not caught. Consider a per-input "names to redact" field (the original design had one) or a check of sentence-initial words against `COMMON_WORDS`.
 - `sessionLocation` / `sessionCredentials` state is still passed to `buildPrompt` although their inputs were removed. That's harmless dead code you can remove.
