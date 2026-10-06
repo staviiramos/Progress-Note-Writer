@@ -1,25 +1,27 @@
-# CODING AGENTS: READ THIS FIRST
+# Progress Note Writer
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+A browser tool that helps licensed mental-health clinicians draft documentation from their own session notes:
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+- **Progress notes** in SOAP, DAP, BIRP, GIRP, PIRP, EMR one-paragraph or narrative format, with section-level editing and revision.
+- **Intake assessments** (CPT 90791), **diagnosis justifications** and **treatment plan narratives**.
+- **Screenings:** PHQ-9, GAD-7, PCL-5, ASRS-v1.1 and the C-SSRS screen. Completed results feed into generated notes.
+- **Safety plan:** six-step plan that feeds notes and prints as a one-page client copy.
 
-## What you should do — IMPORTANT
+Live site: https://staviiramos.github.io/Progress-Note-Writer/
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+## Privacy
 
-**Read `project/Progress Note Writer.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+- Names and HIPAA Safe Harbor identifiers are removed **on the device, before anything is sent** to the AI model. There is an allowlist for words that should not be treated as names, and a "Names to always redact" field.
+- Nothing is stored. Notes live in memory only; "Note completed" erases everything. The browser keeps only the API key and the allowlist.
+- Generation uses [Groq](https://console.groq.com) with your own API key. Confirm your provider's Business Associate Agreement before entering identifiable information.
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+## Development
 
-## About the design files
+The whole app is the single file `index.html` (React 18 and Babel standalone from unpkg, no build step). Open it in a browser or serve the folder with `python3 -m http.server`.
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+```
+npm install   # dev-only test tooling
+npm test      # JSX compiles; redaction, scoring and note-helper checks pass
+```
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
-
-## Bundle contents
-
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `Progress Note Writer` project files (HTML prototypes, assets, components)
+See `CLAUDE.md` for architecture and ground rules, and `HANDOFF.md` for current state.

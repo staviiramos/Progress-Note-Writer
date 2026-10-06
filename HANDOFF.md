@@ -50,7 +50,8 @@ Last updated 2026-10-06. Read `CLAUDE.md` first for architecture and ground rule
 
 ## Open work
 
-- The Claude Design prototype files (`README.md`, `chats/`, `project/`, root `app.jsx`, `lib.js`, `styles.css`, `tweaks-panel.jsx`) are stale. The owner may want them deleted or moved under `design/`, and `README.md` replaced with a short product readme. Ask first.
+- The original Claude Design prototype files were deleted on 2026-10-06 at the owner's request (still in Git history before commit "Remove the Claude Design prototype files").
+- The owner chose not to add a location/modality field to the Progress Note. Location appears in a note only if the Writer mentions it in the session text.
 - Ideas not yet requested:
   - a location/modality field for the Progress Note (the old hidden default was removed),
   - showing a live "names detected" preview while typing on tabs other than the Progress Note.

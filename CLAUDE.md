@@ -23,7 +23,7 @@ Start every session by reading `HANDOFF.md` for current state and open work.
 | `index.html` | **The app.** Everything that ships. |
 | `CLAUDE.md`, `HANDOFF.md` | Agent instructions and current-state handoff. |
 | `scripts/check.mjs`, `package.json` | Dev-only offline checks (`npm test`). Not loaded by the app. |
-| `README.md`, `chats/`, `project/`, root `app.jsx`, `lib.js`, `styles.css`, `tweaks-panel.jsx` | The original Claude Design prototype bundle from May 2026. Historical reference only; `index.html` has moved well past it and does not load these files. The README there was written for a different workflow, so don't follow its "recreate in Next.js" instructions. |
+| `README.md` | Short product readme. |
 
 ## How `index.html` is organized
 
