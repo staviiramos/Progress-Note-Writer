@@ -1822,6 +1822,89 @@ function AllowlistEditor({ words, onAdd, onRemove }) {
   );
 }
 
+const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholder, onChange }) {
+  const [query, setQuery] = useState('');
+  const [showDrop, setShowDrop] = useState(false);
+  const [focusedIdx, setFocusedIdx] = useState(-1);
+  const [selectedDx, setSelectedDx] = useState(null);
+  const acRef = useRef(null);
+
+  const filtered = useMemo(() => {
+    if (!query.trim() || selectedDx) return [];
+    const q = query.toLowerCase();
+    return L.DX_DATABASE.filter(d => d.code.toLowerCase().includes(q) || d.name.toLowerCase().includes(q)).slice(0, 9);
+  }, [query, selectedDx]);
+
+  useEffect(() => {
+    const handler = (e) => { if (acRef.current && !acRef.current.contains(e.target)) setShowDrop(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const select = useCallback((dx) => {
+    setSelectedDx(dx);
+    setQuery(`${dx.code} — ${dx.name}`);
+    setShowDrop(false);
+    setFocusedIdx(-1);
+    onChange(`${dx.code} — ${dx.name}`);
+  }, [onChange]);
+
+  const clear = useCallback(() => {
+    setSelectedDx(null);
+    setQuery('');
+    setShowDrop(false);
+    onChange('');
+  }, [onChange]);
+
+  return (
+    <div className="dx-ac-wrap" ref={acRef}>
+      <div style={{position:'relative',display:'flex',alignItems:'center'}}>
+        <input
+          className="input"
+          type="text"
+          placeholder={placeholder || 'Search by name or ICD-10 code…'}
+          value={query}
+          autoComplete="off"
+          spellCheck={false}
+          style={selectedDx ? {paddingRight:32,background:'var(--accent-soft)',borderColor:'var(--accent)',fontWeight:500} : {}}
+          readOnly={!!selectedDx}
+          onFocus={() => { if (!selectedDx && filtered.length) setShowDrop(true); }}
+          onChange={e => { setQuery(e.target.value); setShowDrop(true); setFocusedIdx(-1); }}
+          onKeyDown={e => {
+            if (e.key === 'Escape') { setShowDrop(false); return; }
+            if (!showDrop || !filtered.length) return;
+            if (e.key === 'ArrowDown') { e.preventDefault(); setFocusedIdx(i => Math.min(i+1, filtered.length-1)); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); setFocusedIdx(i => Math.max(i-1, 0)); }
+            else if (e.key === 'Enter' && focusedIdx >= 0) { e.preventDefault(); select(filtered[focusedIdx]); }
+          }}
+        />
+        {selectedDx && (
+          <button
+            type="button"
+            onClick={clear}
+            title="Clear selection"
+            style={{position:'absolute',right:8,background:'none',border:'none',cursor:'pointer',color:'var(--accent)',fontSize:15,lineHeight:1,padding:'2px 4px',borderRadius:4,display:'flex',alignItems:'center'}}
+          >✕</button>
+        )}
+      </div>
+      {showDrop && filtered.length > 0 && (
+        <div className="dx-ac-drop">
+          {filtered.map((dx, i) => (
+            <div
+              key={dx.code}
+              className={`dx-ac-item${i === focusedIdx ? ' focused' : ''}`}
+              onMouseDown={e => { e.preventDefault(); select(dx); }}
+            >
+              <span className="dx-code">{dx.code}</span>
+              <span className="dx-name">{dx.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
 function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
   const [subject, setSubject] = useState('Client');
   const [note, setNote] = useState('');
@@ -2039,11 +2122,11 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
           <h3>Diagnostic summary</h3>
           <div className="row">
             <label>Primary diagnosis (DSM-5-TR / ICD-10)</label>
-            <input className="input" type="text" placeholder="e.g. F32.1 – Major Depressive Disorder, moderate" value={primaryDx} onChange={e=>setPrimaryDx(e.target.value)}/>
+            <DxAutocompleteInput placeholder="e.g. anxiety, F41.1, depression, PTSD…" onChange={setPrimaryDx}/>
           </div>
           <div className="row">
             <label>Secondary diagnosis</label>
-            <input className="input" type="text" placeholder="Optional" value={secondaryDx} onChange={e=>setSecondaryDx(e.target.value)}/>
+            <DxAutocompleteInput placeholder="Optional secondary diagnosis…" onChange={setSecondaryDx}/>
           </div>
           <div className="row">
             <label>Z-codes (social determinants)</label>
