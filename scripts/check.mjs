@@ -77,6 +77,37 @@ for (const c of cases) {
   check(c.name, !leaked.length && !missing.length, `output: ${out}`);
 }
 
+// 3a. Names that open a sentence. Placeholder names only.
+{
+  const caught = [
+    ['Jordan said the week went well.', 'Jordan'],
+    ['Riley reported better sleep.', 'Riley'],
+    ['Session went well. Morgan said it helped.', 'Morgan'],
+    ['Met with Morgan today. Morgan was on time.', 'Morgan'],
+    ["Casey's sister attended.", 'Casey'],
+    ['Avery Placeholder arrived late.', 'Avery'],
+    ['Discussed plans.\nQuinn shared an update.', 'Quinn'],
+  ];
+  for (const [text, name] of caught) {
+    const out = run(text);
+    check(`sentence-start name caught: "${text.split(/[ .']/)[0]}..."`, !out.includes(name) && out.includes('Client'), `output: ${out}`);
+  }
+  check('possessive keeps its \'s', run("Casey's sister attended.").startsWith("Client's"), run("Casey's sister attended."));
+  const kept = [
+    'Mood was stable this week.', 'Mother reported improvement.', 'Sleep has improved.', 'Today was productive.',
+    'Overall the session was productive.', 'Writer reviewed coping skills.', 'Client said the week went well.',
+    'Reviewed homework. Worked on breathing skills.', 'Feeling better was reported.', 'Homework was completed.',
+    'Anxiety is lower. Attendance was consistent.',
+  ];
+  for (const text of kept) check(`ordinary sentence start kept: "${text.slice(0, 24)}"`, run(text) === text, `output: ${run(text)}`);
+
+  // "Names to always redact": any letter case, full and partial names.
+  const san = L.makeSanitizer(['jordan mentioned it. Met with JORDAN later. Placeholder came too.'], { subject: 'Client', allowlist: [], safeHarbor: false, alwaysRedact: 'Jordan Placeholder' });
+  const o = san.clean('jordan mentioned it. Met with JORDAN later. Placeholder came too.');
+  check('always-redact list matches any case and each part of a name', !/jordan|placeholder/i.test(o), `output: ${o}`);
+  check('always-redact names are reported', san.names.includes('Jordan'), JSON.stringify(san.names));
+}
+
 // 3b. makeSanitizer: shared de-identification used by the Intake, Dx and Treatment Plan tabs.
 {
   const fields = ['Stressors at work with Jordan Placeholder.', 'Reports conflict; call 555-010-0000 on 01/02/2000.', 'F33.1 — Major Depressive Disorder, recurrent, moderate'];
@@ -149,6 +180,19 @@ for (const c of cases) {
   check('C-SSRS item 6 not recent: moderate', c({ 0: 0, 1: 0, 5: 1, 6: 0 }).level === 'moderate');
   const recent = c({ 0: 0, 1: 0, 5: 1, 6: 1 });
   check('C-SSRS item 6 recent: high', recent.level === 'high' && recent.recentBehavior && recent.endorsed.join() === '6', JSON.stringify(recent));
+}
+
+// 3f. Note editing helpers: parse -> join round trip, plain text, revision prompts.
+{
+  const note = 'Subjective:\nClient described the week.\n\nObjective:\nClient was engaged.\n\nAssessment:\nProgress noted.\n\nPlan:\nContinue weekly sessions.';
+  const secs = L.parseNote(note, 'soap');
+  check('joinNote round-trips parseNote', JSON.stringify(L.parseNote(L.joinNote(secs), 'soap')) === JSON.stringify(secs));
+  const plain = L.plainNote(secs);
+  check('plainNote drops headings', !/Subjective|Objective|Assessment|Plan:/.test(plain) && plain.includes('Client was engaged.'), plain);
+  const sp = L.buildRevisePrompt({ context: 'CTX', note, instruction: '', heading: 'Assessment' });
+  check('section revise prompt targets one section', sp.startsWith('CTX') && sp.includes('Rewrite ONLY the "Assessment" section'));
+  const wp = L.buildRevisePrompt({ context: 'CTX', note, instruction: 'Make it shorter' });
+  check('whole-note revise prompt keeps headings', wp.includes('Revise the whole draft: Make it shorter') && wp.includes('Keep the same section headings'));
 }
 
 // 4. AI-buzzword scrub removes em dashes and banned words.
