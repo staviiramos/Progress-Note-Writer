@@ -19,7 +19,8 @@ Last updated 2026-10-06. Read `CLAUDE.md` first for architecture and ground rule
 - **Screenings:**
   - Picker cards and collapsible panels for PHQ-9, GAD-7, PCL-5, ASRS-v1.1 (Part A result, total /72) and the C-SSRS screen.
   - The C-SSRS uses yes/no items with skip logic and a triage risk level.
-  - Completed results become `screeningLines` in the prompts.
+  - Completed results go automatically into the Progress Note, Intake, Dx Justification and Treatment Plan prompts. The Dx prompt is told to cite relevant scores as supporting evidence only.
+  - A "Screenings in this note" strip under each tab's Generate button shows them, each with a checkbox to leave it out of that tab's note (`excludedScreenings`, cleared by "Note completed"). Partly answered screenings are listed as "n/m answered · not included" and link to the Screenings tab.
 - **Safety Plan:**
   - Six Stanley-Brown steps. Filled steps feed the Progress Note, Intake and Treatment Plan prompts, de-identified first.
   - "Print / Save as PDF" makes a one-page client copy (not de-identified, never sent anywhere).
