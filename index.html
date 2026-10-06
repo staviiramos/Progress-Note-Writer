@@ -513,6 +513,43 @@ textarea { resize: vertical; }
 }
 .al-rm:hover { background: color-mix(in oklab, var(--danger) 12%, var(--paper)); color: var(--danger); }
 
+/* Treatment Plan */
+.goal-card { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 12px; margin-bottom: 10px; background: var(--bg); }
+.goal-card:last-child { margin-bottom: 0; }
+.goal-card-meta { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.goal-date { font-size: 12px; color: var(--ink-2); flex: 1; min-width: 120px; }
+.goal-date input { border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--ink); font-size: 12px; padding: 4px 7px; outline: none; }
+.goal-date input:focus { border-color: var(--accent); }
+.goal-rm { margin-top: 8px; font-size: 11.5px; color: var(--danger); background: none; border: none; cursor: pointer; padding: 0; font-weight: 500; }
+.goal-rm:hover { text-decoration: underline; }
+.add-goal-btn { width: 100%; margin-top: 10px; padding: 8px; border: 1.5px dashed var(--line-2); border-radius: var(--r-sm); background: none; color: var(--accent); font-size: 13px; font-weight: 500; cursor: pointer; transition: border-color .12s, background .12s; }
+.add-goal-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+.goal-status-hint { font-size: 11px; color: var(--muted); margin-top: 10px; }
+.plan-goals-ref { font-size: 12px; color: var(--ink-2); margin-top: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); }
+.plan-goals-ref strong { font-weight: 600; color: var(--ink); }
+
+/* Screening scores */
+.score-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.score-row { display: flex; align-items: center; gap: 8px; }
+.score-label { font-size: 12px; font-weight: 600; color: var(--ink); min-width: 52px; font-family: var(--mono); }
+.score-input { width: 62px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--ink); font-size: 13px; padding: 5px 8px; outline: none; text-align: center; }
+.score-input:focus { border-color: var(--accent); }
+.score-badge { font-size: 11px; border-radius: 999px; padding: 2px 8px; font-weight: 500; white-space: nowrap; }
+.score-badge.minimal { background: color-mix(in oklab, var(--ok) 14%, var(--paper)); color: color-mix(in oklab, var(--ok) 70%, var(--ink)); }
+.score-badge.mild { background: color-mix(in oklab, #f5a623 14%, var(--paper)); color: color-mix(in oklab, #f5a623 80%, var(--ink)); }
+.score-badge.moderate { background: color-mix(in oklab, var(--danger) 10%, var(--paper)); color: color-mix(in oklab, var(--danger) 70%, var(--ink)); }
+.score-badge.severe { background: color-mix(in oklab, var(--danger) 18%, var(--paper)); color: var(--danger); }
+.score-badge.empty { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+
+/* Speech-to-text */
+.stt-wrap { position: relative; }
+.stt-btn { position: absolute; bottom: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--line-2); background: var(--paper); color: var(--ink-2); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.stt-btn:hover { border-color: var(--accent); color: var(--accent); }
+.stt-btn.active { border-color: var(--danger); color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, var(--paper)); animation: stt-pulse 1.2s ease-in-out infinite; }
+.stt-btn.active .ico { animation: none; }
+@keyframes stt-pulse { 0%,100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--danger) 30%, transparent); } 50% { box-shadow: 0 0 0 5px color-mix(in oklab, var(--danger) 0%, transparent); } }
+.stt-wrap .textarea { padding-bottom: 38px; }
+
 /* Scrollbars */
 .sidebar::-webkit-scrollbar, .main::-webkit-scrollbar { width: 10px; }
 .sidebar::-webkit-scrollbar-thumb, .main::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--ink) 12%, transparent); border-radius: 999px; border: 3px solid var(--bg); }
@@ -796,7 +833,7 @@ window.PN_LIB = (() => {
     detailed: { label: 'Detailed', words: '300-500', guidance: 'Write 300-500 words total. Three to five sentences per section where clinically warranted. Include clinical reasoning, functional status, treatment trajectory, and any relevant history context raised this session.' },
   };
 
-  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames, sessionDate, sessionStart, sessionEnd, sessionDuration, sessionLocation, sessionCredentials }) {
+  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames, sessionDate, sessionStart, sessionEnd, sessionDuration, sessionLocation, sessionCredentials, screeningScores, activeGoals }) {
     const fmt = FORMATS[format];
     const toneInfo = TONES[tone];
     const conc = CONCISENESS[conciseness] || CONCISENESS.standard;
@@ -881,6 +918,22 @@ window.PN_LIB = (() => {
       parts.push('Risk: not assessed this session — omit from note.');
     }
     if (redactedNames && redactedNames.length) { parts.push(''); parts.push(`Names redacted and replaced with "${subject}": ${redactedNames.join(', ')}. Do not reintroduce them.`); }
+    if (screeningScores) {
+      const sl = [];
+      if (screeningScores.phq9 !== '' && screeningScores.phq9 !== null && screeningScores.phq9 !== undefined) sl.push(`PHQ-9: ${screeningScores.phq9}`);
+      if (screeningScores.gad7 !== '' && screeningScores.gad7 !== null && screeningScores.gad7 !== undefined) sl.push(`GAD-7: ${screeningScores.gad7}`);
+      if (screeningScores.pcl5 !== '' && screeningScores.pcl5 !== null && screeningScores.pcl5 !== undefined) sl.push(`PCL-5: ${screeningScores.pcl5}`);
+      if (sl.length) { parts.push(''); parts.push(`Standardized screening scores administered this session: ${sl.join(', ')}. Include these scores with their clinical interpretation in the note.`); }
+    }
+    if (activeGoals && activeGoals.length) {
+      parts.push('');
+      parts.push('Active treatment goals (reference where clinically relevant, do not list verbatim):');
+      activeGoals.forEach((g, i) => {
+        let line = `  ${i + 1}. ${g.text.trim()}`;
+        if (g.targetDate) line += ` (target date: ${g.targetDate})`;
+        parts.push(line);
+      });
+    }
     parts.push('');
     parts.push('--- END SESSION NOTES ---');
     parts.push('');
@@ -1677,6 +1730,8 @@ const Icon = {
   page: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>,
   key: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l2 2"/></svg>,
   sliders: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2" fill="var(--paper)"/><circle cx="15" cy="12" r="2" fill="var(--paper)"/><circle cx="9" cy="18" r="2" fill="var(--paper)"/></svg>,
+  mic: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="9" y1="22" x2="15" y2="22"/></svg>,
+  target: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
 };
 
 let _groqModelCache = null;
@@ -1858,6 +1913,207 @@ function AllowlistEditor({ words, onAdd, onRemove }) {
   );
 }
 
+function useSpeechRecognition(onResult) {
+  const [active, setActive] = useState(false);
+  const recRef = useRef(null);
+  const supported = typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  const onResultRef = useRef(onResult);
+  useEffect(() => { onResultRef.current = onResult; });
+
+  const toggle = useCallback(() => {
+    if (!supported) return;
+    if (active) {
+      recRef.current?.stop();
+      setActive(false);
+      return;
+    }
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = false;
+    rec.lang = 'en-US';
+    rec.onresult = (e) => {
+      const transcript = Array.from(e.results).slice(e.resultIndex).filter(r => r.isFinal).map(r => r[0].transcript).join(' ');
+      if (transcript.trim()) onResultRef.current(transcript.trim());
+    };
+    rec.onerror = () => setActive(false);
+    rec.onend = () => setActive(false);
+    rec.start();
+    recRef.current = rec;
+    setActive(true);
+  }, [active, supported]);
+
+  useEffect(() => () => { recRef.current?.stop(); }, []);
+  return { active, supported, toggle };
+}
+
+function scoreSeverity(tool, val) {
+  const n = parseInt(val, 10);
+  if (isNaN(n) || val === '') return null;
+  if (tool === 'PHQ-9') {
+    if (n <= 4) return { level: 'minimal', label: 'Minimal' };
+    if (n <= 9) return { level: 'mild', label: 'Mild' };
+    if (n <= 14) return { level: 'moderate', label: 'Moderate' };
+    if (n <= 19) return { level: 'moderate', label: 'Mod. Severe' };
+    return { level: 'severe', label: 'Severe' };
+  }
+  if (tool === 'GAD-7') {
+    if (n <= 4) return { level: 'minimal', label: 'Minimal' };
+    if (n <= 9) return { level: 'mild', label: 'Mild' };
+    if (n <= 14) return { level: 'moderate', label: 'Moderate' };
+    return { level: 'severe', label: 'Severe' };
+  }
+  if (tool === 'PCL-5') {
+    if (n <= 19) return { level: 'minimal', label: 'No concern' };
+    if (n <= 31) return { level: 'mild', label: 'Mild' };
+    if (n <= 49) return { level: 'moderate', label: 'Moderate' };
+    return { level: 'severe', label: 'Severe' };
+  }
+  return null;
+}
+
+const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
+  const [text, setText] = useState(goal.text);
+  const flushRef = useRef(null);
+
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setText(val);
+    clearTimeout(flushRef.current);
+    flushRef.current = setTimeout(() => onUpdate({ ...goal, text: val }), 300);
+  };
+
+  useEffect(() => {
+    if (goal.text !== text) setText(goal.text);
+  }, [goal.id]);
+
+  return (
+    <div className="goal-card">
+      <div className="goal-card-meta">
+        <div className="goal-date">
+          <span style={{fontSize:11,color:'var(--muted)',marginBottom:2,display:'block'}}>Target date</span>
+          <input className="input" type="date" value={goal.targetDate || ''} onChange={e => onUpdate({ ...goal, targetDate: e.target.value })} style={{fontSize:12,padding:'4px 8px'}}/>
+        </div>
+        <div className="seg" role="radiogroup" style={{fontSize:11.5,flex:1}}>
+          <button type="button" aria-pressed={goal.status==='active'} onClick={() => onUpdate({...goal, status:'active'})}>Active</button>
+          <button type="button" aria-pressed={goal.status==='achieved'} onClick={() => onUpdate({...goal, status:'achieved'})}>Achieved</button>
+          <button type="button" aria-pressed={goal.status==='discontinued'} onClick={() => onUpdate({...goal, status:'discontinued'})}>D/C</button>
+        </div>
+        <button className="goal-rm" type="button" onClick={onRemove} title="Remove goal">×</button>
+      </div>
+      <textarea className="textarea" rows="2" placeholder="Measurable goal (e.g. Client will identify 3 coping strategies for anxiety by target date)…" value={text} onChange={handleChange}/>
+    </div>
+  );
+});
+
+function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast }) {
+  const [note, setNote] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const addGoal = () => {
+    const id = Date.now().toString(36);
+    setGoals(prev => [...prev, { id, text: '', targetDate: '', status: 'active' }]);
+  };
+
+  const updateGoal = useCallback((updated) => {
+    setGoals(prev => prev.map(g => g.id === updated.id ? updated : g));
+  }, [setGoals]);
+
+  const removeGoal = useCallback((id) => {
+    setGoals(prev => prev.filter(g => g.id !== id));
+  }, [setGoals]);
+
+  const activeGoals = goals.filter(g => g.status === 'active' && g.text.trim());
+
+  const generate = async () => {
+    if (loading) return;
+    const key = apiKeyRef.current;
+    if (!key) { showToast('Set your Groq API key first'); return; }
+    if (!activeGoals.length) { showToast('Add at least one active goal first'); return; }
+    setLoading(true); setNote('');
+    const goalsList = activeGoals.map((g, i) => {
+      let line = `${i + 1}. ${g.text.trim()}`;
+      if (g.targetDate) line += ` (target: ${g.targetDate})`;
+      return line;
+    }).join('\n');
+    const prompt = `You are a licensed psychotherapist writing a treatment plan narrative. Based on the following client treatment goals, write a concise, professional treatment plan summary (2-3 paragraphs). Use past tense and clinical language. Refer to the client as "Client". Do not invent content not present in the goals. No em-dashes or AI filler phrases.
+
+TREATMENT GOALS:
+${goalsList}
+
+Write the treatment plan narrative now:`;
+    try {
+      const raw = await callGroq(prompt, key);
+      setNote(raw.trim());
+    } catch(err) {
+      showToast(err.message || 'Generation failed', true);
+    } finally { setLoading(false); }
+  };
+
+  const copyNote = async () => {
+    if (!note) return;
+    try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
+    catch { showToast('Copy failed — please select and copy manually'); }
+  };
+
+  const activeCount = goals.filter(g => g.status === 'active').length;
+  const achievedCount = goals.filter(g => g.status === 'achieved').length;
+  const dcCount = goals.filter(g => g.status === 'discontinued').length;
+
+  return (
+    <>
+      <aside className="sidebar">
+        <div className="card">
+          <h3>Treatment goals <span className="hint">{goals.length} total</span></h3>
+          {goals.length === 0 && (
+            <div className="note-sm" style={{marginBottom:10}}>Add measurable goals with target dates and track their status over time. Active goals are included when generating a progress note.</div>
+          )}
+          {goals.map(goal => (
+            <GoalCard key={goal.id} goal={goal} onUpdate={updateGoal} onRemove={() => removeGoal(goal.id)}/>
+          ))}
+          <button className="add-goal-btn" type="button" onClick={addGoal}>+ Add goal</button>
+          {goals.length > 0 && (
+            <div className="goal-status-hint">{activeCount} active · {achievedCount} achieved · {dcCount} discontinued</div>
+          )}
+        </div>
+      </aside>
+      <main className="main">
+        <div className="note-toolbar">
+          <div className="left">
+            {activeGoals.length > 0 && <span style={{fontSize:12}}>{activeGoals.length} active goal{activeGoals.length!==1?'s':''} ready</span>}
+          </div>
+          <div className="actions">
+            <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
+            <button className="btn primary" disabled={loading||!activeGoals.length} onClick={generate}>
+              {loading ? <span className="spin"/> : <Icon.target/>}
+              {loading ? 'Generating…' : note ? 'Regenerate plan' : 'Generate plan narrative'}
+            </button>
+          </div>
+        </div>
+        <article className={`paper ${loading ? 'loading' : ''}`}>
+          {note ? (
+            <>
+              <div className="meta"><span className="fmt">Treatment Plan</span><span>Writer · De-identified</span></div>
+              {note.split(/\n{2,}/).map((para, i) => <p key={i}>{para}</p>)}
+            </>
+          ) : loading ? (
+            <>
+              <div className="meta"><span className="fmt">Drafting…</span><span>Writer</span></div>
+              {[0,1,2,3].map(i=><div className="gen-line" key={i} style={{width:`${65+(i*7)%30}%`}}/>)}
+            </>
+          ) : (
+            <div className="empty">
+              <div className="icon"><Icon.target/></div>
+              <h4>Treatment plan narrative</h4>
+              <div>Add measurable goals on the left, then generate a narrative summary. Active goals are also referenced when generating progress notes.</div>
+            </div>
+          )}
+        </article>
+      </main>
+    </>
+  );
+}
+
 const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholder, onChange }) {
   const [query, setQuery] = useState('');
   const [showDrop, setShowDrop] = useState(false);
@@ -1955,8 +2211,6 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
     const diff = (eh * 60 + em) - (sh * 60 + sm);
     return diff > 0 ? diff : null;
   }, [sessionStart, sessionEnd]);
-  const [locationMode, setLocationMode] = useState('In-Office (POS 11)');
-  const [credentials, setCredentials] = useState('');
   const [symptoms, setSymptoms] = useState('');
   const [onset, setOnset] = useState('');
   const [severity, setSeverity] = useState('');
@@ -1996,7 +2250,6 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
       const raw = await callGroq(L.buildIntakePrompt({
         subject, sessionDate,
         duration: sessionStart && sessionEnd && sessionDuration ? `${fmtTime12(sessionStart)} to ${fmtTime12(sessionEnd)} (${sessionDuration} minutes)` : '',
-        location: locationMode, therapistCredentials: credentials,
         chiefComplaint: symptoms, onset, severity, stressors,
         functioning: { occupational: fmt(occ), social: fmt(soc), adl: fmt(adl) },
         safety: { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), safetyPlan },
@@ -2059,7 +2312,7 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
             <label>Session date</label>
             <input className="input" type="date" value={sessionDate} onChange={e=>setSessionDate(e.target.value)}/>
           </div>
-          <div className="row">
+          <div className="row" style={{marginBottom:0}}>
             <label>Session time</label>
             <div style={{display:'flex',gap:10,alignItems:'flex-end'}}>
               <div style={{flex:1}}>
@@ -2080,17 +2333,6 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey }) {
             {sessionStart && sessionEnd && sessionDuration === null && (
               <div style={{marginTop:6,fontSize:12,color:'var(--danger)'}}>End time must be after start time</div>
             )}
-          </div>
-          <div className="row">
-            <label>Location / modality</label>
-            <div className="seg">
-              <button type="button" aria-pressed={locationMode==='In-Office (POS 11)'} onClick={()=>setLocationMode('In-Office (POS 11)')}>In-Office</button>
-              <button type="button" aria-pressed={locationMode==='Telehealth (POS 02)'} onClick={()=>setLocationMode('Telehealth (POS 02)')}>Telehealth</button>
-            </div>
-          </div>
-          <div className="row" style={{marginBottom:0}}>
-            <label>Clinician credentials</label>
-            <input className="input" type="text" placeholder="e.g. LCSW, LPC, PsyD" value={credentials} onChange={e=>setCredentials(e.target.value)}/>
           </div>
         </div>
 
@@ -2570,6 +2812,8 @@ function App() {
   const [sessionEnd, setSessionEnd] = useState('');
   const [sessionLocation, setSessionLocation] = useState('In-Office (POS 11)');
   const [sessionCredentials, setSessionCredentials] = useState('');
+  const [goals, setGoals] = useState([]);
+  const [screeningScores, setScreeningScores] = useState({ phq9: '', gad7: '', pcl5: '' });
   const sessionDuration = useMemo(() => {
     if (!sessionStart || !sessionEnd) return null;
     const [sh, sm] = sessionStart.split(':').map(Number);
@@ -2583,6 +2827,11 @@ function App() {
     try { localStorage.removeItem('pn.groqmodel'); } catch {}
   }, []);
   const [toast, showToast] = useToast();
+
+  const appendTranscript = useCallback((text) => {
+    setFreeText(prev => prev ? prev + ' ' + text : text);
+  }, []);
+  const stt = useSpeechRecognition(appendTranscript);
 
   const rawInput = useMemo(() => {
     if (inputMode==='free') return freeText;
@@ -2616,6 +2865,8 @@ function App() {
       sessionDuration,
       sessionLocation,
       sessionCredentials,
+      screeningScores: { phq9: screeningScores.phq9, gad7: screeningScores.gad7, pcl5: screeningScores.pcl5 },
+      activeGoals: goals.filter(g => g.status === 'active' && g.text.trim()),
     });
     try {
       const raw = await callGroq(prompt, key);
@@ -2668,6 +2919,7 @@ function App() {
           <button type="button" role="tab" aria-pressed={appMode==='progress'} onClick={()=>setAppMode('progress')}>Progress Note</button>
           <button type="button" role="tab" aria-pressed={appMode==='intake'} onClick={()=>setAppMode('intake')}>Intake Assessment</button>
           <button type="button" role="tab" aria-pressed={appMode==='dx'} onClick={()=>setAppMode('dx')}>Dx Justification</button>
+          <button type="button" role="tab" aria-pressed={appMode==='plan'} onClick={()=>setAppMode('plan')}>Treatment Plan</button>
         </div>
         <div className="meta">
           <span className="hipaa-badge" title="HIPAA Safe Harbor de-identification runs on-device before any content is sent to the AI.">
@@ -2685,6 +2937,7 @@ function App() {
 
       {appMode === 'intake' && <IntakeTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)}/>}
       {appMode === 'dx' && <DxTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)}/>}
+      {appMode === 'plan' && <TreatmentPlanTab goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast}/>}
       {appMode === 'progress' && <aside className="sidebar">
         <div className="card hipaa-card">
           <h3>Privacy <span className="hint">HIPAA Safe Harbor</span></h3>
@@ -2801,7 +3054,21 @@ function App() {
             <button aria-pressed={inputMode==='structured'} onClick={()=>setInputMode('structured')}>Structured</button>
             <button aria-pressed={inputMode==='bullets'} onClick={()=>setInputMode('bullets')}>Bullets</button>
           </div>
-          {inputMode==='free' && <textarea className="textarea" rows="8" placeholder={`Describe the session in your own words. Mention themes, what the ${subject.toLowerCase()} discussed, interventions you used, and how they responded.`} value={freeText} onChange={(e)=>setFreeText(e.target.value)}/>}
+          {inputMode==='free' && (
+            <div className="stt-wrap">
+              <textarea className="textarea" rows="8" placeholder={`Describe the session in your own words. Mention themes, what the ${subject.toLowerCase()} discussed, interventions you used, and how they responded.`} value={freeText} onChange={(e)=>setFreeText(e.target.value)}/>
+              {stt.supported && (
+                <button
+                  type="button"
+                  className={`stt-btn${stt.active ? ' active' : ''}`}
+                  onClick={stt.toggle}
+                  title={stt.active ? 'Stop recording' : 'Dictate (Chrome/Edge only)'}
+                >
+                  <Icon.mic/>
+                </button>
+              )}
+            </div>
+          )}
           {inputMode==='structured' && (
             <>{[['presenting','Presenting issue / focus'],['content','Content discussed'],['interventionsText','Interventions used in session'],['response',`${subject}'s response`],['plan','Plan / next steps']].map(([k,label]) => (
               <div className="row" key={k}>
@@ -2845,6 +3112,40 @@ function App() {
               </div>
             );
           })}
+        </div>
+
+        <div className="card">
+          <h3>Screening scores <span className="hint">Optional</span></h3>
+          <div className="score-grid">
+            {[
+              { key: 'phq9', label: 'PHQ-9', max: 27 },
+              { key: 'gad7', label: 'GAD-7', max: 21 },
+              { key: 'pcl5', label: 'PCL-5', max: 80 },
+            ].map(({ key, label, max }) => {
+              const val = screeningScores[key];
+              const sev = scoreSeverity(label, val);
+              return (
+                <div className="score-row" key={key}>
+                  <span className="score-label">{label}</span>
+                  <input
+                    className="score-input"
+                    type="number"
+                    min="0"
+                    max={max}
+                    placeholder="—"
+                    value={val}
+                    onChange={e => setScreeningScores(s => ({...s, [key]: e.target.value}))}
+                  />
+                  <span className={`score-badge ${sev ? sev.level : 'empty'}`}>{sev ? sev.label : `0–${max}`}</span>
+                </div>
+              );
+            })}
+          </div>
+          {goals.filter(g=>g.status==='active'&&g.text.trim()).length > 0 && (
+            <div className="plan-goals-ref" style={{marginTop:10}}>
+              <strong>{goals.filter(g=>g.status==='active'&&g.text.trim()).length} active treatment goal{goals.filter(g=>g.status==='active'&&g.text.trim()).length!==1?'s':''}</strong> from your Treatment Plan will be referenced in the generated note.
+            </div>
+          )}
         </div>
 
         <div className="card">
