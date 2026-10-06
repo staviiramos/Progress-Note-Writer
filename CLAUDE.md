@@ -23,7 +23,6 @@ Start every session by reading `HANDOFF.md` for current state and open work.
 | `index.html` | **The app.** Everything that ships. |
 | `CLAUDE.md`, `HANDOFF.md` | Agent instructions and current-state handoff. |
 | `scripts/check.mjs`, `package.json` | Dev-only offline checks (`npm test`). Not loaded by the app. |
-| `handoff/index.wip-screenings.html` | Recovered in-progress version of `index.html` (see `HANDOFF.md`). Reference only; not served by the app. |
 | `README.md`, `chats/`, `project/`, root `app.jsx`, `lib.js`, `styles.css`, `tweaks-panel.jsx` | The original Claude Design prototype bundle from May 2026. Historical reference only; `index.html` has moved well past it and does not load these files. The README there was written for a different workflow, so don't follow its "recreate in Next.js" instructions. |
 
 ## How `index.html` is organized
@@ -41,7 +40,7 @@ Line numbers drift; search for the names below.
 4. **`<script type="text/babel">` app** (`═══ app.jsx ═══`):
    - `pickGroqModel` / `callGroq`: lists Groq models, skips reasoning/vision/audio models, picks the largest context window, posts to `https://api.groq.com/openai/v1/chat/completions`, strips `<think>` blocks.
    - Shared UI: `useToast`, tone controls, `ApiKeyModal`, `AllowlistEditor`, `PrivacyControls` + `NamesToRedactField` (privacy card on every tab that sends text), `useSpeechRecognition` (browser dictation), `DictateButton` (floating mic on Intake/Dx/Plan/Safety that types into the last-focused box), `NoteSection` + `REVISE_PRESETS` (Progress Note section edit/regenerate/copy and revise bar), `fmtTime12`.
-   - Screenings: `scoreSeverity`, `SCREENING_TOOLS` (PHQ-9, GAD-7, PCL-5, ASRS-v1.1, C-SSRS screen; ASRS and C-SSRS item wording is in the marked `ASRS_ITEM_TEXT` / `CSSRS_ITEM_TEXT` constants, filled in by the owner, never print it; scoring is `PN_LIB.scoreASRS` / `scoreCSSRS`), `screeningResult` (shared score summary), `ScreeningTool`, `ScreeningsTab`.
+   - Screenings: `SCREENING_TOOLS` (PHQ-9, GAD-7, PCL-5, ASRS-v1.1, C-SSRS screen; ASRS and C-SSRS item wording is in the marked `ASRS_ITEM_TEXT` / `CSSRS_ITEM_TEXT` constants, filled in by the owner, never print it; scoring is `PN_LIB.scoreASRS` / `scoreCSSRS`), `screeningResult` (shared score summary), `ScreeningTool`, `ScreeningsTab`.
    - Safety plan: `SAFETY_PLAN_STEPS`, `safetyPlanEntries`, `safetyPlanToLines`, `SafetyPlanTab`, `SafetyPlanPrint` + `printSafetyPlan` (client printout via a portal and `body.print-safety` print CSS; deliberately not de-identified, never sent anywhere).
    - Tabs: `TreatmentPlanTab` (+ `GoalCard`), `IntakeTab` (+ `DxAutocompleteInput`), `DxTab` (+ `SxItem`).
    - `App`: top bar with tab switcher (`appMode`: `progress`, `intake`, `dx`, `plan`, `screenings`, `safety`), Progress Note sidebar and paper-style output, API key handling, app-level state shared across tabs (`screeningAnswers` -> `screeningLines`, `safetyPlan` -> `safetyPlanItems`, `goals`), `generate()` for the progress note, and `wipeAll()` ("Note completed" clears all client data; add any new App-level client state to it). Intake, Dx, Treatment Plan and Screenings stay mounted while hidden so drafts survive tab switches; `wipeAll()` remounts them by bumping `resetKey`.

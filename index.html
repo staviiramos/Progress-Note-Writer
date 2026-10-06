@@ -1065,7 +1065,7 @@ window.PN_LIB = (() => {
     detailed: { label: 'Detailed', words: '300-500', guidance: 'Write 300-500 words total. Three to five sentences per section where clinically warranted. Include clinical reasoning, functional status, treatment trajectory, and any relevant history context raised this session.' },
   };
 
-  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames, sessionDate, sessionStart, sessionEnd, sessionDuration, sessionLocation, sessionCredentials, screeningScores, activeGoals, safetyPlanLines }) {
+  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames, sessionDate, sessionStart, sessionEnd, sessionDuration, screeningScores, activeGoals, safetyPlanLines }) {
     const fmt = FORMATS[format];
     const toneInfo = TONES[tone];
     const conc = CONCISENESS[conciseness] || CONCISENESS.standard;
@@ -1115,12 +1115,10 @@ window.PN_LIB = (() => {
     }
     parts.push('');
     parts.push('--- SESSION NOTES (transform these into the progress note) ---');
-    const hasMeta = sessionDate || (sessionStart && sessionEnd && sessionDuration) || sessionLocation || sessionCredentials;
+    const hasMeta = sessionDate || (sessionStart && sessionEnd && sessionDuration);
     if (hasMeta) {
       if (sessionDate) parts.push(`Session date: ${sessionDate}`);
       if (sessionStart && sessionEnd && sessionDuration) parts.push(`Session time: ${sessionStart} to ${sessionEnd} (${sessionDuration} minutes)`);
-      if (sessionLocation) parts.push(`Location/modality: ${sessionLocation}`);
-      if (sessionCredentials) parts.push(`Clinician credentials: ${sessionCredentials}`);
       parts.push('Include the above session metadata in the note header or identifying information.');
       parts.push('');
     }
@@ -1220,7 +1218,7 @@ window.PN_LIB = (() => {
     return parts.join('\n');
   }
 
-  function buildIntakePrompt({ subject, sessionDate, duration, location, therapistCredentials,
+  function buildIntakePrompt({ subject, sessionDate, duration,
     chiefComplaint, onset, severity, stressors, functioning, safety, history,
     mseData, primaryDx, secondaryDx, zCodes, conceptualization, treatmentModality, frequency, txDuration, referrals, screeningScores, safetyPlanLines }) {
     const parts = [];
@@ -1244,8 +1242,6 @@ window.PN_LIB = (() => {
     parts.push('--- INTAKE DATA ---');
     if (sessionDate) parts.push(`Session date: ${sessionDate}`);
     if (duration) parts.push(`Session duration: ${duration}`);
-    if (location) parts.push(`Location/modality: ${location}`);
-    if (therapistCredentials) parts.push(`Clinician credentials: ${therapistCredentials}`);
     parts.push('');
     if (chiefComplaint) parts.push(`Chief complaint: ${chiefComplaint}`);
     if (onset) parts.push(`Onset and duration: ${onset}`);
@@ -2398,31 +2394,6 @@ const REVISE_PRESETS = [
 // Lets a tab tell App whether it holds any content, for the dot on its tab button.
 function useReportContent(key, has, report) {
   useEffect(() => { if (report) report(key, !!has); }, [key, !!has, report]);
-}
-
-function scoreSeverity(tool, val) {
-  const n = parseInt(val, 10);
-  if (isNaN(n) || val === '') return null;
-  if (tool === 'PHQ-9') {
-    if (n <= 4) return { level: 'minimal', label: 'Minimal' };
-    if (n <= 9) return { level: 'mild', label: 'Mild' };
-    if (n <= 14) return { level: 'moderate', label: 'Moderate' };
-    if (n <= 19) return { level: 'moderate', label: 'Mod. Severe' };
-    return { level: 'severe', label: 'Severe' };
-  }
-  if (tool === 'GAD-7') {
-    if (n <= 4) return { level: 'minimal', label: 'Minimal' };
-    if (n <= 9) return { level: 'mild', label: 'Mild' };
-    if (n <= 14) return { level: 'moderate', label: 'Moderate' };
-    return { level: 'severe', label: 'Severe' };
-  }
-  if (tool === 'PCL-5') {
-    if (n <= 19) return { level: 'minimal', label: 'No concern' };
-    if (n <= 31) return { level: 'mild', label: 'Mild' };
-    if (n <= 49) return { level: 'moderate', label: 'Moderate' };
-    return { level: 'severe', label: 'Severe' };
-  }
-  return null;
 }
 
 // ═══ ASRS-v1.1 ITEM WORDING: PASTE HERE ═══
@@ -3852,8 +3823,6 @@ function App() {
   const [sessionDate, setSessionDate] = useState('');
   const [sessionStart, setSessionStart] = useState('');
   const [sessionEnd, setSessionEnd] = useState('');
-  const [sessionLocation, setSessionLocation] = useState('In-Office (POS 11)');
-  const [sessionCredentials, setSessionCredentials] = useState('');
   const [goals, setGoals] = useState([]);
   const [screeningAnswers, setScreeningAnswers] = useState({});
   const [safetyPlan, setSafetyPlan] = useState(EMPTY_SAFETY_PLAN);
@@ -3918,8 +3887,6 @@ function App() {
       sessionStart: sessionStart ? fmtTime12(sessionStart) : '',
       sessionEnd: sessionEnd ? fmtTime12(sessionEnd) : '',
       sessionDuration,
-      sessionLocation,
-      sessionCredentials,
       screeningScores: screeningLines,
       activeGoals: activeGoals.map(g => ({ ...g, text: sanitize(g.text) })),
       safetyPlanLines: safetyPlanToLines(safetyPlanItems, sanitize),
@@ -4009,7 +3976,7 @@ function App() {
     setFreeText(''); setBullets('');
     setStructured({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
     setVoiceOn(false); setInterventions([]); setOtherIntervention('');
-    setSessionDate(''); setSessionStart(''); setSessionEnd(''); setSessionLocation('In-Office (POS 11)'); setSessionCredentials('');
+    setSessionDate(''); setSessionStart(''); setSessionEnd('');
     setMse({}); setRisk(L.RISK_ITEMS.reduce((acc,r)=>{ acc[r.key]={status:null,note:''}; return acc; },{}));
     // Clear everything entered for this client. Intake, Dx, Treatment Plan and Screenings keep
     // drafts in their own state, so remount them with a new key.
