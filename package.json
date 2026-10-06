@@ -1,0 +1,12 @@
+{
+  "name": "progress-note-writer",
+  "private": true,
+  "description": "Dev-only tooling. The app itself is index.html and needs no build step.",
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/check.mjs"
+  },
+  "devDependencies": {
+    "@babel/standalone": "7.29.0"
+  }
+}
