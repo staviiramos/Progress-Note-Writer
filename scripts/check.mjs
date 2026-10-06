@@ -59,6 +59,33 @@ for (const c of cases) {
   check(c.name, !leaked.length && !missing.length, `output: ${out}`);
 }
 
+// 3b. makeSanitizer: shared de-identification used by the Intake, Dx and Treatment Plan tabs.
+{
+  const fields = ['Stressors at work with Jordan Placeholder.', 'Reports conflict; call 555-010-0000 on 01/02/2000.', 'F33.1 — Major Depressive Disorder, recurrent, moderate'];
+  const san = L.makeSanitizer(fields, { subject: 'Client', allowlist: [], safeHarbor: true });
+  const out = fields.map(san.clean).join(' | ');
+  const leaked = ['Jordan', 'Placeholder', '555-010-0000', '01/02/2000'].filter(s => out.includes(s));
+  check('makeSanitizer redacts names and PHI across fields', !leaked.length && out.includes('[PHONE-REDACTED]'), `output: ${out}`);
+  check('makeSanitizer keeps diagnosis wording', out.includes('Major Depressive Disorder'), `output: ${out}`);
+  check('makeSanitizer reports what it redacted', san.names.includes('Jordan') && san.phi.length === 2, JSON.stringify({ names: san.names, phi: san.phi }));
+
+  // A name found in one field is also redacted where it opens a sentence in another field.
+  const san2 = L.makeSanitizer(['Met with Riley Example.', 'Riley set a goal.'], { subject: 'Patient', allowlist: [], safeHarbor: false });
+  check('makeSanitizer applies names found in any field to all fields', san2.clean('Riley set a goal.') === 'Patient set a goal.', san2.clean('Riley set a goal.'));
+
+  const san3 = L.makeSanitizer(['Seen 01/02/2000 near Riverside.'], { subject: 'Client', allowlist: ['Riverside'], safeHarbor: false });
+  const out3 = san3.clean('Seen 01/02/2000 near Riverside.');
+  check('makeSanitizer honors allowlist and Safe Harbor off', out3 === 'Seen 01/02/2000 near Riverside.', out3);
+}
+
+// 3c. The progress-note prompt must not echo the redacted names back to the model.
+{
+  const prompt = L.buildPrompt({ format: 'soap', tone: 'balanced', subject: 'Client', inputMode: 'free',
+    freeText: 'Client discussed goals.', structured: {}, bullets: '', interventions: [], mse: {}, risk: {}, redactedNames: ['Jordan', 'Placeholder'],
+    screeningScores: [], activeGoals: [] });
+  check('buildPrompt does not list redacted names', !/Jordan|Placeholder/.test(prompt) && prompt.includes('replaced with "Client"'));
+}
+
 // 4. AI-buzzword scrub removes em dashes and banned words.
 const scrubbed = L.scrubText('Writer will delve into goals — moreover, review plan.');
 check('scrubText removes em dash and buzzwords', !/—|delve|moreover/i.test(scrubbed), `output: ${scrubbed}`);

@@ -32,7 +32,7 @@ Line numbers drift; search for the names below.
 1. **`<style>`** (top of file, ~650 lines): design tokens on `:root` (warm paper palette, `--serif` Newsreader, `--sans`), theme/density variants, then per-tab sections (`/* Screenings tab */`, intake, dx, goal cards, ...).
 2. **`<script>` with `window.PN_LIB`** (plain JS, marked `═══ lib.js ═══`): pure logic, no React.
    - Config: `FORMATS` (SOAP, DAP, BIRP, GIRP, PIRP, EMR one-paragraph, narrative), `TONES` (conversational / balanced / clinical), `CONCISENESS`, `INTERVENTIONS`, `MSE_FIELDS`, `RISK_ITEMS`.
-   - Redaction: `PHI_PATTERNS`, `detectPHI`, `redactPHI` (SSN, phone, email, URL, IP, dates, ZIP, MRN-style IDs, age 90+), `COMMON_WORDS`, `detectNames` (capitalized words not at sentence start, minus common words and the allowlist), `redactNames` (replaces with the subject label).
+   - Redaction: `PHI_PATTERNS`, `detectPHI`, `redactPHI` (SSN, phone, email, URL, IP, dates, ZIP, MRN-style IDs, age 90+), `COMMON_WORDS`, `detectNames` (capitalized words not at sentence start, minus common words and the allowlist), `redactNames` (replaces with the subject label), `makeSanitizer` (multi-field helper used by the Intake, Dx and Treatment Plan tabs).
    - Output cleanup: `AI_BUZZWORDS`, `BUZZWORD_REPLACE`, `scrubText`.
    - Prompt builders: `buildPrompt` (progress note), `buildIntakePrompt`, `buildDxPrompt`; `parseNote` splits model output into format sections.
    - `DX_DATABASE`: diagnosis list with criteria groups used by the Dx tab.
@@ -52,7 +52,7 @@ Conventions worth keeping:
 
 Progress Note tab: `rawInput` -> `detectNames` + `detectPHI` (shown to the user as flags) -> `sanitize()` (`redactNames`, then `redactPHI` when the Safe Harbor toggle is on) -> `buildPrompt` -> `callGroq` -> `scrubText` -> `redactNames` again on the output.
 
-**Known gap:** the Intake, Dx Justification and Treatment Plan tabs currently call `callGroq` without running their free-text fields through `redactNames`/`redactPHI`. See `HANDOFF.md`.
+Intake, Dx Justification and Treatment Plan tabs: their free-text fields go through `makeSanitizer` (in `PN_LIB`), which detects names and PHI across all fields at once, honors the allowlist and Safe Harbor toggle from `App` (passed as the `privacy` prop), and skips words from `DX_DATABASE` diagnosis names. Fixed option labels (MSE selects, modality, referrals, DSM criteria text) are sent as-is. Output gets `scrubText` and `redactNames`, and `RedactionFlags` shows what was removed. Any new tab that calls `callGroq` must do the same.
 
 ## Running locally
 
@@ -65,7 +65,7 @@ npm install   # dev-only: @babel/standalone
 npm test      # or: node scripts/check.mjs path/to/file.html
 ```
 
-`scripts/check.mjs` compiles every JSX block and runs the redaction and buzzword-scrub functions from `window.PN_LIB` against placeholder samples. Add a case there whenever you change `PHI_PATTERNS`, `detectNames`, `redactNames`, `COMMON_WORDS` or `scrubText`.
+`scripts/check.mjs` compiles every JSX block and runs the redaction and buzzword-scrub functions from `window.PN_LIB` against placeholder samples. Add a case there whenever you change `PHI_PATTERNS`, `detectNames`, `redactNames`, `makeSanitizer`, `COMMON_WORDS` or `scrubText`.
 
 For UI changes, also load the page in a browser and click through all tabs with the console open. In a sandbox without unpkg access, Playwright can serve the libraries from `node_modules` (`react@18.3.1`, `react-dom@18.3.1`, `@babel/standalone@7.29.0`) via `page.route`.
 

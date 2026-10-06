@@ -44,9 +44,9 @@ Remaining steps (line numbers refer to the WIP file and are approximate):
 
 Practical tip: these items are long. Write them in small edits (one tool or component per edit) and keep the item text in code, not in chat messages.
 
-### B. Redaction gap in the other tabs (privacy, high priority)
+### B. Redaction gap in the other tabs: done (2026-10-06)
 
-Only the Progress Note tab redacts before calling Groq. Intake (`IntakeTab.generate`), Dx Justification (`DxTab.generate`, the `observations` text) and Treatment Plan (`TreatmentPlanTab.generate`, goal text) send their free text as typed. Fix: run each free-text field through the same `detectNames` + `redactNames` + `redactPHI` path (honoring the allowlist and Safe Harbor toggle), and post-process output with `redactNames` like the Progress Note tab does. Ideally lift `sanitize` into a shared helper. Add cases to `scripts/check.mjs`.
+Intake, Dx Justification and Treatment Plan now de-identify their free text with `L.makeSanitizer` before calling Groq, post-process output with `scrubText` + `redactNames`, and show a "De-identified before generation" bar. Two related Progress Note leaks were fixed at the same time: active treatment-goal text went into its prompt unredacted, and `buildPrompt` listed the redacted names back to the model ("Names redacted ...: <names>"); it now says only that names were replaced. Note that the Safe Harbor toggle and allowlist editor are still only visible in the Progress Note sidebar, though the setting applies to all tabs. If you add the Safety Plan tab (A), its fields feed other tabs' prompts, so run them through the same sanitizer.
 
 ### C. Smaller notes
 

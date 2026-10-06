@@ -821,6 +821,35 @@ window.PN_LIB = (() => {
     return out;
   }
 
+  // Words from diagnosis names (e.g. "Major", "Disorder") are clinical terms, never names.
+  let _dxWords = null;
+  const dxWords = () => _dxWords || (_dxWords = Array.from(new Set(
+    DX_DATABASE.flatMap(d => d.name.split(/[^A-Za-z'\-]+/)).filter(w => /^[A-Z]/.test(w))
+  )));
+
+  // Shared de-identification for tabs with several free-text fields: detect names and PHI
+  // across all of them, then clean() each one before it goes into a prompt.
+  function makeSanitizer(texts, { subject, allowlist, safeHarbor }) {
+    const allow = [...(allowlist || []), ...dxWords()];
+    const names = new Set(), phi = [], seen = new Set();
+    (texts || []).forEach((t) => {
+      if (!t || typeof t !== 'string') return;
+      detectNames(t, [], allow).forEach((n) => names.add(n));
+      if (safeHarbor) detectPHI(t).forEach((p) => {
+        const key = p.kind + '::' + p.value.toLowerCase();
+        if (!seen.has(key)) { seen.add(key); phi.push(p); }
+      });
+    });
+    const nameList = Array.from(names);
+    const clean = (s) => {
+      if (!s || typeof s !== 'string') return s;
+      let o = redactNames(s, nameList, subject);
+      if (safeHarbor) o = redactPHI(o);
+      return o;
+    };
+    return { names: nameList, phi, clean };
+  }
+
   const AI_BUZZWORDS = [
     /\bdelv(e|ed|es|ing)\b/gi, /\bnavigat(e|ed|es|ing)\b/gi,
     /\btapestry\b/gi, /\bunderscore(s|d)?\b/gi,
@@ -955,7 +984,8 @@ window.PN_LIB = (() => {
       parts.push('');
       parts.push('Risk: not assessed this session — omit from note.');
     }
-    if (redactedNames && redactedNames.length) { parts.push(''); parts.push(`Names redacted and replaced with "${subject}": ${redactedNames.join(', ')}. Do not reintroduce them.`); }
+    // Never list the redacted names themselves: that would send them to the model.
+    if (redactedNames && redactedNames.length) { parts.push(''); parts.push(`Names in the input were replaced with "${subject}". Do not introduce any personal names.`); }
     if (screeningScores && Array.isArray(screeningScores) && screeningScores.length) {
       parts.push('');
       parts.push(`Standardized screening scores administered this session: ${screeningScores.join('; ')}. Include these scores with their clinical interpretation in the note.`);
@@ -1558,7 +1588,7 @@ window.PN_LIB = (() => {
     return parts.join('\n');
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote };
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote };
 })();
 </script>
 
@@ -1903,6 +1933,22 @@ function fmtTime12(t) {
   if (!t) return '';
   const [h, m] = t.split(':').map(Number);
   return `${h % 12 || 12}:${m.toString().padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
+// Shows what was de-identified before the last generation (shared by Intake, Dx and Treatment Plan tabs).
+function RedactionFlags({ flags }) {
+  if (!flags || (!flags.names.length && !flags.phi.length)) return null;
+  return (
+    <div className="flag-bar">
+      <div style={{flex:1}}>
+        <div className="lbl">De-identified before generation</div>
+        <ul>
+          {flags.names.map(n=><li key={'n-'+n}>Name: {n}</li>)}
+          {flags.phi.map((p,i)=><li key={'p-'+i}>{p.kind}: {p.value}</li>)}
+        </ul>
+      </div>
+    </div>
+  );
 }
 
 function AllowlistEditor({ words, onAdd, onRemove }) {
@@ -2279,9 +2325,10 @@ const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
   );
 });
 
-function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines }) {
+function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines, privacy }) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [flags, setFlags] = useState(null);
 
   const addGoal = () => {
     const id = Date.now().toString(36);
@@ -2304,8 +2351,10 @@ function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLine
     if (!key) { showToast('Set your Groq API key first'); return; }
     if (!activeGoals.length) { showToast('Add at least one active goal first'); return; }
     setLoading(true); setNote('');
+    const san = L.makeSanitizer(activeGoals.map(g => g.text), { subject: 'Client', ...privacy });
+    setFlags(san);
     const goalsList = activeGoals.map((g, i) => {
-      let line = `${i + 1}. ${g.text.trim()}`;
+      let line = `${i + 1}. ${san.clean(g.text.trim())}`;
       if (g.targetDate) line += ` (target: ${g.targetDate})`;
       return line;
     }).join('\n');
@@ -2320,7 +2369,7 @@ ${goalsList}${screeningSection}
 Write the treatment plan narrative now:`;
     try {
       const raw = await callGroq(prompt, key);
-      setNote(raw.trim());
+      setNote(L.redactNames(L.scrubText(raw), san.names, 'Client'));
     } catch(err) {
       showToast(err.message || 'Generation failed', true);
     } finally { setLoading(false); }
@@ -2372,6 +2421,7 @@ Write the treatment plan narrative now:`;
             </button>
           </div>
         </div>
+        <RedactionFlags flags={flags}/>
         <article className={`paper ${loading ? 'loading' : ''}`}>
           {note ? (
             <>
@@ -2479,10 +2529,11 @@ const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholde
   );
 });
 
-function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines }) {
+function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, privacy }) {
   const [subject, setSubject] = useState('Client');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [flags, setFlags] = useState(null);
   const [sessionDate, setSessionDate] = useState('');
   const [sessionStart, setSessionStart] = useState('');
   const [sessionEnd, setSessionEnd] = useState('');
@@ -2528,19 +2579,27 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines }) {
     const key = apiKeyRef.current;
     if (!key) { onNeedKey(); return; }
     setLoading(true); setNote('');
+    // Every free-text field is de-identified on-device before it reaches the prompt.
+    const functioning = { occupational: fmt(occ), social: fmt(soc), adl: fmt(adl) };
+    const safety = { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), safetyPlan };
+    const history = { prevTherapy: fmt(prevTherapy), medications: fmt(medications), medConditions: fmt(medConds), substance: fmt(substance) };
+    const freeText = { chiefComplaint: symptoms, onset, severity, stressors, primaryDx, secondaryDx, zCodes, conceptualization };
+    const san = L.makeSanitizer([...Object.values(freeText), ...Object.values(functioning), ...Object.values(safety), ...Object.values(history)], { subject, ...privacy });
+    const cleanAll = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, san.clean(v)]));
+    setFlags(san);
     try {
       const raw = await callGroq(L.buildIntakePrompt({
         subject, sessionDate,
         duration: sessionStart && sessionEnd && sessionDuration ? `${fmtTime12(sessionStart)} to ${fmtTime12(sessionEnd)} (${sessionDuration} minutes)` : '',
-        chiefComplaint: symptoms, onset, severity, stressors,
-        functioning: { occupational: fmt(occ), social: fmt(soc), adl: fmt(adl) },
-        safety: { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), safetyPlan },
-        history: { prevTherapy: fmt(prevTherapy), medications: fmt(medications), medConditions: fmt(medConds), substance: fmt(substance) },
-        mseData: mse, primaryDx, secondaryDx, zCodes, conceptualization,
+        ...cleanAll(freeText),
+        functioning: cleanAll(functioning),
+        safety: cleanAll(safety),
+        history: cleanAll(history),
+        mseData: mse,
         treatmentModality: modality, frequency, txDuration, referrals,
         screeningScores: screeningLines || [],
       }), key);
-      setNote(L.scrubText(raw));
+      setNote(L.redactNames(L.scrubText(raw), san.names, subject));
     } catch(err) {
       showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
     } finally { setLoading(false); }
@@ -2751,6 +2810,7 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines }) {
             </button>
           </div>
         </div>
+        <RedactionFlags flags={flags}/>
         <article className={`paper ${loading?'loading':''}`}>
           {note ? (
             <div className="note-output">
@@ -2817,7 +2877,7 @@ const SxItem = React.memo(function SxItem({ criterion, itemKey, checked, onToggl
   );
 });
 
-function DxTab({ apiKeyRef, showToast, onNeedKey }) {
+function DxTab({ apiKeyRef, showToast, onNeedKey, privacy }) {
   const [subject, setSubject] = useState('Client');
   const [dxQuery, setDxQuery] = useState('');
   const [showDrop, setShowDrop] = useState(false);
@@ -2830,6 +2890,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
   const [observations, setObservations] = useState('');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [flags, setFlags] = useState(null);
   const acWrapRef = useRef(null);
 
   const filtered = useMemo(() => {
@@ -2887,8 +2948,12 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
         });
       });
       const diagnosis = `${selectedDx.code} — ${selectedDx.name}`;
-      const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, selectedSymptoms, observations }), key);
-      setNote(L.scrubText(raw));
+      // Criteria labels come from DX_DATABASE; only the Writer's own text needs de-identifying.
+      const san = L.makeSanitizer([...selectedSymptoms.map(s => s.context), observations], { subject, ...privacy });
+      setFlags(san);
+      const cleanSymptoms = selectedSymptoms.map(s => ({ ...s, context: san.clean(s.context) }));
+      const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, selectedSymptoms: cleanSymptoms, observations: san.clean(observations) }), key);
+      setNote(L.redactNames(L.scrubText(raw), san.names, subject));
     } catch(err) {
       showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
     } finally { setLoading(false); }
@@ -3020,6 +3085,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey }) {
             </button>
           </div>
         </div>
+        <RedactionFlags flags={flags}/>
         <article className={`paper ${loading?'loading':''}`} style={{padding:'40px 48px'}}>
           {note ? (
             <div style={{fontFamily:'var(--serif)',fontSize:'16px',lineHeight:1.85,color:'var(--ink)',maxWidth:620}}>
@@ -3094,6 +3160,7 @@ function App() {
   const [safeHarbor, setSafeHarbor] = useState(true);
   const [allowlist, setAllowlist] = useState(() => { try { return JSON.parse(localStorage.getItem('pn.allowlist') || '[]'); } catch { return []; } });
   const addAllowedWord = (w) => { const next = [...allowlist, w]; setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
+  const privacy = useMemo(() => ({ allowlist, safeHarbor }), [allowlist, safeHarbor]);
   const removeAllowedWord = (w) => { const next = allowlist.filter(x => x !== w); setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
   const [confirming, setConfirming] = useState(false);
   const [sessionDate, setSessionDate] = useState('');
@@ -3137,8 +3204,11 @@ function App() {
     const key = apiKeyRef.current;
     if (!key) { pendingGenRef.current = true; setShowKeyModal(true); return; }
     pendingGenRef.current = false;
-    setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(detectedNames); setPhiFlags(detectedPHI);
-    const allNames = detectedNames;
+    // Active treatment goals also go into the prompt, so names in them are redacted too.
+    const activeGoals = goals.filter(g => g.status === 'active' && g.text.trim());
+    const allNames = Array.from(new Set([...detectedNames, ...activeGoals.flatMap(g => L.detectNames(g.text, [], allowlist))]));
+    const goalPHI = safeHarbor ? activeGoals.flatMap(g => L.detectPHI(g.text)) : [];
+    setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(allNames); setPhiFlags([...detectedPHI, ...goalPHI]);
     const sanitize = (s) => { let o = L.redactNames(s, allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
     const truncate = (s, max = 2500) => s.length > max ? s.slice(0, max) + '…' : s;
     const prompt = L.buildPrompt({
@@ -3155,7 +3225,7 @@ function App() {
       sessionLocation,
       sessionCredentials,
       screeningScores: screeningLines,
-      activeGoals: goals.filter(g => g.status === 'active' && g.text.trim()),
+      activeGoals: activeGoals.map(g => ({ ...g, text: sanitize(g.text) })),
     });
     try {
       const raw = await callGroq(prompt, key);
@@ -3239,9 +3309,9 @@ function App() {
         </div>
       </header>
 
-      {appMode === 'intake' && <IntakeTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines}/>}
-      {appMode === 'dx' && <DxTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)}/>}
-      {appMode === 'plan' && <TreatmentPlanTab goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines}/>}
+      {appMode === 'intake' && <IntakeTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={screeningLines} privacy={privacy}/>}
+      {appMode === 'dx' && <DxTab apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} privacy={privacy}/>}
+      {appMode === 'plan' && <TreatmentPlanTab goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={screeningLines} privacy={privacy}/>}
       {appMode === 'screenings' && <ScreeningsTab screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} showToast={showToast}/>}
       {appMode === 'progress' && <aside className="sidebar">
         <div className="card hipaa-card">
