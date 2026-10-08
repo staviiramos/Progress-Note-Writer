@@ -203,6 +203,64 @@ for (const c of cases) {
   check('buildDxPrompt omits screening section when empty', !L.buildDxPrompt({ ...base, screeningScores: [] }).includes('screening'));
 }
 
+// 3h. Billing code suggestions from service type and minutes.
+{
+  const c = (o) => L.suggestCPT(o).text;
+  check('CPT: 15 min individual has no code', c({ service: 'individual', minutes: 15 }) === '');
+  check('CPT: 16/37/38/52/53 min individual', [16, 37, 38, 52, 53].map(m => c({ service: 'individual', minutes: m })).join() === '90832,90832,90834,90834,90837');
+  check('CPT: video adds -95, phone -93', c({ service: 'individual', minutes: 45, modality: 'video' }) === '90834-95' && c({ service: 'individual', minutes: 45, modality: 'phone' }) === '90834-93');
+  check('CPT: interactive complexity add-on', c({ service: 'individual', minutes: 55, interactiveComplexity: true }) === '90837, +90785');
+  check('CPT: no 90785 with crisis', !c({ service: 'crisis', minutes: 60, interactiveComplexity: true }).includes('90785'));
+  check('CPT: crisis 74 / 75 / 105 min', [74, 75, 105].map(m => c({ service: 'crisis', minutes: m })).join('|') === '90839|90839, 90840|90839, 90840 x2');
+  check('CPT: crisis under 30 min falls back', c({ service: 'crisis', minutes: 25 }) === '90832');
+  check('CPT: family needs 26 min', c({ service: 'familyWith', minutes: 25 }) === '' && c({ service: 'familyWithout', minutes: 26 }) === '90846');
+  check('CPT: group and intake need no minutes', c({ service: 'group' }) === '90853' && c({ service: 'intake', modality: 'video' }) === '90791-95');
+}
+
+// 3i. Dates never reach the prompt; placeholders are filled in on-device.
+{
+  const map = { '[TARGET-DATE-1]': '12/31/2000' };
+  const filled = L.fillTokens('Goal due [TARGET-DATE-1].', map);
+  check('fillTokens fills placeholders', filled === 'Goal due 12/31/2000.', filled);
+  check('unfillTokens restores placeholders', L.unfillTokens(filled, map) === 'Goal due [TARGET-DATE-1].');
+  const prompt = L.buildPrompt({ format: 'soap', tone: 'balanced', subject: 'Client', conciseness: 'standard', inputMode: 'free', freeText: 'Client described the week.',
+    interventions: [], mse: {}, risk: {}, sessionDuration: 53, service: 'individual', modality: 'video', telehealth: { consent: true, locationVerified: true, state: 'CA', atHome: true },
+    diagnoses: ['Primary: F41.1 — Generalized Anxiety Disorder'], activeGoals: [{ text: 'Placeholder goal', targetToken: '[TARGET-DATE-1]', progress: 'Progressing' }] });
+  check('progress prompt has no calendar date or state', !/\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\bCA\b/.test(prompt));
+  check('progress prompt carries diagnosis, goal progress, telehealth', prompt.includes('Diagnoses: Primary: F41.1') && prompt.includes('Progress this session: Progressing') && prompt.includes('consent to telehealth was confirmed'));
+  check('untouched risk is stated as not assessed', prompt.includes('Risk: not assessed this session'));
+  const header = L.buildServiceHeader({ date: '2000-01-02', start: '9:00 AM', end: '9:53 AM', minutes: 53, service: 'individual', modality: 'video',
+    telehealth: { consent: true, locationVerified: true, state: 'CA', atHome: true }, cpt: L.suggestCPT({ service: 'individual', minutes: 53, modality: 'video' }) });
+  check('service header has date, code and POS', header[0] === 'Date of service: 01/02/2000' && header.some(l => l.includes('90837-95 · POS 10')), header.join(' | '));
+  const plan = L.buildPlanPrompt({ subject: 'Client', goals: [{ text: 'Placeholder goal', objectives: 'Step one\nStep two', interventions: ['CBT'], targetToken: '[TARGET-DATE-1]' }], reviewToken: '[REVIEW-DATE]', participated: true });
+  check('plan prompt uses placeholders and objectives', plan.includes('[TARGET-DATE-1]') && plan.includes('[REVIEW-DATE]') && plan.includes('- Step two') && !/\d{4}-\d{2}-\d{2}/.test(plan));
+}
+
+// 3j. Risk details, note types and intake sections.
+{
+  const risk = { si: { status: 'endorsed', note: '' }, hi: { status: 'denied', note: '' } };
+  const p = L.buildPrompt({ format: 'soap', tone: 'balanced', subject: 'Client', conciseness: 'standard', inputMode: 'free', freeText: 'Placeholder session.', interventions: [], mse: {},
+    risk, riskExtra: { level: 'Low', protective: 'supportive family', means: 'Denied', meansNote: '', siDetails: ['Passive ideation only'] } });
+  check('risk prompt lists SI details, means, protective factors, level', p.includes('passive ideation only reported') && p.includes('Access to lethal means: Denied') && p.includes('Protective factors: supportive family') && p.includes("overall risk level: Low"));
+  const col = L.buildPrompt({ noteType: 'collateral', format: 'soap', tone: 'balanced', subject: 'Client', conciseness: 'standard', inputMode: 'free', freeText: 'Placeholder call.', interventions: [], mse: {}, risk: {}, collateral: { with: 'School staff', method: 'Phone', roi: true } });
+  check('collateral prompt: no risk section, release on file', !col.includes('Risk') && col.includes('release of information is on file') && col.includes('collateral contact note'));
+  const dc = L.buildPrompt({ noteType: 'discharge', format: 'soap', tone: 'balanced', subject: 'Client', conciseness: 'standard', inputMode: 'free', freeText: 'Placeholder summary.', interventions: [], mse: {}, risk: {}, discharge: { reason: 'Treatment goals met', aftercare: '' }, closedGoals: [{ status: 'achieved', text: 'Placeholder goal' }] });
+  check('discharge prompt uses discharge headings and goal status', dc.includes('Reason for Discharge:') && dc.includes('Met: Placeholder goal'));
+  check('cancellation note is written on-device', L.buildCancellationNote({ subject: 'Client', kind: 'noShow', reason: 'No reason given', outreach: 'voicemail', next: 'pending' })
+    === 'Client did not attend the scheduled session and did not contact Writer beforehand. No reason was given. Writer called Client and left a voicemail requesting a call back. Rescheduling is pending.');
+  const intake = L.buildIntakePrompt({ subject: 'Client', chiefComplaint: 'Placeholder concern', psychosocial: { family: 'lives with a roommate' }, strengths: 'motivated', consentReviewed: true, safety: { means: 'Denied' } });
+  check('intake prompt has psychosocial, strengths, consent and means', intake.includes('Psychosocial History:') && intake.includes('Family and living situation: lives with a roommate') && intake.includes('Strengths and protective factors: motivated') && intake.includes('limits of confidentiality') && intake.includes('Access to lethal means: Denied'));
+}
+
+// 3k. No diagnosis code that ICD-10-CM treats as a non-billable header (checked against the FY2027 set).
+{
+  const headers = ['F50.0', 'F50.01', 'F50.02', 'F50.2', 'F50.8', 'F50.81', 'F50.89', 'G47.0'];
+  const bad = L.DX_DATABASE.filter(d => headers.includes(d.code)).map(d => d.code);
+  check('DX_DATABASE has no non-billable header codes', !bad.length, bad.join(', '));
+  const codes = L.DX_DATABASE.map(d => d.code);
+  check('DX_DATABASE codes are unique', new Set(codes).size === codes.length);
+}
+
 // 4. AI-buzzword scrub removes em dashes and banned words.
 const scrubbed = L.scrubText('Writer will delve into goals — moreover, review plan.');
 check('scrubText removes em dash and buzzwords', !/—|delve|moreover/i.test(scrubbed), `output: ${scrubbed}`);

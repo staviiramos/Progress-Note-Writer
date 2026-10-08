@@ -258,6 +258,8 @@ textarea { resize: vertical; }
 .tri-seg button { flex: 1; appearance: none; border: 1px solid var(--line); background: transparent; padding: 5px 6px; border-radius: 5px; font-size: 11.5px; color: var(--muted); cursor: pointer; font-family: inherit; transition: background .1s, color .1s; }
 .tri-seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 500; }
 .chk-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.svc-header { font-family: var(--sans); font-size: 12px; color: var(--ink-2); line-height: 1.6; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+.svc-signature { font-family: var(--sans); font-size: 12.5px; color: var(--ink-2); margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--line); white-space: pre-line; }
 .chk-btn { appearance: none; border: 1px solid var(--line); background: transparent; padding: 5px 10px; border-radius: 20px; font-size: 12px; color: var(--muted); cursor: pointer; font-family: inherit; }
 .chk-btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 .inline-detail { margin-top: 5px; }
@@ -819,6 +821,12 @@ window.PN_LIB = (() => {
       name: 'EMR Paragraph', full: 'EMR One-Paragraph Note', sections: [],
       description: 'A single concise paragraph integrating presentation, interventions, response, and plan. No headings; flowing clinical prose; 4 to 8 sentences.',
     },
+    // Used by the Discharge summary note type; not offered in the Format picker.
+    discharge: {
+      name: 'Discharge', full: 'Discharge / Termination Summary', hidden: true,
+      sections: ['Reason for Discharge', 'Course of Treatment', 'Progress on Goals', 'Status at Discharge', 'Aftercare and Referrals'],
+      description: 'Reason for Discharge: why services ended. Course of Treatment: services provided and focus of treatment. Progress on Goals: status of each goal. Status at Discharge: current symptoms, functioning and risk. Aftercare and Referrals: referrals, resources and how to return to care.',
+    },
     narrative: {
       name: 'Narrative', full: 'Narrative / Free-form', sections: [],
       description: 'A free-form clinical narrative with natural paragraph breaks. Focus on therapeutic process and clinical reasoning without rigid headings.',
@@ -838,7 +846,9 @@ window.PN_LIB = (() => {
     'IFS (Parts Work)', 'EMDR Prep', 'Psychoeducation',
     'Reflective Listening', 'Validation', 'Reframing', 'Grounding',
     'Skills Training', 'Relapse Prevention', 'Crisis Planning',
-    'Family Systems', 'Trauma-Focused CBT',
+    'Family Systems', 'Trauma-Focused CBT', 'Supportive Therapy', 'IPT',
+    'Cognitive Processing Therapy', 'Prolonged Exposure', 'Play Therapy',
+    'Case Management', 'Care Coordination',
   ];
 
   const MSE_FIELDS = [
@@ -851,8 +861,14 @@ window.PN_LIB = (() => {
     { key: 'thoughtContent', label: 'Thought Content', options: ['', 'WNL', 'Ruminative', 'Preoccupied', 'Hopeless', 'Paranoid'] },
     { key: 'insight', label: 'Insight', options: ['', 'Good', 'Fair', 'Limited', 'Poor'] },
     { key: 'judgment', label: 'Judgment', options: ['', 'Good', 'Fair', 'Limited', 'Poor'] },
+    { key: 'perception', label: 'Perception', options: ['', 'No perceptual disturbances', 'Auditory hallucinations reported', 'Visual hallucinations reported', 'Appeared to respond to internal stimuli'] },
+    { key: 'cognition', label: 'Cognition / Memory', options: ['', 'Intact', 'Impaired attention', 'Impaired memory', 'Globally impaired'] },
     { key: 'orientation', label: 'Orientation', options: ['', 'A&O x4', 'A&O x3', 'A&O x2'] },
   ];
+  // "Within normal limits" quick fill. Mood is left out: it is the client's own report.
+  const MSE_WNL = { appearance: 'Appropriate to setting', behavior: 'Cooperative', speech: 'Normal rate/rhythm', affect: 'Congruent',
+    thoughtProcess: 'Linear/Logical', thoughtContent: 'WNL', perception: 'No perceptual disturbances', cognition: 'Intact',
+    insight: 'Good', judgment: 'Good', orientation: 'A&O x4' };
 
   const RISK_ITEMS = [
     { key: 'si', label: 'Suicidal Ideation' },
@@ -1073,14 +1089,185 @@ window.PN_LIB = (() => {
     detailed: { label: 'Detailed', words: '300-500', guidance: 'Write 300-500 words total. Three to five sentences per section where clinically warranted. Include clinical reasoning, functional status, treatment trajectory, and any relevant history context raised this session.' },
   };
 
-  function buildPrompt({ format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, risk, redactedNames, sessionDate, sessionStart, sessionEnd, sessionDuration, screeningScores, activeGoals, safetyPlanLines }) {
-    const fmt = FORMATS[format];
+  // ── Note types, service details and billing suggestions ──────────────────
+  const NOTE_TYPES = {
+    session:    { label: 'Session note' },
+    cancel:     { label: 'Cancellation / no-show' },
+    collateral: { label: 'Collateral contact' },
+    discharge:  { label: 'Discharge summary' },
+  };
+  const SERVICE_TYPES = {
+    individual:    { label: 'Individual psychotherapy' },
+    familyWith:    { label: 'Family psychotherapy, client present' },
+    familyWithout: { label: 'Family psychotherapy, client not present' },
+    group:         { label: 'Group psychotherapy' },
+    crisis:        { label: 'Psychotherapy for crisis' },
+  };
+  const MODALITIES = { inPerson: 'In person', video: 'Video telehealth', phone: 'Audio-only telehealth' };
+  // State is the finest location Safe Harbor allows, so the Writer picks one from this list.
+  const US_STATES = ['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','PR','Outside the US'];
+  const COLLATERAL_WITH = ['Parent / guardian', 'Family member', 'Psychiatrist / prescriber', 'Primary care provider', 'School staff', 'Case manager', 'Other provider'];
+  const COLLATERAL_METHODS = ['Phone', 'Video', 'In person', 'Secure message'];
+  const DISCHARGE_REASONS = ['Treatment goals met', 'Client chose to end services', 'Transferred to another provider or level of care', 'Lost to contact', 'Other'];
+  const RISK_LEVELS = ['Low', 'Moderate', 'High'];
+  const SI_DETAILS = ['Passive ideation only', 'Plan', 'Intent', 'Access to means', 'Prior attempt'];
+
+  const isRemote = (modality) => modality === 'video' || modality === 'phone';
+
+  // CPT suggestion from the service type and minutes. The Writer confirms it before billing.
+  // Time rules: 90832 16-37 min, 90834 38-52, 90837 53+; 90846/90847 need 26+ min;
+  // 90839 covers 30-74 min, each further 30 min adds 90840 (75-104 = 1 unit, 105-134 = 2, ...).
+  function suggestCPT({ service, minutes, modality, interactiveComplexity }) {
+    const m = Number(minutes) || 0;
+    let codes = [], warning = '';
+    const psychotherapy = () => m >= 53 ? '90837' : m >= 38 ? '90834' : m >= 16 ? '90832' : '';
+    if (service === 'intake') codes = ['90791'];
+    else if (service === 'group') codes = ['90853'];
+    else if (!m) return { codes: [], text: '', warning: 'Enter start and end times for a code suggestion.' };
+    else if (service === 'familyWith' || service === 'familyWithout') {
+      if (m >= 26) codes = [service === 'familyWith' ? '90847' : '90846'];
+      else warning = 'Family psychotherapy codes need at least 26 minutes.';
+    } else if (service === 'crisis') {
+      if (m >= 30) {
+        codes = ['90839'];
+        const extra = m >= 75 ? 1 + Math.floor((m - 75) / 30) : 0;
+        if (extra) codes.push(extra > 1 ? `90840 x${extra}` : '90840');
+      } else {
+        warning = 'Crisis codes need at least 30 minutes; a regular psychotherapy code applies.';
+        if (psychotherapy()) codes = [psychotherapy()];
+      }
+    } else {
+      if (psychotherapy()) codes = [psychotherapy()];
+      else warning = 'Under 16 minutes is not billable as psychotherapy.';
+    }
+    if (!codes.length) return { codes, text: '', warning };
+    const mod = modality === 'video' ? '-95' : modality === 'phone' ? '-93' : '';
+    codes = codes.map((c, i) => i === 0 ? c + mod : c);
+    // Interactive complexity is not reported with crisis or family psychotherapy codes.
+    if (interactiveComplexity && !['crisis', 'familyWith', 'familyWithout'].includes(service)) codes.push('+90785');
+    return { codes, text: codes.join(', '), warning };
+  }
+
+  // 2026-10-08 -> 10/08/2026
+  const fmtDateUS = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ''); return m ? `${m[2]}/${m[3]}/${m[1]}` : ''; };
+  // Placeholders keep dates away from the model: tokens go out, real values are filled in locally.
+  const fillTokens = (text, map) => Object.entries(map || {}).reduce((t, [tok, val]) => t.split(tok).join(val), text || '');
+  const unfillTokens = (text, map) => Object.entries(map || {}).filter(([, val]) => val).reduce((t, [tok, val]) => t.split(val).join(tok), text || '');
+
+  // Header lines built on-device and shown above the note. Never sent to the model.
+  function buildServiceHeader({ noteType = 'session', date, start, end, minutes, service, modality, telehealth, cpt, lateEntry, today }) {
+    const lines = [];
+    if (date) lines.push(`Date of service: ${fmtDateUS(date)}`);
+    if (start && end && minutes) lines.push(`Time: ${start} to ${end} (${minutes} minutes)`);
+    const what = noteType === 'session' || noteType === 'intake'
+      ? (noteType === 'intake' ? 'Psychiatric diagnostic evaluation' : (SERVICE_TYPES[service] || {}).label)
+      : NOTE_TYPES[noteType].label;
+    lines.push([what, MODALITIES[modality]].filter(Boolean).join(' · '));
+    if (isRemote(modality) && telehealth) {
+      const t = [telehealth.consent && 'consent confirmed',
+        telehealth.locationVerified && `client location verified${telehealth.state ? ` (${telehealth.state}${telehealth.atHome ? ', home' : ''})` : ''}`].filter(Boolean);
+      if (t.length) lines.push(`Telehealth: ${t.join('; ')}`);
+    }
+    if (cpt && cpt.text) {
+      const pos = isRemote(modality) && telehealth ? (telehealth.atHome ? 'POS 10' : 'POS 02') : '';
+      lines.push(`Suggested CPT: ${cpt.text}${pos ? ` · ${pos}` : ''} (confirm before billing)`);
+    }
+    if (lateEntry && today) lines.push(`Late entry, written ${fmtDateUS(today)}`);
+    return lines.filter(Boolean);
+  }
+
+  // Service context for the prompt. No dates and no location beyond "verified".
+  function serviceLines({ noteType, subject, sessionDuration, service, modality, telehealth, collateral, discharge }) {
+    const out = [];
+    const s = subject.toLowerCase();
+    if (noteType === 'session') {
+      if (service && SERVICE_TYPES[service]) out.push(`Service type: ${SERVICE_TYPES[service].label}.`);
+      if (service === 'group') out.push(`This was a group session. Describe the group topic briefly and focus on this ${s}'s participation and response. Do not describe other group members.`);
+      if (service === 'familyWith' || service === 'familyWithout') out.push('Refer to family members by role only (for example, "Client\'s parent"), never by name.');
+      if (service === 'familyWithout') out.push(`The ${s} was not present for this session.`);
+      if (service === 'crisis') out.push(`Crisis session: document the urgent assessment, the de-escalation and safety interventions, and the disposition, using only what the notes state.`);
+    }
+    if (noteType === 'collateral' && collateral) {
+      out.push(`Collateral contact, not a psychotherapy session. The ${s} was not part of this contact unless the notes say so.`);
+      if (collateral.with) out.push(`Contact with: ${collateral.with} (refer to them by role only).`);
+      if (collateral.method) out.push(`Method: ${collateral.method}.`);
+      if (collateral.roi) out.push('A release of information is on file.');
+    }
+    if (noteType === 'discharge' && discharge) {
+      if (discharge.reason) out.push(`Reason for discharge: ${discharge.reason}.`);
+      if (discharge.aftercare) out.push(`Aftercare and referrals: ${discharge.aftercare}`);
+    }
+    if (sessionDuration) out.push(`Session length: ${sessionDuration} minutes.`);
+    if (modality && MODALITIES[modality]) {
+      out.push(`Modality: ${MODALITIES[modality]}.`);
+      if (isRemote(modality) && telehealth) {
+        if (telehealth.consent) out.push(`The ${s}'s consent to telehealth was confirmed.`);
+        if (telehealth.locationVerified) out.push(`The ${s}'s physical location was verified at the start of the session.`);
+        out.push('Include one sentence documenting the telehealth modality and these confirmations.');
+      }
+    }
+    if (out.length) out.push('');
+    return out;
+  }
+
+  // Risk section of the prompt. Silence is never an option: either documented, or stated as not assessed.
+  function riskLines({ risk, riskExtra, subject }) {
+    const x = riskExtra || {};
+    const touched = RISK_ITEMS.map(({ key, label }) => ({ key, label, ...(risk || {})[key] })).filter((r) => r.status || (r.note && r.note.trim()));
+    const out = [''];
+    if (!touched.length && !x.level && !(x.protective || '').trim() && !x.means) {
+      out.push('Risk: not assessed this session. Write one sentence stating that risk was not assessed this session.');
+      return out;
+    }
+    out.push('Risk assessment:');
+    touched.forEach((r) => {
+      let line = `  ${r.label}: ${r.status || 'endorsed'}`;
+      if (r.key === 'si' && r.status && r.status !== 'denied' && (x.siDetails || []).length) line += `; ${x.siDetails.join(', ').toLowerCase()} reported`;
+      if (r.note && r.note.trim()) line += ` (${r.note.trim()})`;
+      out.push(line);
+    });
+    if (x.means) out.push(`  Access to lethal means: ${x.means}${x.meansNote && x.meansNote.trim() ? ` (${x.meansNote.trim()})` : ''}`);
+    if (x.protective && x.protective.trim()) out.push(`  Protective factors: ${x.protective.trim()}`);
+    if (x.level) out.push(`  Writer's overall risk level: ${x.level}`);
+    out.push('Document risk in its own sentence or two, using only the items above.');
+    return out;
+  }
+
+  // Cancellation and no-show notes are short and fixed, so they are written on-device with no model call.
+  const CANCEL_KINDS = {
+    noShow:       (s) => `${s} did not attend the scheduled session and did not contact Writer beforehand.`,
+    lateCancel:   (s) => `${s} cancelled the scheduled session with less notice than the practice cancellation policy requires.`,
+    cancel:       (s) => `${s} cancelled the scheduled session with advance notice.`,
+    writerCancel: ()  => 'Writer cancelled the scheduled session.',
+  };
+  const CANCEL_LABELS = { noShow: 'No-show', lateCancel: 'Late cancellation', cancel: 'Cancelled with notice', writerCancel: 'Cancelled by Writer' };
+  const CANCEL_REASONS = ['Illness', 'Schedule conflict', 'Transportation', 'Weather', 'Other', 'No reason given'];
+  const CANCEL_OUTREACH = {
+    spoke:     (s) => `Writer contacted ${s} by phone.`,
+    voicemail: (s) => `Writer called ${s} and left a voicemail requesting a call back.`,
+    message:   (s) => `Writer sent ${s} a secure message.`,
+    none:      ()  => '',
+  };
+  const CANCEL_OUTREACH_LABELS = { spoke: 'Spoke by phone', voicemail: 'Left voicemail', message: 'Sent secure message', none: 'No outreach' };
+  const CANCEL_NEXT = { scheduled: 'The next session was rescheduled.', pending: 'Rescheduling is pending.', none: 'No further session is scheduled at this time.' };
+  function buildCancellationNote({ subject, kind, reason, outreach, next }) {
+    if (!CANCEL_KINDS[kind]) throw new Error('Unknown cancellation kind: ' + kind);
+    const parts = [CANCEL_KINDS[kind](subject)];
+    if (reason) parts.push(reason === 'No reason given' ? 'No reason was given.' : `Reason given: ${reason.toLowerCase()}.`);
+    if (outreach && CANCEL_OUTREACH[outreach]) parts.push(CANCEL_OUTREACH[outreach](subject));
+    if (next && CANCEL_NEXT[next]) parts.push(CANCEL_NEXT[next]);
+    return parts.filter(Boolean).join(' ');
+  }
+
+  function buildPrompt({ noteType = 'session', format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, moodQuote, risk, riskExtra, redactedNames, sessionDuration, service, modality, telehealth, collateral, discharge, diagnoses, screeningScores, activeGoals, closedGoals, safetyPlanLines }) {
+    const fmt = FORMATS[noteType === 'discharge' ? 'discharge' : noteType === 'collateral' ? 'emr' : format];
     const toneInfo = TONES[tone];
     const conc = CONCISENESS[conciseness] || CONCISENESS.standard;
     const desc = fmt.description.replace(/\{subj\}/g, subject.toLowerCase());
     const parts = [];
 
-    parts.push(`You are a licensed psychotherapist writing a clinical progress note. Transform the raw session notes below into polished, professional clinical documentation using only the information provided. Never add clinical content not explicitly present in the notes.`);
+    const docKind = { session: 'clinical progress note', collateral: 'collateral contact note', discharge: 'discharge summary' }[noteType];
+    parts.push(`You are a licensed psychotherapist writing a ${docKind}. Transform the raw notes below into polished, professional clinical documentation using only the information provided. Never add clinical content not explicitly present in the notes.`);
     parts.push('');
     parts.push('STRICT RULE — NO INVENTED CONTENT:');
     parts.push('- ONLY document what is explicitly stated in the session notes below.');
@@ -1096,6 +1283,10 @@ window.PN_LIB = (() => {
     parts.push('- Functional language where relevant: describe how symptoms affect daily functioning, work, or relationships.');
     parts.push('- Assessment must contain clinical reasoning about what was observed, not invented content.');
     parts.push('- Plan must reflect only what was actually discussed or decided in the session.');
+    parts.push('- Describe interventions as actions the Writer took and say what each targeted, e.g. "Writer used cognitive restructuring to address all-or-nothing thinking about work."');
+    if (noteType === 'session') {
+      parts.push('- Medical necessity: where the notes support it, tie the session to the diagnosis listed below, if one is listed. State current symptom status, the functional impact described, the response to the interventions, and why continued treatment is clinically indicated. Do not state impairment, progress or need for treatment that the notes do not support.');
+    }
     parts.push('');
     parts.push(`LENGTH TARGET: ${conc.guidance}`);
     parts.push('');
@@ -1106,6 +1297,8 @@ window.PN_LIB = (() => {
     parts.push('- Do not invent clinical details absent from the input.');
     parts.push('- Do not use em-dashes or en-dashes. Use commas, periods, or colons.');
     parts.push('- No AI filler: no "It is important to note that", "Moreover", "Furthermore", "In conclusion", "delve", "tapestry", "underscore".');
+    parts.push('- Keep bracketed placeholders such as [TARGET-DATE-1] exactly as written; they are filled in after generation.');
+    parts.push('- Do not write a header with the date, time, billing codes or signature. Those are added separately.');
     parts.push('- Output the note only. No preamble, no closing remarks.');
     parts.push('');
     parts.push(`FORMAT: ${fmt.full}`);
@@ -1122,14 +1315,8 @@ window.PN_LIB = (() => {
       parts.push(`VOICE: Preservation strength ${voiceStrength}%. Infer the writer's voice from the session content below — mirror their sentence rhythm, vocabulary level, and degree of formality. Do not impose a more clinical or more casual register than what is evident in their writing.`);
     }
     parts.push('');
-    parts.push('--- SESSION NOTES (transform these into the progress note) ---');
-    const hasMeta = sessionDate || (sessionStart && sessionEnd && sessionDuration);
-    if (hasMeta) {
-      if (sessionDate) parts.push(`Session date: ${sessionDate}`);
-      if (sessionStart && sessionEnd && sessionDuration) parts.push(`Session time: ${sessionStart} to ${sessionEnd} (${sessionDuration} minutes)`);
-      parts.push('Include the above session metadata in the note header or identifying information.');
-      parts.push('');
-    }
+    parts.push('--- SESSION NOTES (transform these into the note) ---');
+    serviceLines({ noteType, subject, sessionDuration, service, modality, telehealth, collateral, discharge }).forEach((l) => parts.push(l));
     if (inputMode === 'free' && freeText && freeText.trim()) {
       parts.push(freeText.trim());
     } else if (inputMode === 'structured') {
@@ -1146,17 +1333,14 @@ window.PN_LIB = (() => {
       parts.push('Mental status:');
       mseEntries.forEach(([k, v]) => { const f = MSE_FIELDS.find((x) => x.key === k); if (f) parts.push(`  ${f.label}: ${v}`); });
     }
-    const touchedRisk = RISK_ITEMS.map(({ key, label }) => ({ label, ...(risk || {})[key] })).filter((r) => r && (r.status || (r.note && r.note.trim())));
-    if (touchedRisk.length) {
-      parts.push('');
-      parts.push('Risk assessment:');
-      touchedRisk.forEach((r) => parts.push(`  ${r.label}: ${r.status || 'endorsed'}${r.note ? ` (${r.note.trim()})` : ''}`));
-    } else {
-      parts.push('');
-      parts.push('Risk: not assessed this session — omit from note.');
-    }
+    if (moodQuote && moodQuote.trim()) parts.push(`  Mood in ${subject.toLowerCase()}'s own words: "${moodQuote.trim()}"`);
+    if (noteType !== 'collateral') riskLines({ risk, riskExtra, subject }).forEach((l) => parts.push(l));
     // Never list the redacted names themselves: that would send them to the model.
     if (redactedNames && redactedNames.length) { parts.push(''); parts.push(`Names in the input were replaced with "${subject}". Do not introduce any personal names.`); }
+    if (Array.isArray(diagnoses) && diagnoses.length) {
+      parts.push('');
+      parts.push(`Diagnoses: ${diagnoses.join('; ')}.`);
+    }
     if (screeningScores && Array.isArray(screeningScores) && screeningScores.length) {
       parts.push('');
       parts.push(`Standardized screening scores administered this session: ${screeningScores.join('; ')}. Include these scores with their clinical interpretation in the note.`);
@@ -1172,14 +1356,20 @@ window.PN_LIB = (() => {
       parts.push('Active treatment goals (reference where clinically relevant, do not list verbatim):');
       activeGoals.forEach((g, i) => {
         let line = `  ${i + 1}. ${g.text.trim()}`;
-        if (g.targetDate) line += ` (target date: ${g.targetDate})`;
+        if (g.targetToken) line += ` (target date: ${g.targetToken})`;
+        if (g.progress) line += `. Progress this session: ${g.progress}`;
         parts.push(line);
       });
+    }
+    if (closedGoals && closedGoals.length) {
+      parts.push('');
+      parts.push('Goals marked met or discontinued in the treatment plan (state their status briefly):');
+      closedGoals.forEach((g) => parts.push(`  ${g.status === 'achieved' ? 'Met' : 'Discontinued'}: ${g.text.trim()}`));
     }
     parts.push('');
     parts.push('--- END SESSION NOTES ---');
     parts.push('');
-    parts.push('Now write the progress note:');
+    parts.push(`Now write the ${docKind}:`);
     return parts.join('\n');
   }
 
@@ -1226,9 +1416,12 @@ window.PN_LIB = (() => {
     return parts.join('\n');
   }
 
-  function buildIntakePrompt({ subject, sessionDate, duration,
+  const INTAKE_HEADINGS = ['Identifying Information', 'Chief Complaint', 'History of Presenting Illness', 'Psychosocial History', 'Medical and Psychiatric History', 'Safety Assessment', 'Mental Status Examination', 'Strengths and Protective Factors', 'Clinical Impressions and Diagnosis', 'Treatment Recommendations'];
+
+  function buildIntakePrompt({ subject, sessionDuration, modality, telehealth,
     chiefComplaint, onset, severity, stressors, functioning, safety, history,
-    mseData, primaryDx, secondaryDx, zCodes, conceptualization, treatmentModality, frequency, txDuration, referrals, screeningScores, safetyPlanLines }) {
+    psychosocial, trauma, legal, strengths, consentReviewed, collateralSources, levelOfCare,
+    mseData, moodQuote, primaryDx, secondaryDx, zCodes, conceptualization, treatmentModality, frequency, txDuration, referrals, screeningScores, safetyPlanLines }) {
     const parts = [];
     parts.push(`You are a licensed psychotherapist completing a psychiatric diagnostic evaluation (CPT 90791). Using only the information provided below, write a professional narrative clinical intake assessment note. Do not add clinical content not present in the intake data.`);
     parts.push('');
@@ -1245,11 +1438,15 @@ window.PN_LIB = (() => {
     parts.push('- Output the note only. No preamble.');
     parts.push('');
     parts.push('USE EXACTLY THESE SECTION HEADINGS, each on its own line followed by a colon:');
-    ['Identifying Information','Chief Complaint','History of Presenting Illness','Safety Assessment','Medical and Psychiatric History','Mental Status Examination','Clinical Impressions and Diagnosis','Treatment Recommendations'].forEach(h => parts.push(`  ${h}:`));
+    INTAKE_HEADINGS.forEach(h => parts.push(`  ${h}:`));
+    parts.push('');
+    parts.push('- Keep bracketed placeholders exactly as written. Do not write a header with the date, time, billing codes or signature; those are added separately.');
+    parts.push('- Summarize trauma history briefly and without graphic detail.');
     parts.push('');
     parts.push('--- INTAKE DATA ---');
-    if (sessionDate) parts.push(`Session date: ${sessionDate}`);
-    if (duration) parts.push(`Session duration: ${duration}`);
+    serviceLines({ noteType: 'intake', subject, sessionDuration, modality, telehealth }).forEach((l) => parts.push(l));
+    if (consentReviewed) parts.push('Informed consent and limits of confidentiality were reviewed with the client. Document this under Identifying Information.');
+    if (collateralSources) parts.push(`Collateral sources and records reviewed: ${collateralSources}`);
     parts.push('');
     if (chiefComplaint) parts.push(`Chief complaint: ${chiefComplaint}`);
     if (onset) parts.push(`Onset and duration: ${onset}`);
@@ -1262,7 +1459,7 @@ window.PN_LIB = (() => {
     }
     parts.push('');
     if (safety) {
-      const sl = [safety.si && `Suicidal ideation: ${safety.si}`, safety.hi && `Homicidal ideation: ${safety.hi}`, safety.selfHarm && `Self-harm history: ${safety.selfHarm}`, safety.safetyPlan && `Safety plan: ${safety.safetyPlan}`].filter(Boolean);
+      const sl = [safety.si && `Suicidal ideation: ${safety.si}`, safety.hi && `Homicidal ideation: ${safety.hi}`, safety.selfHarm && `Self-harm history: ${safety.selfHarm}`, safety.means && `Access to lethal means: ${safety.means}`, safety.level && `Writer's overall risk level: ${safety.level}`, safety.safetyPlan && `Safety plan: ${safety.safetyPlan}`].filter(Boolean);
       if (sl.length) { parts.push('Safety:'); sl.forEach(x => parts.push('  ' + x)); }
     }
     parts.push('');
@@ -1271,10 +1468,16 @@ window.PN_LIB = (() => {
       if (hl.length) { parts.push('Medical and psychiatric history:'); hl.forEach(x => parts.push('  ' + x)); }
     }
     parts.push('');
+    if (psychosocial) {
+      const pl = [psychosocial.family && `Family and living situation: ${psychosocial.family}`, psychosocial.education && `Education and employment: ${psychosocial.education}`, psychosocial.relationships && `Relationships and supports: ${psychosocial.relationships}`, psychosocial.cultural && `Cultural, spiritual and identity factors: ${psychosocial.cultural}`, trauma && `Trauma history (summary): ${trauma}`, legal && `Legal history: ${legal}`].filter(Boolean);
+      if (pl.length) { parts.push('Psychosocial history:'); pl.forEach(x => parts.push('  ' + x)); parts.push(''); }
+    }
+    if (strengths) { parts.push(`Strengths and protective factors: ${strengths}`); parts.push(''); }
     if (mseData) {
-      const lm = { appearance:'Appearance', behavior:'Behavior/Psychomotor', speech:'Speech', mood:'Mood', affect:'Affect', thoughtProcess:'Thought process', thoughtContent:'Thought content', insight:'Insight', judgment:'Judgment', orientation:'Orientation/Cognition' };
+      const lm = { appearance:'Appearance', behavior:'Behavior/Psychomotor', speech:'Speech', mood:'Mood', affect:'Affect', thoughtProcess:'Thought process', thoughtContent:'Thought content', perception:'Perception', cognition:'Cognition/Memory', insight:'Insight', judgment:'Judgment', orientation:'Orientation/Cognition' };
       const entries = Object.entries(mseData).filter(([,v]) => v && v.trim());
       if (entries.length) { parts.push('Mental status:'); entries.forEach(([k,v]) => parts.push(`  ${lm[k]||k}: ${v}`)); }
+      if (moodQuote) parts.push(`  Mood in ${subject.toLowerCase()}'s own words: "${moodQuote}"`);
     }
     parts.push('');
     if (primaryDx) parts.push(`Primary diagnosis (DSM-5-TR/ICD-10): ${primaryDx}`);
@@ -1286,6 +1489,7 @@ window.PN_LIB = (() => {
     if (frequency) parts.push(`Session frequency: ${frequency}`);
     if (txDuration) parts.push(`Treatment duration: ${txDuration}`);
     if (referrals && referrals.length) parts.push(`Referrals: ${referrals.join(', ')}`);
+    if (levelOfCare) parts.push(`Level of care rationale: ${levelOfCare}`);
     if (screeningScores && Array.isArray(screeningScores) && screeningScores.length) {
       parts.push('');
       parts.push(`Standardized screening scores: ${screeningScores.join('; ')}. Include these scores with their clinical interpretation under the appropriate section.`);
@@ -1303,10 +1507,37 @@ window.PN_LIB = (() => {
     return parts.join('\n');
   }
 
+  // Treatment plan narrative. Goal target dates and the review date arrive as placeholders.
+  function buildPlanPrompt({ subject, goals, diagnoses, frequency, reviewToken, participated, screeningScores, safetyPlanLines }) {
+    const parts = [];
+    parts.push(`You are a licensed psychotherapist writing a treatment plan. Using only the information below, write a professional treatment plan. Refer to the person as "${subject}" and the clinician as "Writer". Do not invent problems, goals, objectives or interventions. No em-dashes or AI filler phrases.`);
+    parts.push('Keep bracketed placeholders such as [TARGET-DATE-1] exactly as written; they are filled in after generation.');
+    parts.push('For each goal, write the problem it addresses, the goal, its measurable objectives, and the interventions, then close with one short paragraph on frequency, plan review and client participation. Plain paragraphs, no markdown.');
+    parts.push('');
+    if (Array.isArray(diagnoses) && diagnoses.length) { parts.push(`Diagnoses: ${diagnoses.join('; ')}`); parts.push(''); }
+    parts.push('TREATMENT GOALS:');
+    goals.forEach((g, i) => {
+      parts.push(`${i + 1}. Goal: ${g.text.trim()}${g.targetToken ? ` (target date: ${g.targetToken})` : ''}`);
+      if (g.problem && g.problem.trim()) parts.push(`   Problem: ${g.problem.trim()}`);
+      const objectives = (g.objectives || '').split('\n').map(o => o.trim()).filter(Boolean);
+      if (objectives.length) { parts.push('   Objectives:'); objectives.forEach(o => parts.push(`     - ${o}`)); }
+      if (g.interventions && g.interventions.length) parts.push(`   Interventions: ${g.interventions.join(', ')}`);
+    });
+    const details = [frequency && `Session frequency: ${frequency}`, reviewToken && `Plan review date: ${reviewToken}`, participated && `${subject} participated in developing this plan.`].filter(Boolean);
+    if (details.length) { parts.push(''); details.forEach(d => parts.push(d)); }
+    if (Array.isArray(screeningScores) && screeningScores.length) { parts.push(''); parts.push('STANDARDIZED SCREENING RESULTS:'); screeningScores.forEach(l => parts.push(l)); }
+    if (Array.isArray(safetyPlanLines) && safetyPlanLines.length) { parts.push(''); parts.push('SAFETY PLAN (completed or reviewed; mention briefly, do not add content):'); safetyPlanLines.forEach(l => parts.push(l)); }
+    parts.push('');
+    parts.push('Write the treatment plan now:');
+    return parts.join('\n');
+  }
+
   const _MDD_GROUPS = [
     { label:'Criterion A — Depressive episode', note:'5 of 9 required; at least one must be depressed mood (1) or anhedonia (2)', min:5,
       criteria:['Depressed mood most of the day, nearly every day','Markedly diminished interest or pleasure in activities (anhedonia)','Significant weight loss/gain or appetite decrease/increase','Insomnia or hypersomnia','Psychomotor agitation or retardation observable by others','Fatigue or loss of energy nearly every day','Feelings of worthlessness or excessive/inappropriate guilt','Difficulty concentrating or making decisions','Recurrent thoughts of death or suicidal ideation'] },
   ];
+  // ICD-10-CM splits some diagnoses by severity; the 4-character parent codes are not billable.
+  const _sevVariants = (codes, name, groups) => codes.map(([code, spec]) => ({ code, name: `${name}, ${spec}`, groups }));
   const DX_DATABASE = [
     { code:'F32.0', name:'Major Depressive Disorder, single episode, mild', groups:_MDD_GROUPS },
     { code:'F32.1', name:'Major Depressive Disorder, single episode, moderate', groups:_MDD_GROUPS },
@@ -1437,20 +1668,20 @@ window.PN_LIB = (() => {
       { label:'Diagnostic criteria', note:'5 of 9 required; pervasive pattern beginning by early adulthood', min:5,
         criteria:['Frantic efforts to avoid real or imagined abandonment','Pattern of unstable and intense interpersonal relationships alternating between idealization and devaluation','Identity disturbance: markedly and persistently unstable self-image or sense of self','Impulsivity in at least two self-damaging areas (spending, sex, substance use, reckless driving, binge eating)','Recurrent suicidal behavior, gestures, threats, or self-mutilating behavior','Affective instability due to marked reactivity of mood (intense episodic dysphoria, irritability, or anxiety lasting hours to a few days)','Chronic feelings of emptiness','Inappropriate, intense anger or difficulty controlling anger','Transient, stress-related paranoid ideation or severe dissociative symptoms'] },
     ]},
-    { code:'F50.01', name:'Anorexia Nervosa, restricting type', groups:[
+    ..._sevVariants([['F50.010','mild'], ['F50.011','moderate'], ['F50.012','severe'], ['F50.013','extreme'], ['F50.014','in remission'], ['F50.019','severity unspecified']], 'Anorexia Nervosa, Restricting Type', [
       { label:'Criterion A–C — Core diagnostic features', note:'All 3 required', min:3,
         criteria:['Restriction of energy intake leading to a significantly low body weight in the context of age, sex, developmental trajectory, and physical health','Intense fear of gaining weight or becoming fat, or persistent behavior that interferes with weight gain','Disturbance in body image: undue influence of weight/shape on self-evaluation, or lack of recognition of the seriousness of the current low body weight'] },
       { label:'Subtype specifier', note:'Required to specify restricting subtype', min:1,
         criteria:['No recurrent episodes of binge eating or purging (self-induced vomiting, laxatives, diuretics, enemas) in the past 3 months'] },
-    ]},
-    { code:'F50.2', name:'Bulimia Nervosa', groups:[
+    ]),
+    ..._sevVariants([['F50.21','mild'], ['F50.22','moderate'], ['F50.23','severe'], ['F50.24','extreme'], ['F50.25','in remission'], ['F50.20','severity unspecified']], 'Bulimia Nervosa', [
       { label:'Criterion A+B — Binge eating', note:'Both required; occurring at least once per week for 3 months', min:2,
         criteria:['Recurrent episodes of binge eating: eating an amount of food that is larger than most people would eat in a similar time and circumstance','Sense of lack of control over eating during the episode'] },
       { label:'Criterion C — Compensatory behaviors', note:'At least 1 required; occurring at least once per week for 3 months', min:1,
         criteria:['Recurrent self-induced vomiting or misuse of laxatives, diuretics, or other medications','Fasting or excessive exercise to prevent weight gain following a binge'] },
       { label:'Criterion D+E — Evaluation and exclusion', note:'Both required', min:2,
         criteria:['Self-evaluation is unduly influenced by body shape and weight','The disturbance does not occur exclusively during episodes of Anorexia Nervosa'] },
-    ]},
+    ]),
     { code:'F10.10', name:'Alcohol Use Disorder, mild', groups:[
       { label:'Diagnostic criteria', note:'2–3 symptoms = mild; 4–5 = moderate; 6+ = severe; within a 12-month period', min:2,
         criteria:['Alcohol often taken in larger amounts or over a longer period than intended','Persistent desire or unsuccessful efforts to cut down or control use','Great deal of time spent obtaining, using, or recovering from alcohol','Craving or a strong desire to use alcohol','Recurrent use resulting in failure to fulfill major role obligations at work, school, or home','Continued use despite persistent or recurrent social or interpersonal problems caused or exacerbated by alcohol','Important social, occupational, or recreational activities given up or reduced','Recurrent use in situations in which it is physically hazardous','Continued use despite knowing a persistent physical or psychological problem is caused or worsened by alcohol','Tolerance: need for markedly increased amounts for effect, or markedly diminished effect with the same amount','Withdrawal: characteristic alcohol withdrawal syndrome, or alcohol taken to relieve or avoid withdrawal symptoms'] },
@@ -1615,18 +1846,18 @@ window.PN_LIB = (() => {
         criteria:['Illness preoccupation has been present for at least 6 months, but the specific illness that is feared may change over that period of time','Not better explained by somatic symptom disorder, panic disorder, generalized anxiety disorder, body dysmorphic disorder, OCD, or delusional disorder'] },
     ]},
     // ─── Eating Disorders (additional) ───────────────────────────────────────
-    { code:'F50.02', name:'Anorexia Nervosa, Binge-Eating/Purging Type', groups:[
+    ..._sevVariants([['F50.020','mild'], ['F50.021','moderate'], ['F50.022','severe'], ['F50.023','extreme'], ['F50.024','in remission'], ['F50.029','severity unspecified']], 'Anorexia Nervosa, Binge-Eating/Purging Type', [
       { label:'Criteria A–C — Core features', note:'All 3 required', min:3,
         criteria:['Restriction of energy intake relative to requirements, leading to a significantly low body weight in the context of age, sex, developmental trajectory, and physical health','Intense fear of gaining weight or becoming fat, or persistent behavior that interferes with weight gain (even at significantly low weight)','Disturbance in the way body weight or shape is experienced; undue influence of body weight or shape on self-evaluation; or persistent lack of recognition of the seriousness of current low body weight'] },
       { label:'Binge/purge type specifier', note:'Required during the current episode', min:1,
         criteria:['During the last 3 months, the individual has engaged in recurrent episodes of binge eating or purging behavior (i.e., self-induced vomiting, misuse of laxatives, diuretics, or enemas)'] },
-    ]},
-    { code:'F50.81', name:'Binge Eating Disorder', groups:[
+    ]),
+    ..._sevVariants([['F50.810','mild'], ['F50.811','moderate'], ['F50.812','severe'], ['F50.813','extreme'], ['F50.814','in remission'], ['F50.819','severity unspecified']], 'Binge Eating Disorder', [
       { label:'Criterion A — Binge eating episodes', note:'Recurrent binge eating episodes with 3 of 5 behavioral markers required', min:3,
         criteria:['Eating much more rapidly than normal','Eating until feeling uncomfortably full','Eating large amounts of food when not feeling physically hungry','Eating alone because of feeling embarrassed by how much one is eating','Feeling disgusted with oneself, depressed, or very guilty after bingeing'] },
       { label:'Criteria B–E — Impact and duration', note:'All 4 required', min:4,
         criteria:['Marked distress regarding binge eating is present','Binge eating occurs at least once a week for 3 months','Binge eating is not associated with the recurrent use of inappropriate compensatory behaviors (as in bulimia nervosa)','Binge eating does not occur exclusively during the course of bulimia nervosa or anorexia nervosa'] },
-    ]},
+    ]),
     // ─── Personality Disorders ────────────────────────────────────────────────
     { code:'F21', name:'Schizotypal Personality Disorder', groups:[
       { label:'Diagnostic criteria', note:'5 of 9 required, beginning by early adulthood', min:5,
@@ -1753,7 +1984,7 @@ window.PN_LIB = (() => {
         criteria:['Symptoms must be present in the early developmental period (but may not fully manifest until social demands exceed limited capacities)','Symptoms cause clinically significant impairment in social, occupational, or other current areas of functioning','These disturbances are not better explained by intellectual disability or global developmental delay'] },
     ]},
     // ─── Sleep-Wake Disorders ─────────────────────────────────────────────────
-    { code:'G47.00', name:'Insomnia Disorder, Unspecified', groups:[
+    { code:'F51.01', name:'Insomnia Disorder', groups:[
       { label:'Criterion A — Sleep complaint', note:'At least 1 required', min:1,
         criteria:['Difficulty initiating sleep','Difficulty maintaining sleep, characterized by frequent awakenings or problems returning to sleep after awakenings','Early-morning awakening with inability to return to sleep'] },
       { label:'Criteria B–F — Impact and context', note:'All 5 required', min:5,
@@ -1843,7 +2074,7 @@ window.PN_LIB = (() => {
     };
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, RISK_ITEMS, DX_DATABASE, detectNames, redactNames, parseNameList, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, joinNote, plainNote, buildRevisePrompt, scoreASRS, scoreCSSRS, cssrsApplies };
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, MSE_WNL, RISK_ITEMS, RISK_LEVELS, SI_DETAILS, DX_DATABASE, NOTE_TYPES, SERVICE_TYPES, MODALITIES, US_STATES, COLLATERAL_WITH, COLLATERAL_METHODS, DISCHARGE_REASONS, CANCEL_LABELS, CANCEL_REASONS, CANCEL_OUTREACH_LABELS, CANCEL_NEXT, INTAKE_HEADINGS, isRemote, suggestCPT, fmtDateUS, fillTokens, unfillTokens, buildServiceHeader, buildCancellationNote, buildPlanPrompt, detectNames, redactNames, parseNameList, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, joinNote, plainNote, buildRevisePrompt, scoreASRS, scoreCSSRS, cssrsApplies };
 })();
 </script>
 
@@ -2640,7 +2871,7 @@ function screeningResult(tool, answers) {
 }
 
 // One selected screening, shown as a collapsible panel.
-function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, onToggleCollapse }) {
+function ScreeningTool({ tool, answers, onChange, onClear, onRemove, prior, onPrior, collapsed, onToggleCollapse }) {
   const { answered, required, total, sev, scoreText } = screeningResult(tool, answers);
   const pct = sev ? (sev.pct ?? Math.round((total / tool.max) * 100)) : 0;
 
@@ -2712,6 +2943,13 @@ function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, 
               )}
             </div>
           </div>
+          {scoreText !== null && (
+            <div className="row" style={{marginTop:10,marginBottom:0,maxWidth:260}}>
+              <label>Previous total (optional)</label>
+              <input className="input" type="number" min="0" max={tool.max} inputMode="numeric" placeholder={`0–${tool.max}`} value={prior} onChange={e => onPrior(e.target.value)}/>
+              {prior !== '' && sev && <div className="note-sm">Change since last time: {total - Number(prior) > 0 ? '+' : ''}{total - Number(prior)}</div>}
+            </div>
+          )}
           <div className="st-actions">
             {answered > 0 && <button className="st-clear" type="button" onClick={onClear}>Clear responses</button>}
           </div>
@@ -2721,7 +2959,7 @@ function ScreeningTool({ tool, answers, onChange, onClear, onRemove, collapsed, 
   );
 }
 
-function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
+function ScreeningsTab({ screeningAnswers, setScreeningAnswers, priorScores, setPriorScores, showToast }) {
   const tools = Object.values(SCREENING_TOOLS);
   // Tools that already have answers start open, so switching tabs never hides a score.
   const [activeKeys, setActiveKeys] = useState(() =>
@@ -2818,6 +3056,8 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, showToast }) {
                 onChange={(i, v) => setAnswer(tool.key, i, v)}
                 onClear={() => clearTool(tool.key)}
                 onRemove={() => removeTool(tool.key)}
+                prior={priorScores[tool.key] ?? ''}
+                onPrior={(v) => setPriorScores(prev => ({ ...prev, [tool.key]: v }))}
                 collapsed={!!collapsed[tool.key]}
                 onToggleCollapse={() => setCollapsed(prev => ({ ...prev, [tool.key]: !prev[tool.key] }))}
               />
@@ -2960,53 +3200,206 @@ function SafetyPlanTab({ safetyPlan, setSafetyPlan, showToast, privacyCtl }) {
   );
 }
 
-const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
-  const [text, setText] = useState(goal.text);
-  const flushRef = useRef(null);
+// ── Shared clinical input cards (module level so inputs keep focus) ─────────
 
-  const handleChange = (e) => {
+// Small one-of-many picker; clicking the selected option clears it.
+function Seg({ value, options, onChange, labels }) {
+  return (
+    <div className="tri-seg">
+      {options.map(o => <button key={o} type="button" aria-pressed={value===o} onClick={() => onChange(value===o ? '' : o)}>{labels ? labels[o] : o}</button>)}
+    </div>
+  );
+}
+
+// Toggle chip used for yes/no attestations.
+function Check({ on, onChange, children }) {
+  return <button type="button" className="chk-btn" aria-pressed={!!on} onClick={() => onChange(!on)}>{children}</button>;
+}
+
+const EMPTY_TELEHEALTH = { consent: false, locationVerified: false, state: '', atHome: false };
+
+// In person / video / phone, plus the telehealth attestations payers look for.
+function ModalityFields({ modality, setModality, telehealth, setTelehealth }) {
+  const set = (k, v) => setTelehealth(t => ({ ...t, [k]: v }));
+  return (
+    <div className="row" style={{marginBottom:0}}>
+      <label>Session modality</label>
+      <Seg value={modality} options={Object.keys(L.MODALITIES)} labels={{ inPerson: 'In person', video: 'Video', phone: 'Phone' }} onChange={setModality}/>
+      {L.isRemote(modality) && (
+        <div style={{marginTop:8}}>
+          <div className="chk-row">
+            <Check on={telehealth.consent} onChange={v => set('consent', v)}>Telehealth consent confirmed</Check>
+            <Check on={telehealth.locationVerified} onChange={v => set('locationVerified', v)}>Client location verified</Check>
+            <Check on={telehealth.atHome} onChange={v => set('atHome', v)}>Client at home</Check>
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center',marginTop:8}}>
+            <span style={{fontSize:11.5,color:'var(--muted)'}}>Client's state</span>
+            <select className="select" style={{width:'auto'}} value={telehealth.state} onChange={e => set('state', e.target.value)} aria-label="Client's state">
+              <option value="">—</option>
+              {L.US_STATES.map(st => <option key={st} value={st}>{st}</option>)}
+            </select>
+          </div>
+          <div className="note-sm" style={{marginTop:6}}>The state stays on this device and only appears in the note header.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const MseCard = React.memo(function MseCard({ mse, setMse, moodQuote, setMoodQuote }) {
+  return (
+    <div className="card">
+      <h3>Mental status exam <span className="hint">Quick fill</span></h3>
+      <button type="button" className="chk-btn" style={{marginBottom:10}} onClick={() => setMse(m => ({ ...m, ...L.MSE_WNL }))}>Within normal limits</button>
+      <div className="mse">
+        {L.MSE_FIELDS.map(f => (
+          <div className="mse-cell" key={f.key}>
+            <label>{f.label}</label>
+            <select className="select" value={mse[f.key]||''} onChange={e => setMse(m => ({ ...m, [f.key]: e.target.value }))}>
+              {f.options.map(o => <option key={o} value={o}>{o||'—'}</option>)}
+            </select>
+          </div>
+        ))}
+      </div>
+      <div className="row" style={{marginTop:10,marginBottom:0}}>
+        <label>Mood in the client's own words</label>
+        <input className="input" type="text" placeholder='e.g. "pretty tired this week"' value={moodQuote} onChange={e => setMoodQuote(e.target.value)}/>
+      </div>
+    </div>
+  );
+});
+
+const EMPTY_RISK_EXTRA = { level: '', protective: '', means: '', meansNote: '', siDetails: [] };
+const emptyRisk = () => L.RISK_ITEMS.reduce((acc, r) => { acc[r.key] = { status: null, note: '' }; return acc; }, {});
+// True when nothing in the risk card was filled in. Mirrors PN_LIB riskLines.
+const riskUntouched = (risk, x) => !L.RISK_ITEMS.some(r => risk[r.key].status || risk[r.key].note.trim())
+  && !x.level && !x.protective.trim() && !x.means;
+
+const RiskCard = React.memo(function RiskCard({ risk, setRisk, riskExtra, setRiskExtra }) {
+  const setX = (k, v) => setRiskExtra(x => ({ ...x, [k]: v }));
+  const toggleSi = (d) => setRiskExtra(x => ({ ...x, siDetails: x.siDetails.includes(d) ? x.siDetails.filter(y => y !== d) : [...x.siDetails, d] }));
+  const denyAll = () => setRisk(r => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, { ...v, status: 'denied' }])));
+  return (
+    <div className="card">
+      <h3>Risk assessment <button type="button" className="chk-btn" style={{fontSize:11,fontFamily:'var(--sans)'}} onClick={denyAll}>All denied</button></h3>
+      {L.RISK_ITEMS.map(({ key, label }) => {
+        const r = risk[key];
+        const setStatus = (s) => setRisk(x => ({ ...x, [key]: { ...x[key], status: s } }));
+        const setRNote = (n) => setRisk(x => ({ ...x, [key]: { ...x[key], note: n } }));
+        const present = r.status === 'endorsed' || r.status === 'active';
+        return (
+          <div className="risk-row" key={key}>
+            <div>
+              <div className="name">{label}</div>
+              {present && key === 'si' && (
+                <div className="chk-row" style={{marginTop:6}}>
+                  {L.SI_DETAILS.map(d => <Check key={d} on={riskExtra.siDetails.includes(d)} onChange={() => toggleSi(d)}>{d}</Check>)}
+                </div>
+              )}
+              {present && <input className="input" style={{marginTop:6,fontSize:12,padding:'6px 9px'}} placeholder="Detail (optional)" value={r.note} onChange={e => setRNote(e.target.value)}/>}
+            </div>
+            <div className="tri">
+              <button aria-pressed={r.status==='denied'} onClick={() => setStatus('denied')}>Denied</button>
+              <button className="endorsed" aria-pressed={r.status==='endorsed'} onClick={() => setStatus('endorsed')}>Endorsed</button>
+              <button className="active" aria-pressed={r.status==='active'} onClick={() => setStatus('active')}>Active</button>
+            </div>
+          </div>
+        );
+      })}
+      <div className="row" style={{marginTop:10}}>
+        <label>Access to lethal means</label>
+        <Seg value={riskExtra.means} options={['Denied', 'Reported', 'Not assessed']} onChange={v => setX('means', v)}/>
+        {riskExtra.means === 'Reported' && <input className="input inline-detail" placeholder="e.g. means secured, plan to restrict access" value={riskExtra.meansNote} onChange={e => setX('meansNote', e.target.value)}/>}
+      </div>
+      <div className="row">
+        <label>Protective factors</label>
+        <input className="input" type="text" placeholder="e.g. supportive family, future orientation" value={riskExtra.protective} onChange={e => setX('protective', e.target.value)}/>
+      </div>
+      <div className="row" style={{marginBottom:0}}>
+        <label>Overall risk level</label>
+        <Seg value={riskExtra.level} options={L.RISK_LEVELS} onChange={v => setX('level', v)}/>
+      </div>
+    </div>
+  );
+});
+
+// Header lines (date, time, service, CPT) and the signature line. Built on-device, never sent.
+function NoteFrame({ header, signature, children }) {
+  return (
+    <>
+      {header && header.length > 0 && <div className="svc-header">{header.map((l, i) => <div key={i}>{l}</div>)}</div>}
+      {children}
+      {signature && <div className="svc-signature">{signature}</div>}
+    </>
+  );
+}
+// The text that goes to the clipboard: header, body, signature.
+const framedText = (header, body, signature) => [(header || []).join('\n'), body, signature].filter(s => s && s.trim()).join('\n\n');
+
+// Text fields are kept locally and flushed after a pause, so typing stays smooth.
+// onUpdate(id, patch) merges the patch into the goal held by App.
+const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
+  const [draft, setDraft] = useState({ text: goal.text, problem: goal.problem || '', objectives: goal.objectives || '' });
+  const flushRef = useRef({});   // one pending flush per field
+  const [showIx, setShowIx] = useState(false);
+
+  const handleChange = (field) => (e) => {
     const val = e.target.value;
-    setText(val);
-    clearTimeout(flushRef.current);
-    flushRef.current = setTimeout(() => onUpdate({ ...goal, text: val }), 300);
+    setDraft(d => ({ ...d, [field]: val }));
+    clearTimeout(flushRef.current[field]);
+    flushRef.current[field] = setTimeout(() => onUpdate(goal.id, { [field]: val }), 300);
   };
 
   useEffect(() => {
-    if (goal.text !== text) setText(goal.text);
+    setDraft({ text: goal.text, problem: goal.problem || '', objectives: goal.objectives || '' });
   }, [goal.id]);
+
+  const interventions = goal.interventions || [];
+  const toggleIx = (name) => onUpdate(goal.id, { interventions: interventions.includes(name) ? interventions.filter(x => x !== name) : [...interventions, name] });
 
   return (
     <div className="goal-card">
       <div className="goal-card-meta">
         <div className="goal-date">
           <span style={{fontSize:11,color:'var(--muted)',marginBottom:2,display:'block'}}>Target date</span>
-          <input className="input" type="date" value={goal.targetDate || ''} onChange={e => onUpdate({ ...goal, targetDate: e.target.value })} style={{fontSize:12,padding:'4px 8px'}}/>
+          <input className="input" type="date" value={goal.targetDate || ''} onChange={e => onUpdate(goal.id, { targetDate: e.target.value })} style={{fontSize:12,padding:'4px 8px'}}/>
         </div>
         <div className="seg" role="radiogroup" style={{fontSize:11.5,flex:1}}>
-          <button type="button" aria-pressed={goal.status==='active'} onClick={() => onUpdate({...goal, status:'active'})}>Active</button>
-          <button type="button" aria-pressed={goal.status==='achieved'} onClick={() => onUpdate({...goal, status:'achieved'})}>Achieved</button>
-          <button type="button" aria-pressed={goal.status==='discontinued'} onClick={() => onUpdate({...goal, status:'discontinued'})}>D/C</button>
+          <button type="button" aria-pressed={goal.status==='active'} onClick={() => onUpdate(goal.id, {status:'active'})}>Active</button>
+          <button type="button" aria-pressed={goal.status==='achieved'} onClick={() => onUpdate(goal.id, {status:'achieved'})}>Achieved</button>
+          <button type="button" aria-pressed={goal.status==='discontinued'} onClick={() => onUpdate(goal.id, {status:'discontinued'})}>D/C</button>
         </div>
         <button className="goal-rm" type="button" onClick={onRemove} title="Remove goal">×</button>
       </div>
-      <textarea className="textarea" rows="2" data-dictate-label="Treatment goal" placeholder="Measurable goal (e.g. Client will identify 3 coping strategies for anxiety by target date)…" value={text} onChange={handleChange}/>
+      <input className="input" type="text" data-dictate-label="Problem" placeholder="Problem (e.g. Anxiety interferes with work attendance)" value={draft.problem} onChange={handleChange('problem')} style={{marginBottom:6}}/>
+      <textarea className="textarea" rows="2" data-dictate-label="Treatment goal" placeholder="Measurable goal (e.g. Client will identify 3 coping strategies for anxiety by target date)…" value={draft.text} onChange={handleChange('text')}/>
+      <textarea className="textarea" rows="2" data-dictate-label="Objectives" placeholder="Objectives, one per line (e.g. Practice a breathing skill 4 days a week)" value={draft.objectives} onChange={handleChange('objectives')} style={{marginTop:6}}/>
+      <button type="button" className="chk-btn" style={{marginTop:6}} aria-expanded={showIx} onClick={() => setShowIx(v => !v)}>Interventions{interventions.length ? ` (${interventions.length})` : ''} {showIx ? '▴' : '▾'}</button>
+      {showIx && (
+        <div className="chips" style={{marginTop:6}}>
+          {L.INTERVENTIONS.map(i => <button key={i} type="button" className="chip" aria-pressed={interventions.includes(i)} onClick={() => toggleIx(i)}>{i}</button>)}
+        </div>
+      )}
     </div>
   );
 });
 
-function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent, screeningStrip }) {
+function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent, screeningStrip, diagnosisLines, signature }) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [flags, setFlags] = useState(null);
-  useReportContent('plan', note, onContent);
+  const [frequency, setFrequency] = useState('');
+  const [reviewDate, setReviewDate] = useState('');
+  const [participated, setParticipated] = useState(false);
+  useReportContent('plan', note || frequency || reviewDate || participated, onContent);
 
   const addGoal = () => {
     const id = Date.now().toString(36);
-    setGoals(prev => [...prev, { id, text: '', targetDate: '', status: 'active' }]);
+    setGoals(prev => [...prev, { id, text: '', problem: '', objectives: '', interventions: [], targetDate: '', status: 'active' }]);
   };
 
-  const updateGoal = useCallback((updated) => {
-    setGoals(prev => prev.map(g => g.id === updated.id ? updated : g));
+  const updateGoal = useCallback((id, patch) => {
+    setGoals(prev => prev.map(g => g.id === id ? { ...g, ...patch } : g));
   }, [setGoals]);
 
   const removeGoal = useCallback((id) => {
@@ -3022,28 +3415,21 @@ function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLine
     if (!activeGoals.length) { showToast('Add at least one active goal first'); return; }
     setLoading(true); setNote('');
     const planItems = safetyPlanItems || [];
-    const san = L.makeSanitizer([...activeGoals.map(g => g.text), ...planItems.map(e => e.text)], { subject: 'Client', ...privacy });
+    const san = L.makeSanitizer([...activeGoals.flatMap(g => [g.text, g.problem, g.objectives]), ...planItems.map(e => e.text)], { subject: 'Client', ...privacy });
     setFlags(san);
-    const goalsList = activeGoals.map((g, i) => {
-      let line = `${i + 1}. ${san.clean(g.text.trim())}`;
-      if (g.targetDate) line += ` (target: ${g.targetDate})`;
-      return line;
-    }).join('\n');
-    const screeningSection = screeningLines && screeningLines.length
-      ? `\n\nSTANDARDIZED SCREENING RESULTS:\n${screeningLines.join('\n')}`
-      : '';
-    const safetySection = planItems.length
-      ? `\n\nSAFETY PLAN (completed or reviewed; mention briefly, do not add content):\n${safetyPlanToLines(planItems, san.clean).join('\n')}`
-      : '';
-    const prompt = `You are a licensed psychotherapist writing a treatment plan narrative. Based on the following client treatment goals${screeningLines && screeningLines.length ? ' and screening scores' : ''}, write a concise, professional treatment plan summary (2-3 paragraphs). Use past tense and clinical language. Refer to the client as "Client". Do not invent content not present in the goals. No em-dashes or AI filler phrases.
-
-TREATMENT GOALS:
-${goalsList}${screeningSection}${safetySection}
-
-Write the treatment plan narrative now:`;
+    // Dates go out as placeholders and are filled in on this device.
+    const tokens = {};
+    activeGoals.forEach((g, i) => { if (g.targetDate) tokens[`[TARGET-DATE-${i + 1}]`] = L.fmtDateUS(g.targetDate); });
+    if (reviewDate) tokens['[REVIEW-DATE]'] = L.fmtDateUS(reviewDate);
+    const prompt = L.buildPlanPrompt({
+      subject: 'Client',
+      goals: activeGoals.map((g, i) => ({ text: san.clean(g.text), problem: san.clean(g.problem || ''), objectives: san.clean(g.objectives || ''), interventions: g.interventions || [], targetToken: g.targetDate ? `[TARGET-DATE-${i + 1}]` : '' })),
+      diagnoses: diagnosisLines, frequency, reviewToken: reviewDate ? '[REVIEW-DATE]' : '', participated,
+      screeningScores: screeningLines || [], safetyPlanLines: safetyPlanToLines(planItems, san.clean),
+    });
     try {
       const raw = await callGroq(prompt, key);
-      setNote(L.redactNames(L.scrubText(raw), san.names, 'Client'));
+      setNote(L.fillTokens(L.redactNames(L.scrubText(raw), san.names, 'Client'), tokens));
     } catch(err) {
       showToast(err.message || 'Generation failed', true);
     } finally { setLoading(false); }
@@ -3051,7 +3437,7 @@ Write the treatment plan narrative now:`;
 
   const copyNote = async () => {
     if (!note) return;
-    try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
+    try { await navigator.clipboard.writeText(framedText([], note, signature)); showToast('Copied to clipboard'); }
     catch { showToast('Copy failed — please select and copy manually'); }
   };
 
@@ -3076,6 +3462,19 @@ Write the treatment plan narrative now:`;
             <div className="goal-status-hint">{activeCount} active · {achievedCount} achieved · {dcCount} discontinued</div>
           )}
         </div>
+        <div className="card">
+          <h3>Plan details</h3>
+          <div className="row">
+            <label>Session frequency</label>
+            <Seg value={frequency} options={['Weekly','Bi-weekly','Monthly','As needed']} onChange={setFrequency}/>
+          </div>
+          <div className="row">
+            <label>Plan review date</label>
+            <input className="input" type="date" value={reviewDate} onChange={e=>setReviewDate(e.target.value)}/>
+          </div>
+          <div className="chk-row"><Check on={participated} onChange={setParticipated}>Client participated in developing this plan</Check></div>
+          <div className="note-sm" style={{marginTop:8}}>{diagnosisLines.length ? `Diagnosis from the Intake / Progress Note tabs: ${diagnosisLines.join('; ')}` : 'Add a diagnosis on the Intake or Progress Note tab to include it here.'}</div>
+        </div>
       </aside>
       <main id="plan-pane" className="main">
         <div className="note-toolbar">
@@ -3096,7 +3495,7 @@ Write the treatment plan narrative now:`;
           {note ? (
             <>
               <div className="meta"><span className="fmt">Treatment Plan</span><span>Writer · De-identified</span></div>
-              {note.split(/\n{2,}/).map((para, i) => <p key={i}>{para}</p>)}
+              <NoteFrame signature={signature}>{note.split(/\n{2,}/).map((para, i) => <p key={i}>{para}</p>)}</NoteFrame>
             </>
           ) : loading ? (
             <>
@@ -3116,12 +3515,20 @@ Write the treatment plan narrative now:`;
   );
 }
 
-const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholder, onChange }) {
-  const [query, setQuery] = useState('');
+// value is the selected "CODE — Name" string held by App, so the Progress Note and Intake pickers stay in sync.
+const dxLabel = (dx) => `${dx.code} — ${dx.name}`;
+const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholder, value, onChange }) {
+  const initial = value ? L.DX_DATABASE.find(d => dxLabel(d) === value) || null : null;
+  const [query, setQuery] = useState(initial ? value : '');
   const [showDrop, setShowDrop] = useState(false);
   const [focusedIdx, setFocusedIdx] = useState(-1);
-  const [selectedDx, setSelectedDx] = useState(null);
+  const [selectedDx, setSelectedDx] = useState(initial);
   const acRef = useRef(null);
+  useEffect(() => {
+    const dx = value ? L.DX_DATABASE.find(d => dxLabel(d) === value) || null : null;
+    setSelectedDx(dx);
+    if (dx) setQuery(value); else if (!value) setQuery(q => selectedDx ? '' : q);
+  }, [value]);
 
   const filtered = useMemo(() => {
     if (!query.trim() || selectedDx) return [];
@@ -3137,10 +3544,10 @@ const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholde
 
   const select = useCallback((dx) => {
     setSelectedDx(dx);
-    setQuery(`${dx.code} — ${dx.name}`);
+    setQuery(dxLabel(dx));
     setShowDrop(false);
     setFocusedIdx(-1);
-    onChange(`${dx.code} — ${dx.name}`);
+    onChange(dxLabel(dx));
   }, [onChange]);
 
   const clear = useCallback(() => {
@@ -3199,7 +3606,18 @@ const DxAutocompleteInput = React.memo(function DxAutocompleteInput({ placeholde
   );
 });
 
-function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent, screeningStrip }) {
+// Status buttons with an optional detail box, used by the Intake form.
+function StatusRow({ label, item, setItem, opts, detailPh, showOn }) {
+  return (
+    <div className="row" style={{marginBottom:8}}>
+      <label style={{marginBottom:4}}>{label}</label>
+      <Seg value={item.status} options={opts} onChange={s=>setItem(x=>({...x,status:s}))}/>
+      {showOn && showOn.includes(item.status) && <input className="input inline-detail" placeholder={detailPh||'Detail…'} value={item.detail} onChange={e=>setItem(x=>({...x,detail:e.target.value}))}/>}
+    </div>
+  );
+}
+
+function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent, screeningStrip, diagnoses, setPrimaryDx, setSecondaryDx, signature }) {
   const [subject, setSubject] = useState('Client');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
@@ -3230,8 +3648,20 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
   const [medConds, setMedConds] = useState({ status: '', detail: '' });
   const [substance, setSubstance] = useState({ status: '', detail: '' });
   const [mse, setMse] = useState({});
-  const [primaryDx, setPrimaryDx] = useState('');
-  const [secondaryDx, setSecondaryDx] = useState('');
+  const [moodQuote, setMoodQuote] = useState('');
+  const [sessionModality, setSessionModality] = useState('');
+  const [telehealth, setTelehealth] = useState(EMPTY_TELEHEALTH);
+  const [means, setMeans] = useState({ status: '', detail: '' });
+  const [riskLevel, setRiskLevel] = useState('');
+  const [psychosocial, setPsychosocial] = useState({ family: '', education: '', relationships: '', cultural: '' });
+  const [trauma, setTrauma] = useState('');
+  const [legal, setLegal] = useState('');
+  const [strengths, setStrengths] = useState('');
+  const [consentReviewed, setConsentReviewed] = useState(false);
+  const [collateralSources, setCollateralSources] = useState('');
+  const [levelOfCare, setLevelOfCare] = useState('');
+  const [header, setHeader] = useState([]);
+  const { primary: primaryDx, secondary: secondaryDx } = diagnoses;
   const [zCodes, setZCodes] = useState('');
   const [conceptualization, setConceptualization] = useState('');
   const [modality, setModality] = useState([]);
@@ -3239,8 +3669,8 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
   const [txDuration, setTxDuration] = useState('');
   const [referrals, setReferrals] = useState([]);
   useReportContent('intake',
-    [note, sessionDate, sessionStart, sessionEnd, symptoms, onset, severity, stressors, safetyPlan, primaryDx, secondaryDx, zCodes, conceptualization, frequency, txDuration].some(Boolean)
-    || [occ, soc, adl, si, hi, selfHarm, prevTherapy, medications, medConds, substance].some(o => o.status || o.detail)
+    [note, sessionDate, sessionStart, sessionEnd, symptoms, onset, severity, stressors, safetyPlan, zCodes, conceptualization, frequency, txDuration, moodQuote, sessionModality, riskLevel, trauma, legal, strengths, consentReviewed, collateralSources, levelOfCare, ...Object.values(psychosocial)].some(Boolean)
+    || [occ, soc, adl, si, hi, selfHarm, means, prevTherapy, medications, medConds, substance].some(o => o.status || o.detail)
     || Object.keys(mse).length > 0 || modality.length > 0 || referrals.length > 0, onContent);
 
   const toggleModality = (m) => setModality(prev => prev.includes(m) ? prev.filter(x=>x!==m) : [...prev,m]);
@@ -3255,43 +3685,47 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
     setLoading(true); setNote('');
     // Every free-text field is de-identified on-device before it reaches the prompt.
     const functioning = { occupational: fmt(occ), social: fmt(soc), adl: fmt(adl) };
-    const safety = { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), safetyPlan };
+    const safety = { si: fmt(si), hi: fmt(hi), selfHarm: fmt(selfHarm), means: fmt(means), level: riskLevel, safetyPlan };
     const history = { prevTherapy: fmt(prevTherapy), medications: fmt(medications), medConditions: fmt(medConds), substance: fmt(substance) };
-    const freeText = { chiefComplaint: symptoms, onset, severity, stressors, primaryDx, secondaryDx, zCodes, conceptualization };
+    const freeText = { chiefComplaint: symptoms, onset, severity, stressors, primaryDx, secondaryDx, zCodes, conceptualization, trauma, legal, strengths, collateralSources, levelOfCare, moodQuote };
     const planItems = safetyPlanItems || [];
-    const san = L.makeSanitizer([...Object.values(freeText), ...Object.values(functioning), ...Object.values(safety), ...Object.values(history), ...planItems.map(e => e.text)], { subject, ...privacy });
+    const san = L.makeSanitizer([...Object.values(freeText), ...Object.values(functioning), ...Object.values(safety), ...Object.values(history), ...Object.values(psychosocial), ...planItems.map(e => e.text)], { subject, ...privacy });
     const cleanAll = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, san.clean(v)]));
     setFlags(san);
+    // Date, time and code stay on this device as a header.
+    const nextHeader = L.buildServiceHeader({ noteType: 'intake', date: sessionDate, start: sessionStart ? fmtTime12(sessionStart) : '', end: sessionEnd ? fmtTime12(sessionEnd) : '',
+      minutes: sessionDuration, modality: sessionModality, telehealth, cpt: L.suggestCPT({ service: 'intake', modality: sessionModality }), today: new Date().toLocaleDateString('en-CA') });
     try {
       const raw = await callGroq(L.buildIntakePrompt({
-        subject, sessionDate,
-        duration: sessionStart && sessionEnd && sessionDuration ? `${fmtTime12(sessionStart)} to ${fmtTime12(sessionEnd)} (${sessionDuration} minutes)` : '',
+        subject, sessionDuration, modality: sessionModality, telehealth,
         ...cleanAll(freeText),
         functioning: cleanAll(functioning),
         safety: cleanAll(safety),
         history: cleanAll(history),
+        psychosocial: cleanAll(psychosocial), consentReviewed,
         mseData: mse,
         treatmentModality: modality, frequency, txDuration, referrals,
         screeningScores: screeningLines || [],
         safetyPlanLines: safetyPlanToLines(planItems, san.clean),
       }), key);
       setNote(L.redactNames(L.scrubText(raw), san.names, subject));
+      setHeader(nextHeader);
     } catch(err) {
       showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
     } finally { setLoading(false); }
   };
 
   const copyNote = async () => {
-    try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
+    try { await navigator.clipboard.writeText(framedText(header, note, signature)); showToast('Copied to clipboard'); }
     catch { showToast('Copy failed — select and copy manually'); }
   };
 
-  const INTAKE_HEADINGS = ['Identifying Information','Chief Complaint','History of Presenting Illness','Safety Assessment','Medical and Psychiatric History','Mental Status Examination','Clinical Impressions and Diagnosis','Treatment Recommendations'];
+  const INTAKE_HEADINGS = L.INTAKE_HEADINGS;
   // Same note without its section headings, for pasting into one EHR field.
   const copyPlain = async () => {
     const headRe = new RegExp('^\\s*(' + INTAKE_HEADINGS.map(h => h.replace(/[()]/g, '\\$&')).join('|') + ')\\s*:\\s*', 'i');
     const text = note.split('\n').map(l => l.replace(headRe, '')).join('\n').replace(/\n{3,}/g, '\n\n').trim();
-    try { await navigator.clipboard.writeText(text); showToast('Copied without headings'); }
+    try { await navigator.clipboard.writeText(framedText(header, text, signature)); showToast('Copied without headings'); }
     catch { showToast('Copy failed — select and copy manually'); }
   };
   const parseIntakeNote = (text) => {
@@ -3307,19 +3741,6 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
     return out.length ? out : [{ heading: null, body: text.trim() }];
   };
   const sections = note ? parseIntakeNote(note) : [];
-
-  const StatusSeg = ({ value, onChange, opts }) => (
-    <div className="tri-seg">
-      {opts.map(o => <button key={o} type="button" aria-pressed={value===o} onClick={()=>onChange(value===o?'':o)}>{o}</button>)}
-    </div>
-  );
-  const StatusRow = ({ label, item, setItem, opts, detailPh, showOn }) => (
-    <div className="row" style={{marginBottom:8}}>
-      <label style={{marginBottom:4}}>{label}</label>
-      <StatusSeg value={item.status} onChange={s=>setItem(x=>({...x,status:s}))} opts={opts}/>
-      {showOn && showOn.includes(item.status) && <input className="input inline-detail" placeholder={detailPh||'Detail…'} value={item.detail} onChange={e=>setItem(x=>({...x,detail:e.target.value}))}/>}
-    </div>
-  );
 
   return (
     <>
@@ -3360,6 +3781,13 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
               <div style={{marginTop:6,fontSize:12,color:'var(--danger)'}}>End time must be after start time</div>
             )}
           </div>
+          <div style={{marginTop:10}}><ModalityFields modality={sessionModality} setModality={setSessionModality} telehealth={telehealth} setTelehealth={setTelehealth}/></div>
+          <div className="chk-row" style={{marginTop:10}}><Check on={consentReviewed} onChange={setConsentReviewed}>Informed consent and limits of confidentiality reviewed</Check></div>
+          <div className="row" style={{marginTop:10,marginBottom:0}}>
+            <label>Collateral sources / records reviewed</label>
+            <input className="input" type="text" placeholder="e.g. referral letter, prior treatment summary" value={collateralSources} onChange={e=>setCollateralSources(e.target.value)}/>
+          </div>
+          <div className="note-sm" style={{marginTop:8}}>Date, time and code go in a header added on this device. The date is never sent to the AI.</div>
         </div>
 
         <div className="card">
@@ -3394,11 +3822,38 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
           <StatusRow label="Suicidal ideation" item={si} setItem={setSi} opts={['Denied','Present']} showOn={['Present']} detailPh="Detail…"/>
           <StatusRow label="Homicidal ideation" item={hi} setItem={setHi} opts={['Denied','Present']} showOn={['Present']} detailPh="Detail…"/>
           <StatusRow label="Self-harm history" item={selfHarm} setItem={setSelfHarm} opts={['Denied','Present']} showOn={['Present']} detailPh="Detail…"/>
+          <StatusRow label="Access to lethal means" item={means} setItem={setMeans} opts={['Denied','Reported','Not assessed']} showOn={['Reported']} detailPh="e.g. means secured…"/>
+          <div className="row" style={{marginBottom:8}}>
+            <label style={{marginBottom:4}}>Overall risk level</label>
+            <Seg value={riskLevel} options={L.RISK_LEVELS} onChange={setRiskLevel}/>
+          </div>
           <div className="row" style={{marginBottom:0}}>
             <label>Safety plan</label>
             <div className="tri-seg">
               {['Not required','Completed'].map(o => <button key={o} type="button" aria-pressed={safetyPlan===o} onClick={()=>setSafetyPlan(safetyPlan===o?'':o)}>{o}</button>)}
             </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <h3>Psychosocial history</h3>
+          {[['family','Family and living situation','e.g. lives with partner; one sibling'],['education','Education and employment','e.g. completed college; works full time'],['relationships','Relationships and supports','e.g. close friends, community group'],['cultural','Cultural, spiritual and identity factors','e.g. faith community is important']].map(([k,label,ph]) => (
+            <div className="row" key={k}>
+              <label>{label}</label>
+              <input className="input" type="text" placeholder={ph} value={psychosocial[k]} onChange={e=>{ const v = e.target.value; setPsychosocial(p=>({...p,[k]:v})); }}/>
+            </div>
+          ))}
+          <div className="row">
+            <label>Trauma history <span style={{fontWeight:400,color:'var(--muted)'}}>(brief summary)</span></label>
+            <input className="input" type="text" placeholder="e.g. reports a past accident; no current intrusive symptoms" value={trauma} onChange={e=>setTrauma(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>Legal history</label>
+            <input className="input" type="text" placeholder="e.g. none reported" value={legal} onChange={e=>setLegal(e.target.value)}/>
+          </div>
+          <div className="row" style={{marginBottom:0}}>
+            <label>Strengths and protective factors</label>
+            <input className="input" type="text" placeholder="e.g. motivated for treatment, stable housing" value={strengths} onChange={e=>setStrengths(e.target.value)}/>
           </div>
         </div>
 
@@ -3410,29 +3865,17 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
           <StatusRow label="Substance use" item={substance} setItem={setSubstance} opts={['Denies','Current','Past']} showOn={['Current','Past']} detailPh="Substance, frequency, last use…"/>
         </div>
 
-        <div className="card">
-          <h3>Mental status exam <span className="hint">Quick fill</span></h3>
-          <div className="mse">
-            {L.MSE_FIELDS.map(f => (
-              <div className="mse-cell" key={f.key}>
-                <label>{f.label}</label>
-                <select className="select" value={mse[f.key]||''} onChange={e=>setMse(m=>({...m,[f.key]:e.target.value}))}>
-                  {f.options.map(o => <option key={o} value={o}>{o||'—'}</option>)}
-                </select>
-              </div>
-            ))}
-          </div>
-        </div>
+        <MseCard mse={mse} setMse={setMse} moodQuote={moodQuote} setMoodQuote={setMoodQuote}/>
 
         <div className="card">
           <h3>Diagnostic summary</h3>
           <div className="row">
             <label>Primary diagnosis (DSM-5-TR / ICD-10)</label>
-            <DxAutocompleteInput placeholder="e.g. anxiety, F41.1, depression, PTSD…" onChange={setPrimaryDx}/>
+            <DxAutocompleteInput placeholder="e.g. anxiety, F41.1, depression, PTSD…" value={primaryDx} onChange={setPrimaryDx}/>
           </div>
           <div className="row">
             <label>Secondary diagnosis</label>
-            <DxAutocompleteInput placeholder="Optional secondary diagnosis…" onChange={setSecondaryDx}/>
+            <DxAutocompleteInput placeholder="Optional secondary diagnosis…" value={secondaryDx} onChange={setSecondaryDx}/>
           </div>
           <div className="row">
             <label>Z-codes (social determinants)</label>
@@ -3474,6 +3917,10 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
               ))}
             </div>
           </div>
+          <div className="row" style={{marginTop:10,marginBottom:0}}>
+            <label>Level of care rationale</label>
+            <input className="input" type="text" placeholder="e.g. outpatient appropriate: no acute risk, stable supports" value={levelOfCare} onChange={e=>setLevelOfCare(e.target.value)}/>
+          </div>
         </div>
       </aside>
 
@@ -3494,6 +3941,7 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
         <article className={`paper ${loading?'loading':''}`}>
           {note ? (
             <div className="note-output">
+              <NoteFrame header={header} signature={signature}>
               {sections.map((s,i) => (
                 <div key={i}>
                   {s.heading && <h2 className="note-section">{s.heading}</h2>}
@@ -3504,6 +3952,7 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
                   ))}
                 </div>
               ))}
+              </NoteFrame>
             </div>
           ) : loading ? (
             <>
@@ -3834,7 +4283,29 @@ function App() {
   const [interventions, setInterventions] = useState([]);
   const [otherIntervention, setOtherIntervention] = useState('');
   const [mse, setMse] = useState({});
-  const [risk, setRisk] = useState(L.RISK_ITEMS.reduce((acc,r) => { acc[r.key]={status:null,note:''}; return acc; }, {}));
+  const [moodQuote, setMoodQuote] = useState('');
+  const [risk, setRisk] = useState(emptyRisk);
+  const [riskExtra, setRiskExtra] = useState(EMPTY_RISK_EXTRA);
+  const [riskNudge, setRiskNudge] = useState(false);
+  const [noteType, setNoteType] = useState('session');
+  const [service, setService] = useState('individual');
+  const [modality, setModality] = useState('');
+  const [telehealth, setTelehealth] = useState(EMPTY_TELEHEALTH);
+  const [interactiveComplexity, setInteractiveComplexity] = useState(false);
+  const [lateEntry, setLateEntry] = useState(false);
+  const [collateral, setCollateral] = useState({ with: '', method: '', roi: false });
+  const [discharge, setDischarge] = useState({ reason: '', aftercare: '' });
+  const [cancelInfo, setCancelInfo] = useState({ kind: 'noShow', reason: '', outreach: '', next: '' });
+  // Shared with the Intake tab so the diagnosis is entered once.
+  const [diagnoses, setDiagnoses] = useState({ primary: '', secondary: '' });
+  const setPrimaryDx = useCallback((v) => setDiagnoses(d => ({ ...d, primary: v })), []);
+  const setSecondaryDx = useCallback((v) => setDiagnoses(d => ({ ...d, secondary: v })), []);
+  const diagnosisLines = [diagnoses.primary && `Primary: ${diagnoses.primary}`, diagnoses.secondary && `Secondary: ${diagnoses.secondary}`].filter(Boolean);
+  const [goalProgress, setGoalProgress] = useState({});
+  const [priorScores, setPriorScores] = useState({});
+  // The Writer's own signature line. Kept on this device; never sent to the model.
+  const [signature, setSignature] = useState(() => { try { return localStorage.getItem('pn.signature') || ''; } catch { return ''; } });
+  const saveSignature = (v) => { setSignature(v); try { v ? localStorage.setItem('pn.signature', v) : localStorage.removeItem('pn.signature'); } catch {} };
   const [note, setNote] = useState('');
   const [prevNote, setPrevNote] = useState(null);   // one-level undo for edits and revisions
   const [editIdx, setEditIdx] = useState(null);
@@ -3894,44 +4365,68 @@ function App() {
   const detectedNames = useMemo(() => L.detectNames(rawInput, [], allowlist), [rawInput, allowlist]);
   const detectedPHI = useMemo(() => safeHarbor ? L.detectPHI(rawInput) : [], [rawInput, safeHarbor]);
 
-  const generate = async () => {
+  const cpt = noteType === 'session' ? L.suggestCPT({ service, minutes: sessionDuration, modality, interactiveComplexity }) : null;
+  const buildHeader = () => L.buildServiceHeader({ noteType, date: sessionDate, start: sessionStart ? fmtTime12(sessionStart) : '', end: sessionEnd ? fmtTime12(sessionEnd) : '',
+    minutes: sessionDuration, service, modality, telehealth, cpt, lateEntry, today: new Date().toLocaleDateString('en-CA') });
+
+  // Cancellation and no-show notes are fixed sentences, written here with no model call.
+  const writeCancellation = () => {
+    setNote(L.buildCancellationNote({ subject, ...cancelInfo }));
+    setGeneratedMeta({ format: 'emr', noteType, subject, tone, at: new Date(), header: buildHeader(), tokens: {} });
+    setPrevNote(null); setEditIdx(null); lastGenRef.current = null; setNameFlags([]); setPhiFlags([]);
+  };
+
+  const generate = async ({ riskConfirmed = false } = {}) => {
     if (loading) return;
+    if (noteType === 'cancel') { writeCancellation(); return; }
     if (!rawInput.trim()) { showToast('Add some session content first'); return; }
+    // Risk is documented every session, or the note says it was not assessed. Ask before assuming the latter.
+    if (noteType !== 'collateral' && !riskConfirmed && riskUntouched(risk, riskExtra)) { setRiskNudge(true); return; }
+    setRiskNudge(false);
     const key = apiKeyRef.current;
     if (!key) { pendingGenRef.current = true; setShowKeyModal(true); return; }
     pendingGenRef.current = false;
     // Active treatment goals also go into the prompt, so names in them are redacted too.
     const activeGoals = goals.filter(g => g.status === 'active' && g.text.trim());
-    // So do safety plan lines.
-    const extraTexts = [...activeGoals.map(g => g.text), ...safetyPlanItems.map(e => e.text)];
+    const closedGoals = goals.filter(g => g.status !== 'active' && g.text.trim());
+    // So do safety plan lines and the other free-text fields that reach the prompt.
+    const freeFields = [moodQuote, riskExtra.protective, riskExtra.meansNote, discharge.aftercare, ...L.RISK_ITEMS.map(r => risk[r.key].note)];
+    const extraTexts = [...activeGoals.map(g => g.text), ...closedGoals.map(g => g.text), ...safetyPlanItems.map(e => e.text), ...freeFields];
     const alwaysNames = L.parseNameList(alwaysRedact);
     const allNames = Array.from(new Set([...detectedNames, ...alwaysNames, ...extraTexts.flatMap(t => L.detectNames(t, [], allowlist))]));
     const goalPHI = safeHarbor ? extraTexts.flatMap(t => L.detectPHI(t)) : [];
     setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(allNames); setPhiFlags([...detectedPHI, ...goalPHI]);
     const sanitize = (s) => { let o = L.redactNames(L.redactNames(s, alwaysNames, subject, true), allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
     const truncate = (s, max = 2500) => s.length > max ? s.slice(0, max) + '…' : s;
+    // Goal target dates go out as placeholders and are filled in after the response.
+    const tokens = {};
+    activeGoals.forEach((g, i) => { if (g.targetDate) tokens[`[TARGET-DATE-${i + 1}]`] = L.fmtDateUS(g.targetDate); });
+    const header = buildHeader();
     const prompt = L.buildPrompt({
-      format, tone, subject, conciseness, voiceMode: voiceOn, voiceStrength, inputMode,
+      noteType, format, tone, subject, conciseness, voiceMode: voiceOn, voiceStrength, inputMode,
       freeText: truncate(sanitize(freeText)),
       structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,truncate(sanitize(v), 600)])),
       bullets: truncate(sanitize(bullets)),
       interventions: [...interventions, ...otherIntervention.split(',').map(s=>s.trim()).filter(Boolean)],
-      mse, risk, redactedNames: allNames,
-      sessionDate,
-      sessionStart: sessionStart ? fmtTime12(sessionStart) : '',
-      sessionEnd: sessionEnd ? fmtTime12(sessionEnd) : '',
-      sessionDuration,
-      screeningScores: screeningLines,
-      activeGoals: activeGoals.map(g => ({ ...g, text: sanitize(g.text) })),
-      safetyPlanLines: safetyPlanToLines(safetyPlanItems, sanitize),
+      mse: noteType === 'collateral' ? {} : mse, moodQuote: noteType === 'collateral' ? '' : sanitize(moodQuote),
+      risk: Object.fromEntries(Object.entries(risk).map(([k, v]) => [k, { ...v, note: sanitize(v.note) }])),
+      riskExtra: { ...riskExtra, protective: sanitize(riskExtra.protective), meansNote: sanitize(riskExtra.meansNote) },
+      redactedNames: allNames,
+      sessionDuration, service, modality, telehealth,
+      collateral, discharge: { ...discharge, aftercare: sanitize(discharge.aftercare) },
+      diagnoses: noteType === 'collateral' ? [] : diagnosisLines,
+      screeningScores: noteType === 'collateral' ? [] : screeningLines,
+      activeGoals: activeGoals.map((g, i) => ({ text: sanitize(g.text), targetToken: g.targetDate ? `[TARGET-DATE-${i + 1}]` : '', progress: goalProgress[g.id] || '' })),
+      closedGoals: noteType === 'discharge' ? closedGoals.map(g => ({ status: g.status, text: sanitize(g.text) })) : [],
+      safetyPlanLines: noteType === 'collateral' ? [] : safetyPlanToLines(safetyPlanItems, sanitize),
     });
-    lastGenRef.current = { prompt, names: allNames, always: alwaysNames };
+    lastGenRef.current = { prompt, names: allNames, always: alwaysNames, tokens };
     setPrevNote(null); setEditIdx(null);
     try {
       const raw = await callGroq(prompt, key);
       const cleaned = L.scrubText(raw);
-      setNote(L.redactNames(L.redactNames(cleaned, alwaysNames, subject, true), allNames, subject));
-      setGeneratedMeta({ format, subject, tone, at: new Date() });
+      setNote(L.fillTokens(L.redactNames(L.redactNames(cleaned, alwaysNames, subject, true), allNames, subject), tokens));
+      setGeneratedMeta({ format: noteType === 'discharge' ? 'discharge' : noteType === 'collateral' ? 'emr' : format, noteType, subject, tone, at: new Date(), header });
     } catch(err) {
       if (err.message.startsWith('invalid_key')) {
         const detail = err.message.slice('invalid_key:'.length);
@@ -3948,10 +4443,12 @@ function App() {
     .filter(tool => Object.keys(screeningAnswers[tool.key] || {}).length > 0)
     .map(tool => {
       const r = screeningResult(tool, screeningAnswers[tool.key] || {});
+      const prior = priorScores[tool.key];
+      const change = r.complete && r.scoreText && prior !== undefined && prior !== '' ? `; previous total ${prior}, change ${r.total - Number(prior) > 0 ? '+' : ''}${r.total - Number(prior)}` : '';
       return { key: tool.key, label: tool.label, complete: r.complete, answered: r.answered, required: r.required,
-        line: r.complete ? `${tool.label}: ${r.summary}` : '',
+        line: r.complete ? `${tool.label}: ${r.summary}${change}` : '',
         short: r.complete ? (r.scoreText ? `${r.scoreText} · ${r.sev.label}` : r.sev.label) : '' };
-    }), [screeningAnswers]);
+    }), [screeningAnswers, priorScores]);
   // Per-tab list of screenings the Writer unticked for that tab's note.
   const linesFor = (tab) => screeningItems.filter(it => it.complete && !(excludedScreenings[tab] || []).includes(it.key)).map(it => it.line);
   const screeningLines = linesFor('progress');
@@ -3966,7 +4463,7 @@ function App() {
     try { await navigator.clipboard.writeText(text); showToast(msg); }
     catch { showToast('Copy failed — please select and copy manually'); }
   };
-  const copyPlain = () => note && copyText(L.plainNote(sections), 'Copied without headings');
+  const copyPlain = () => note && copyText(framedText(generatedMeta?.header, L.plainNote(sections), signature), 'Copied without headings');
   const copySection = useCallback((i) => {
     const sec = sectionsRef.current[i]; if (sec) copyText(sec.body.trim(), `Copied ${sec.heading || 'note'}`);
   }, []);
@@ -3993,8 +4490,9 @@ function App() {
     const heading = sectionIdx !== null ? sections[sectionIdx].heading : null;
     setRevising(sectionIdx !== null ? sectionIdx : 'all'); setEditIdx(null);
     try {
-      const raw = await callGroq(L.buildRevisePrompt({ context: ctx.prompt, note: clean(note), instruction, heading }), key);
-      let out = L.redactNames(L.redactNames(L.scrubText(raw), [...ctx.always, ...always], subject, true), names, subject).trim();
+      // Real dates go back to placeholders before the draft is sent, and are filled in again after.
+      const raw = await callGroq(L.buildRevisePrompt({ context: ctx.prompt, note: clean(L.unfillTokens(note, ctx.tokens)), instruction, heading }), key);
+      let out = L.fillTokens(L.redactNames(L.redactNames(L.scrubText(raw), [...ctx.always, ...always], subject, true), names, subject), ctx.tokens).trim();
       if (sectionIdx !== null) {
         if (heading) out = out.replace(new RegExp('^\\s*' + heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*:\\s*', 'i'), '');
         changeNote(L.joinNote(sections.map((sec, k) => k === sectionIdx ? { ...sec, body: out } : sec)));
@@ -4010,7 +4508,7 @@ function App() {
 
   const copyNote = async () => {
     if (!note) return;
-    try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
+    try { await navigator.clipboard.writeText(framedText(generatedMeta?.header, note, signature)); showToast('Copied to clipboard'); }
     catch { showToast('Copy failed — please select and copy manually'); }
   };
 
@@ -4021,7 +4519,10 @@ function App() {
     setStructured({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
     setVoiceOn(false); setInterventions([]); setOtherIntervention('');
     setSessionDate(''); setSessionStart(''); setSessionEnd('');
-    setMse({}); setRisk(L.RISK_ITEMS.reduce((acc,r)=>{ acc[r.key]={status:null,note:''}; return acc; },{}));
+    setMse({}); setMoodQuote(''); setRisk(emptyRisk()); setRiskExtra(EMPTY_RISK_EXTRA); setRiskNudge(false);
+    setNoteType('session'); setService('individual'); setModality(''); setTelehealth(EMPTY_TELEHEALTH); setInteractiveComplexity(false); setLateEntry(false);
+    setCollateral({ with: '', method: '', roi: false }); setDischarge({ reason: '', aftercare: '' }); setCancelInfo({ kind: 'noShow', reason: '', outreach: '', next: '' });
+    setDiagnoses({ primary: '', secondary: '' }); setGoalProgress({}); setPriorScores({});
     // Clear everything entered for this client. Intake, Dx, Treatment Plan and Screenings keep
     // drafts in their own state, so remount them with a new key.
     setSafetyPlan(EMPTY_SAFETY_PLAN); setScreeningAnswers({}); setExcludedScreenings({}); setGoals([]); setAlwaysRedact(''); setResetKey(k => k + 1);
@@ -4035,6 +4536,7 @@ function App() {
   const toggleIntervention = (name) => setInterventions(prev => prev.includes(name) ? prev.filter(x=>x!==name) : [...prev,name]);
   const ToneControl = tweaks.toneStyle==='dial' ? ToneDial : tweaks.toneStyle==='stacked' ? ToneStacked : ToneSegmented;
   const openTweaks = () => window.postMessage({ type: '__activate_edit_mode' }, '*');
+  const activeGoalList = goals.filter(g => g.status === 'active' && g.text.trim());
   const totalInterventions = interventions.length + otherIntervention.split(',').map(s=>s.trim()).filter(Boolean).length;
 
   return (
@@ -4076,12 +4578,12 @@ function App() {
       </header>
 
       {/* These tabs stay mounted while hidden so their drafts survive tab switches. */}
-      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} onContent={reportContent} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={linesFor('intake')} screeningStrip={stripFor('intake')} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} diagnoses={diagnoses} setPrimaryDx={setPrimaryDx} setSecondaryDx={setSecondaryDx} signature={signature} onContent={reportContent} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={linesFor('intake')} screeningStrip={stripFor('intake')} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
       <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} onContent={reportContent} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={linesFor('dx')} screeningStrip={stripFor('dx')} privacy={privacy}/></div>
-      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} onContent={reportContent} privacyCtl={privacyCtl} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={linesFor('plan')} screeningStrip={stripFor('plan')} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} diagnosisLines={diagnosisLines} signature={signature} onContent={reportContent} privacyCtl={privacyCtl} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={linesFor('plan')} screeningStrip={stripFor('plan')} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
       {['intake', 'dx', 'plan', 'safety'].includes(appMode) && <DictateButton key={appMode}/>}
       {appMode === 'safety' && <SafetyPlanTab privacyCtl={privacyCtl} safetyPlan={safetyPlan} setSafetyPlan={setSafetyPlan} showToast={showToast}/>}
-      <div style={{display: appMode === 'screenings' ? 'contents' : 'none'}}><ScreeningsTab key={resetKey} screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} showToast={showToast}/></div>
+      <div style={{display: appMode === 'screenings' ? 'contents' : 'none'}}><ScreeningsTab key={resetKey} screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} priorScores={priorScores} setPriorScores={setPriorScores} showToast={showToast}/></div>
       {appMode === 'progress' && <aside className="sidebar">
         <div className="card hipaa-card">
           <h3>Privacy <span className="hint">HIPAA Safe Harbor</span></h3>
@@ -4097,17 +4599,23 @@ function App() {
           </div>
           {safeHarbor && <AllowlistEditor words={allowlist} onAdd={addAllowedWord} onRemove={removeAllowedWord}/>}
           <NamesToRedactField value={alwaysRedact} onChange={setAlwaysRedact}/>
-          <div className="note-sm" style={{marginTop:8}}>Notes are never stored by this tool. Use "Note completed" to permanently erase when done. Confirm your AI provider's Business Associate Agreement before entering identifiable PHI.</div>
+          <div className="note-sm" style={{marginTop:8}}>Notes are never stored by this tool. Use "Note completed" to permanently erase when done. Unless you have a signed Business Associate Agreement with Groq, this de-identification is your only protection, so leave identifying details out of what you type. Session dates and goal dates are never sent: they are filled in on this device.</div>
         </div>
 
         <div className="card">
           <h3>Note settings <span className="hint">Format & voice</span></h3>
           <div className="row">
-            <label>Format</label>
-            <select className="select" value={format} onChange={(e)=>setFormat(e.target.value)}>
-              {Object.entries(L.FORMATS).map(([k,f]) => <option key={k} value={k}>{f.full}</option>)}
+            <label>Note type</label>
+            <select className="select" value={noteType} onChange={(e)=>{ setNoteType(e.target.value); setRiskNudge(false); }}>
+              {Object.entries(L.NOTE_TYPES).map(([k,t]) => <option key={k} value={k}>{t.label}</option>)}
             </select>
           </div>
+          {noteType === 'session' && <div className="row">
+            <label>Format</label>
+            <select className="select" value={format} onChange={(e)=>setFormat(e.target.value)}>
+              {Object.entries(L.FORMATS).filter(([,f]) => !f.hidden).map(([k,f]) => <option key={k} value={k}>{f.full}</option>)}
+            </select>
+          </div>}
           <div className="row">
             <label>Refer to subject as</label>
             <div className="seg" role="radiogroup">
@@ -4128,6 +4636,11 @@ function App() {
                 </button>
               ))}
             </div>
+          </div>
+          <div className="row">
+            <label>Signature line</label>
+            <textarea className="textarea" rows="2" placeholder="e.g. Writer name, LCSW" value={signature} onChange={(e)=>saveSignature(e.target.value)}/>
+            <div className="note-sm">Added under the note when you copy it. Saved on this device only and never sent to the AI.</div>
           </div>
         </div>
 
@@ -4159,8 +4672,102 @@ function App() {
               <div style={{marginTop:6,fontSize:12,color:'var(--danger)'}}>End time must be after start time</div>
             )}
           </div>
+          {noteType === 'session' && (
+            <div className="row">
+              <label>Service type</label>
+              <select className="select" value={service} onChange={(e)=>setService(e.target.value)}>
+                {Object.entries(L.SERVICE_TYPES).map(([k,t]) => <option key={k} value={k}>{t.label}</option>)}
+              </select>
+            </div>
+          )}
+          {noteType !== 'cancel' && <ModalityFields modality={modality} setModality={setModality} telehealth={telehealth} setTelehealth={setTelehealth}/>}
+          {noteType === 'session' && (
+            <div className="row" style={{marginTop:10}}>
+              <label>Billing code <span style={{fontWeight:400,color:'var(--muted)'}}>(suggestion, confirm before billing)</span></label>
+              <div className="chk-row"><Check on={interactiveComplexity} onChange={setInteractiveComplexity}>Interactive complexity</Check></div>
+              <div style={{fontSize:13,fontWeight:500,color: cpt.text ? 'var(--ok)' : 'var(--muted)'}}>{cpt.text ? `CPT ${cpt.text}` : 'No code yet'}</div>
+              {cpt.warning && <div className="note-sm">{cpt.warning}</div>}
+            </div>
+          )}
+          <div className="chk-row" style={{marginTop:10}}><Check on={lateEntry} onChange={setLateEntry}>Late entry</Check></div>
+          <div className="note-sm" style={{marginTop:8}}>Date, time, service and code go in a header added on this device. The date is never sent to the AI.</div>
         </div>
 
+        {noteType === 'cancel' && (
+          <div className="card">
+            <h3>Cancellation / no-show <span className="hint">No AI needed</span></h3>
+            <div className="row">
+              <label>What happened</label>
+              <select className="select" value={cancelInfo.kind} onChange={(e)=>setCancelInfo(c=>({...c,kind:e.target.value}))}>
+                {Object.entries(L.CANCEL_LABELS).map(([k,l]) => <option key={k} value={k}>{l}</option>)}
+              </select>
+            </div>
+            <div className="row">
+              <label>Reason given</label>
+              <select className="select" value={cancelInfo.reason} onChange={(e)=>setCancelInfo(c=>({...c,reason:e.target.value}))}>
+                <option value="">—</option>
+                {L.CANCEL_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div className="row">
+              <label>Outreach</label>
+              <Seg value={cancelInfo.outreach} options={Object.keys(L.CANCEL_OUTREACH_LABELS)} labels={L.CANCEL_OUTREACH_LABELS} onChange={v=>setCancelInfo(c=>({...c,outreach:v}))}/>
+            </div>
+            <div className="row" style={{marginBottom:0}}>
+              <label>Next session</label>
+              <Seg value={cancelInfo.next} options={['scheduled','pending','none']} labels={{scheduled:'Rescheduled',pending:'Pending',none:'None scheduled'}} onChange={v=>setCancelInfo(c=>({...c,next:v}))}/>
+            </div>
+          </div>
+        )}
+
+        {noteType === 'collateral' && (
+          <div className="card">
+            <h3>Collateral contact</h3>
+            <div className="row">
+              <label>Contact with</label>
+              <Seg value={collateral.with} options={L.COLLATERAL_WITH} onChange={v=>setCollateral(c=>({...c,with:v}))}/>
+            </div>
+            <div className="row">
+              <label>Method</label>
+              <Seg value={collateral.method} options={L.COLLATERAL_METHODS} onChange={v=>setCollateral(c=>({...c,method:v}))}/>
+            </div>
+            <div className="chk-row"><Check on={collateral.roi} onChange={v=>setCollateral(c=>({...c,roi:v}))}>Release of information on file</Check></div>
+          </div>
+        )}
+
+        {noteType === 'discharge' && (
+          <div className="card">
+            <h3>Discharge</h3>
+            <div className="row">
+              <label>Reason for discharge</label>
+              <select className="select" value={discharge.reason} onChange={(e)=>setDischarge(d=>({...d,reason:e.target.value}))}>
+                <option value="">—</option>
+                {L.DISCHARGE_REASONS.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div className="row" style={{marginBottom:0}}>
+              <label>Aftercare and referrals</label>
+              <textarea className="textarea" rows="2" placeholder="e.g. referred to a support group; may return to care at any time" value={discharge.aftercare} onChange={(e)=>setDischarge(d=>({...d,aftercare:e.target.value}))}/>
+            </div>
+          </div>
+        )}
+
+        {(noteType === 'session' || noteType === 'discharge') && (
+          <div className="card">
+            <h3>Diagnosis <span className="hint">Medical necessity</span></h3>
+            <div className="row">
+              <label>Primary diagnosis</label>
+              <DxAutocompleteInput placeholder="e.g. F41.1, depression, PTSD…" value={diagnoses.primary} onChange={setPrimaryDx}/>
+            </div>
+            <div className="row" style={{marginBottom:0}}>
+              <label>Secondary diagnosis</label>
+              <DxAutocompleteInput placeholder="Optional" value={diagnoses.secondary} onChange={setSecondaryDx}/>
+            </div>
+            <div className="note-sm" style={{marginTop:8}}>Shared with the Intake tab. The note ties the session to this diagnosis where your notes support it.</div>
+          </div>
+        )}
+
+        {noteType !== 'cancel' && <>
         <div className="card">
           <h3>Writer's voice <span className="hint">Optional</span></h3>
           <div className="row h">
@@ -4225,56 +4832,26 @@ function App() {
             <input className="input" type="text" placeholder="e.g. Somatic Experiencing, Gestalt chair work (comma-separated)" value={otherIntervention} onChange={(e)=>setOtherIntervention(e.target.value)}/>
           </div>
         </div>
+        </>}
 
-        <div className="card">
-          <h3>Risk assessment</h3>
-          {L.RISK_ITEMS.map(({key,label}) => {
-            const r = risk[key];
-            const setStatus = (s) => setRisk(x=>({...x,[key]:{...x[key],status:s}}));
-            const setRNote = (n) => setRisk(x=>({...x,[key]:{...x[key],note:n}}));
-            return (
-              <div className="risk-row" key={key}>
-                <div>
-                  <div className="name">{label}</div>
-                  {(r.status==='endorsed'||r.status==='active') && <input className="input" style={{marginTop:6,fontSize:12,padding:'6px 9px'}} placeholder="Detail (optional)" value={r.note} onChange={(e)=>setRNote(e.target.value)}/>}
-                </div>
-                <div className="tri">
-                  <button aria-pressed={r.status==='denied'} onClick={()=>setStatus('denied')}>Denied</button>
-                  <button className="endorsed" aria-pressed={r.status==='endorsed'} onClick={()=>setStatus('endorsed')}>Endorsed</button>
-                  <button className="active" aria-pressed={r.status==='active'} onClick={()=>setStatus('active')}>Active</button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="card">
-          <h3>Mental status exam <span className="hint">Quick fill</span></h3>
-          <div className="mse">
-            {L.MSE_FIELDS.map(f => (
-              <div className="mse-cell" key={f.key}>
-                <label>{f.label}</label>
-                <select className="select" value={mse[f.key]||''} onChange={(e)=>setMse(m=>({...m,[f.key]:e.target.value}))}>
-                  {f.options.map(o => <option key={o} value={o}>{o||'—'}</option>)}
-                </select>
+        {(noteType === 'session' || noteType === 'discharge') && <RiskCard risk={risk} setRisk={setRisk} riskExtra={riskExtra} setRiskExtra={setRiskExtra}/>}
+        {(noteType === 'session' || noteType === 'discharge') && <MseCard mse={mse} setMse={setMse} moodQuote={moodQuote} setMoodQuote={setMoodQuote}/>}
+        {(noteType === 'session' || noteType === 'discharge') && activeGoalList.length > 0 && (
+          <div className="card">
+            <h3>Treatment goals <span className="hint">Progress this session</span></h3>
+            {activeGoalList.map(g => (
+              <div className="row" key={g.id}>
+                <label style={{fontWeight:400}}>{g.text}</label>
+                <Seg value={goalProgress[g.id] || ''} options={['Progressing','No change','Regressed','Not addressed']} onChange={v=>setGoalProgress(p=>({...p,[g.id]:v}))}/>
               </div>
             ))}
+            <div className="note-sm">Active goals from the Treatment Plan tab. Met or discontinued goals are listed in discharge summaries.</div>
           </div>
-        </div>
-        {(safetyPlanItems.length > 0 || goals.filter(g=>g.status==='active'&&g.text.trim()).length > 0) && (
+        )}
+        {noteType !== 'cancel' && noteType !== 'collateral' && safetyPlanItems.length > 0 && (
           <div className="card">
-            {goals.filter(g=>g.status==='active'&&g.text.trim()).length > 0 && (
-              <div>
-                <strong style={{fontSize:12.5}}>{goals.filter(g=>g.status==='active'&&g.text.trim()).length} active treatment goal{goals.filter(g=>g.status==='active'&&g.text.trim()).length!==1?'s':''}</strong>
-                <span style={{fontSize:12,color:'var(--muted)'}}> referenced in note</span>
-              </div>
-            )}
-            {safetyPlanItems.length > 0 && (
-              <div style={{marginTop: goals.some(g=>g.status==='active'&&g.text.trim()) ? 10 : 0}}>
-                <strong style={{fontSize:12.5}}>Safety plan: {safetyPlanItems.length} of {SAFETY_PLAN_STEPS.length} steps</strong>
-                <span style={{fontSize:12,color:'var(--muted)'}}> referenced in note</span>
-              </div>
-            )}
+            <strong style={{fontSize:12.5}}>Safety plan: {safetyPlanItems.length} of {SAFETY_PLAN_STEPS.length} steps</strong>
+            <span style={{fontSize:12,color:'var(--muted)'}}> referenced in note</span>
           </div>
         )}
       </aside>}
@@ -4288,13 +4865,25 @@ function App() {
             <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
             <button className="btn" disabled={!note||loading} onClick={copyPlain} title="Copy the note without section headings">Copy plain text</button>
             <button className="btn danger" disabled={!note||loading} onClick={()=>setConfirming(true)}><Icon.check/>Note completed</button>
-            <button className="btn primary" disabled={loading} onClick={generate}>
+            <button className="btn primary" disabled={loading} onClick={() => generate()}>
               {loading ? <span className="spin"/> : <Icon.spark/>}
-              {loading ? 'Generating…' : note ? 'Regenerate note' : 'Generate note'}
+              {loading ? 'Generating…' : noteType === 'cancel' ? 'Write note' : note ? 'Regenerate note' : 'Generate note'}
             </button>
           </div>
         </div>
-        {stripFor('progress')}
+        {riskNudge && (
+          <div className="flag-bar" role="alert">
+            <div style={{flex:1}}>
+              <div className="lbl">Risk isn't documented for this session</div>
+              <div style={{fontSize:12.5,marginBottom:8}}>Fill in the risk card, or choose one of these.</div>
+              <div className="chk-row">
+                <button type="button" className="btn" onClick={() => { setRisk(r => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, { ...v, status: 'denied' }]))); setRiskNudge(false); showToast('Risk items marked denied. Review, then generate.'); }}>Mark all denied</button>
+                <button type="button" className="btn" onClick={() => generate({ riskConfirmed: true })}>Generate, risk not assessed</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {noteType !== 'cancel' && noteType !== 'collateral' && stripFor('progress')}
 
         {(nameFlags.length>0||phiFlags.length>0) && (
           <div className="flag-bar">
@@ -4308,7 +4897,7 @@ function App() {
           </div>
         )}
 
-        {note && !loading && (
+        {note && !loading && generatedMeta?.noteType !== 'cancel' && (
           <div className="revise-bar">
             <span className="lbl">Revise whole note</span>
             {REVISE_PRESETS.map(([label, instruction]) => (
@@ -4325,14 +4914,16 @@ function App() {
           {note ? (
             <>
               <div className="meta">
-                <span className="fmt">{L.FORMATS[generatedMeta?.format||format].full}</span>
+                <span className="fmt">{generatedMeta?.noteType && generatedMeta.noteType !== 'session' ? L.NOTE_TYPES[generatedMeta.noteType].label : L.FORMATS[generatedMeta?.format||format].full}</span>
                 <span>Writer · De-identified</span>
               </div>
+              <NoteFrame header={generatedMeta?.header} signature={signature}>
               {sections.map((sec,i) => (
                 <NoteSection key={i} section={sec} idx={i} editing={editIdx===i} busy={revising===i}
                   disabled={revising!==null || (editIdx!==null && editIdx!==i)}
                   onEdit={startEdit} onSave={saveEdit} onCancel={cancelEdit} onRegenerate={onRegenerate} onCopy={copySection}/>
               ))}
+              </NoteFrame>
             </>
           ) : loading ? (
             <>
