@@ -1,6 +1,6 @@
 # Handoff: current state and next steps
 
-Last updated 2026-10-06. Read `CLAUDE.md` first for architecture and ground rules.
+Last updated 2026-10-08. Read `CLAUDE.md` first for architecture and ground rules.
 
 ## Where things stand
 
@@ -10,13 +10,19 @@ Last updated 2026-10-06. Read `CLAUDE.md` first for architecture and ground rule
 ### Tabs and features
 
 - **Progress Note:**
-  - SOAP / DAP / BIRP / GIRP / PIRP / EMR / narrative formats, tone and length controls, interventions, MSE, risk.
+  - Note types: session note, cancellation / no-show (written on-device, no model call), collateral contact, discharge summary. Late entry flag.
+  - SOAP / DAP / BIRP / GIRP / PIRP / EMR / narrative formats, tone and length controls, interventions, MSE (with Perception, Cognition, a "Within normal limits" fill and mood in the client's words), risk.
+  - Session info: service type (individual, family with/without client, group, crisis), modality (in person / video / phone) with telehealth consent, location verified, client at home and state, interactive complexity. A suggested CPT code (with -95/-93 and POS 10/02) shows in the sidebar and in an on-device header above the note.
+  - Risk card: "All denied", SI details (passive, plan, intent, means, prior attempt), access to lethal means, protective factors, overall risk level. If risk is blank, Generate asks first: mark all denied, or generate with "risk not assessed".
+  - Diagnosis (shared with Intake) and per-goal "progress this session" feed a medical-necessity instruction.
+  - Signature line (`pn.signature`) added under copied notes.
   - Per-section Edit / Regenerate / Copy, a "Revise whole note" bar (Shorter, More detailed, More clinical, Plainer wording, custom), and Undo.
   - "Copy" and "Copy plain text" (no headings).
-- **Intake Assessment:** CPT 90791 narrative, "Copy plain text".
+- **Intake Assessment:** CPT 90791 narrative with psychosocial history, trauma summary, legal history, strengths, consent reviewed, collateral sources, lethal means, risk level, level-of-care rationale, modality and telehealth. "Copy plain text".
 - **Dx Justification:** DSM criteria picker, justification statement.
-- **Treatment Plan:** goals (App state; active goals also feed the Progress Note), narrative.
+- **Treatment Plan:** goals with problem, objectives and interventions (App state; active goals also feed the Progress Note), plan frequency, review date, client participation, diagnosis; narrative via `buildPlanPrompt`.
 - **Screenings:**
+  - Optional previous total per tool; the change since last time goes into the notes.
   - Picker cards and collapsible panels for PHQ-9, GAD-7, PCL-5, ASRS-v1.1 (Part A result, total /72) and the C-SSRS screen.
   - The C-SSRS uses yes/no items with skip logic and a triage risk level.
   - Completed results go automatically into the Progress Note, Intake, Dx Justification and Treatment Plan prompts. The Dx prompt is told to cite relevant scores as supporting evidence only.
@@ -25,6 +31,7 @@ Last updated 2026-10-06. Read `CLAUDE.md` first for architecture and ground rule
   - Six Stanley-Brown steps. Filled steps feed the Progress Note, Intake and Treatment Plan prompts, de-identified first.
   - "Print / Save as PDF" makes a one-page client copy (not de-identified, never sent anywhere).
 - **Privacy:**
+  - No dates reach the model (see CLAUDE.md, Privacy data flow).
   - A shared privacy card (Safe Harbor toggle, allowlist, "Names to always redact") on every tab that sends text.
   - Sentence-start name detection (see CLAUDE.md).
 - **Dictation:** the mic on the Progress Note, and a floating Dictate button on Intake, Dx, Treatment Plan and Safety Plan that types into the last-clicked box.
@@ -52,9 +59,8 @@ Last updated 2026-10-06. Read `CLAUDE.md` first for architecture and ground rule
 ## Open work
 
 - The original Claude Design prototype files were deleted on 2026-10-06 at the owner's request (still in Git history before commit "Remove the Claude Design prototype files").
-- The owner chose not to add a location/modality field to the Progress Note. Location appears in a note only if the Writer mentions it in the session text.
+- 2026-10-08: the owner asked for every item in the LCSW review (`/mnt/project-files/reviews/lcsw-first-look.md` in the project), which added the modality field the owner had earlier declined. Only the state is captured, and it stays in the on-device header.
 - Ideas not yet requested:
-  - a location/modality field for the Progress Note (the old hidden default was removed),
   - showing a live "names detected" preview while typing on tabs other than the Progress Note.
 
 ## Verifying a change
