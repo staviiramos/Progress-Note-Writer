@@ -2289,16 +2289,17 @@ const Icon = {
   target: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
 };
 
-// Pinned to a Groq production chat model. Auto-picking by context window chose
-// preview/Enterprise-only reasoning models (e.g. minimax-m2.7) that free keys can't use.
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+// Pinned Groq model. Auto-picking by context window chose preview/Enterprise-only models.
+// gpt-oss returns its reasoning in a separate field (excluded below), so content is the note only.
+// Groq retires models on free keys (console.groq.com/docs/deprecations); swap this when it does.
+const GROQ_MODEL = 'openai/gpt-oss-120b';
 
 async function callGroq(prompt, token) {
   const model = GROQ_MODEL;
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 2000, temperature: 0.3 }),
+    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_completion_tokens: 4000, temperature: 0.3, reasoning_effort: 'low', include_reasoning: false }),
   });
   if (!resp.ok) {
     const body = await resp.text().catch(() => '');
@@ -2312,6 +2313,7 @@ async function callGroq(prompt, token) {
   }
   const data = await resp.json();
   const content = data.choices[0].message.content || '';
+  if (!content.trim()) throw new Error('Groq returned an empty response (' + (data.choices[0].finish_reason || 'unknown') + '). Try again.');
   const stripped = content
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .replace(/<think>[\s\S]*/i, '')
