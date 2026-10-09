@@ -2289,23 +2289,12 @@ const Icon = {
   target: () => <svg className="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
 };
 
-let _groqModelCache = null;
-async function pickGroqModel(token) {
-  if (_groqModelCache) return _groqModelCache;
-  try { localStorage.removeItem('pn.groqmodel'); } catch {}
-  const r = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': `Bearer ${token}` } });
-  if (!r.ok) throw new Error('Could not fetch Groq model list — check your API key.');
-  const { data = [] } = await r.json();
-  const SKIP = /whisper|guard|tts|vision|r1\b|qwq|deepseek|reasoning|specul|think/i;
-  const picks = data.filter(m => !SKIP.test(m.id))
-                     .sort((a, b) => (b.context_window || 0) - (a.context_window || 0));
-  if (!picks.length) throw new Error('No compatible models found. Available: ' + data.map(m => m.id).join(', '));
-  _groqModelCache = picks[0].id;
-  return _groqModelCache;
-}
+// Pinned to a Groq production chat model. Auto-picking by context window chose
+// preview/Enterprise-only reasoning models (e.g. minimax-m2.7) that free keys can't use.
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 async function callGroq(prompt, token) {
-  const model = await pickGroqModel(token);
+  const model = GROQ_MODEL;
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -2315,10 +2304,7 @@ async function callGroq(prompt, token) {
     const body = await resp.text().catch(() => '');
     let err = {}; try { err = JSON.parse(body); } catch {}
     const detail = err.error?.message || err.message || err.detail || (body.length < 200 ? body : body.slice(0,200)) || '';
-    if (detail.toLowerCase().includes('does not exist')) {
-      try { localStorage.removeItem('pn.groqmodel'); } catch {}
-      throw new Error('Groq model "' + model + '" is unavailable. Please try generating again — the app will pick a new model automatically.');
-    }
+    if (detail.toLowerCase().includes('does not exist')) throw new Error('Groq model "' + model + '" is unavailable: ' + detail);
     if (resp.status === 401) throw new Error('invalid_key:' + detail);
     if (resp.status === 413 || detail.toLowerCase().includes('too large') || detail.toLowerCase().includes('entity')) throw new Error('Notes are too long for the AI to process. Please shorten your session content and try again.');
     if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
@@ -2330,10 +2316,6 @@ async function callGroq(prompt, token) {
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
     .replace(/<think>[\s\S]*/i, '')
     .trim();
-  if (!stripped && content.trim()) {
-    _groqModelCache = null;
-    throw new Error('A reasoning model was selected. Click Generate again — the app will pick a different model automatically.');
-  }
   return stripped;
 }
 
@@ -2396,19 +2378,19 @@ function ApiKeyModal({ currentKey, onSave, onCancel, onRemove }) {
   return (
     <div className="modal-backdrop" onClick={onCancel || undefined}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>GitHub Personal Access Token</h3>
+        <h3>Groq API key</h3>
         <p>This app uses <strong style={{color:'inherit'}}>Groq</strong> — a free AI service. Get a free API key at <strong>console.groq.com</strong> → API Keys (no credit card required). Paste it below to get started.</p>
         <div className="row">
-          <label className="field-label">Personal Access Token</label>
+          <label className="field-label">Groq API key</label>
           <input ref={inputRef} className="input" type="password" placeholder="gsk_…" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key==='Enter') save(); }} autoComplete="off" spellCheck={false} />
         </div>
         <p className="api-key-note" style={{marginBottom:0}}>
           Sign up free at <strong>console.groq.com</strong>, go to <strong>API Keys</strong>, and click "Create API Key". Copy the key and paste it above — it's saved in this browser and remembered across visits.
         </p>
         <div className="modal-actions">
-          {currentKey && <button className="btn danger" style={{marginRight:'auto'}} onClick={onRemove}>Remove token</button>}
+          {currentKey && <button className="btn danger" style={{marginRight:'auto'}} onClick={onRemove}>Remove key</button>}
           {onCancel && <button className="btn" onClick={onCancel}>Cancel</button>}
-          <button className="btn primary" disabled={!draft.trim()} onClick={save}>Save token</button>
+          <button className="btn primary" disabled={!draft.trim()} onClick={save}>Save key</button>
         </div>
       </div>
     </div>
