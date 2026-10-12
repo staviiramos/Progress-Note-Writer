@@ -973,9 +973,16 @@ window.PN_LIB = (() => {
       words.forEach((w, wIdx) => {
         const clean = toName(w);
         if (!isCandidate(clean)) return;
-        if (wIdx > 0) { found.add(clean); return; }
+        const ordinary = SENTENCE_START_WORDS.has(clean) || lowerWords.has(clean.toLowerCase()) || NOT_NAME_SUFFIX.test(clean.toLowerCase());
+        if (wIdx > 0) {
+          // Opens a quotation ('stated "If ...') or follows a quoted sentence end ('home." Mood'):
+          // skip ordinary sentence openers, flag anything else.
+          const quotedStart = /^["\u201C(\[]/.test(w) || /[.!?]["\u201D)\]]+$/.test(words[wIdx - 1]);
+          if (!(quotedStart && ordinary)) found.add(clean);
+          return;
+        }
         // Sentence-opening word: only a name when the context points to a person.
-        if (SENTENCE_START_WORDS.has(clean) || lowerWords.has(clean.toLowerCase()) || NOT_NAME_SUFFIX.test(clean.toLowerCase())) return;
+        if (ordinary) return;
         const next = words[1] ? words[1].replace(/[^A-Za-z'\-]/g, '') : '';
         const possessive = /['\u2019]s\W*$/.test(w);
         const nextIsName = isCandidate(toName(words[1] || ''));

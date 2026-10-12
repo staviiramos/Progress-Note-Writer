@@ -87,6 +87,8 @@ for (const c of cases) {
     ["Casey's sister attended.", 'Casey'],
     ['Avery Placeholder arrived late.', 'Avery'],
     ['Discussed plans.\nQuinn shared an update.', 'Quinn'],
+    ['Client said "Jordan is kind."', 'Jordan'],
+    ['Client said "That helped." Riley is a friend.', 'Riley'],
   ];
   for (const [text, name] of caught) {
     const out = run(text);
@@ -98,6 +100,8 @@ for (const c of cases) {
     'Overall the session was productive.', 'Writer reviewed coping skills.', 'Client said the week went well.',
     'Reviewed homework. Worked on breathing skills.', 'Feeling better was reported.', 'Homework was completed.',
     'Anxiety is lower. Attendance was consistent.',
+    'Client stated "If it rains, I stay home." Mood was stable.',
+    'Client said \u201cWhen I wake up I feel tired.\u201d Sleep was discussed.',
   ];
   for (const text of kept) check(`ordinary sentence start kept: "${text.slice(0, 24)}"`, run(text) === text, `output: ${run(text)}`);
 
