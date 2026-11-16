@@ -1,6 +1,6 @@
 # Handoff: current state and next steps
 
-Last updated 2026-10-08. Read `CLAUDE.md` first for architecture and ground rules.
+Last updated 2026-11-16. Read `CLAUDE.md` first for architecture and ground rules.
 
 ## Where things stand
 
@@ -17,9 +17,16 @@ Last updated 2026-10-08. Read `CLAUDE.md` first for architecture and ground rule
   - Diagnosis (shared with Intake) and per-goal "progress this session" feed a medical-necessity instruction.
   - Signature line (`pn.signature`) added under copied notes.
   - Per-section Edit / Regenerate / Copy, a "Revise whole note" bar (Shorter, More detailed, More clinical, Plainer wording, custom), and Undo.
-  - "Copy" and "Copy plain text" (no headings).
+  - "Copy" and "Copy plain text" (no headings), "Print / Save as PDF", and "Client handout" (plain-language take-home summary, editable, printable with a blank name line).
+  - Layout (2026-11-16): slim Note type + Format row, Session content first, every other card collapsible with a one-line summary, Generate pinned at the bottom of the form (Ctrl/Cmd+Enter), "Note completed" on the left of the toolbar away from Copy. Text streams in as it is written.
+  - "Last session" box: paste the prior note or plan for continuity. Custom templates ("Manage my templates…" in the Format list): the Writer's own section headings, saved in `pn.settings`.
+  - "Note check" under a finished session note: on-device list of what an auditor looks for (risk, intervention, response, plan, diagnosis, time and code, date, signature, length, vague wording, leftover markers).
+  - Group notes: with service type Group, add a member per note; one model call per member, a member switcher above the note, "Copy all members".
+  - "Try an example" fills placeholder content; with no key it also shows a labelled sample note.
 - **Intake Assessment:** CPT 90791 narrative with psychosocial history, trauma summary, legal history, strengths, consent reviewed, collateral sources, lethal means, risk level, level-of-care rationale, modality and telehealth. "Copy plain text".
 - **Dx Justification:** DSM criteria picker, justification statement.
+- **Letters (2026-11-16):** referral, treatment summary and care coordination letters (model), attendance letter (on-device). Client name, recipient name and dates stay on the device.
+- **Preferences** (`pn.settings`): format, subject label, tone, length, service, modality, input mode, voice, open cards, most-used interventions ("Your usual" row) and templates persist across visits. No client data.
 - **Treatment Plan:** goals with problem, objectives and interventions (App state; active goals also feed the Progress Note), plan frequency, review date, client participation, diagnosis; narrative via `buildPlanPrompt`.
 - **Screenings:**
   - Optional previous total per tool; the change since last time goes into the notes.
@@ -60,6 +67,10 @@ Last updated 2026-10-08. Read `CLAUDE.md` first for architecture and ground rule
 
 - The original Claude Design prototype files were deleted on 2026-10-06 at the owner's request (still in Git history before commit "Remove the Claude Design prototype files").
 - 2026-10-08: the owner asked for every item in the LCSW review (`/mnt/project-files/reviews/lcsw-first-look.md` in the project), which added the modality field the owner had earlier declined. Only the state is captured, and it stays in the on-device header.
+- 2026-11-16: a second LCSW review with a HIPAA readiness assessment found redaction leaks, dictation outside the redaction path, and free-key guidance that conflicts with Groq's BAA terms. Nothing was implemented. Findings and the recommended order of work are in `/mnt/project-files/reviews/lcsw-second-review-hipaa.md`; the owner chooses what to build.
+- 2026-11-16: the owner asked for everything on the look-and-feel and functionality lists, and nothing from the selling list. Not done on purpose: a local-model option (it would change the Groq-only rule; ask first), and every HIPAA/selling item in the review (outgoing-text preview, redaction leak fixes, claim wording, BAA onboarding, licences). The header pill still reads "De-identified" for that reason.
+- Streaming was tested only against a mocked endpoint. If a live generation fails, the first thing to check is whether Groq accepts `stream: true` together with `include_reasoning: false` for the pinned model.
+- Client-facing screening mode is available for PHQ-9, GAD-7, PCL-5 and ASRS, not the C-SSRS (clinician-administered).
 - Ideas not yet requested:
   - showing a live "names detected" preview while typing on tabs other than the Progress Note.
 

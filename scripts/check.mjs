@@ -261,6 +261,36 @@ for (const c of cases) {
   check('DX_DATABASE codes are unique', new Set(codes).size === codes.length);
 }
 
+// 3l. Features added 2026-11-16: grouped interventions, templates, last-session block, note check, letters, handout.
+{
+  check('intervention groups cover the same 30 items', L.INTERVENTION_GROUPS.flatMap(g => g.items).length === 30 && new Set(L.INTERVENTIONS).size === 30);
+  L.registerTemplates([{ id: 't1', name: 'Agency note', sections: 'Presenting Concern\nResponse\n<b>Plan</b>' }, { id: '', name: 'No id', sections: ['A', 'B'] }]);
+  const tpl = L.FORMATS['custom:t1'];
+  check('registerTemplates adds a sectioned format and cleans headings', !!tpl && tpl.sections.join('|') === 'Presenting Concern|Response|bPlan/b' && Object.keys(L.FORMATS).filter(k => k.startsWith('custom:')).length === 1, JSON.stringify(tpl && tpl.sections));
+  const base = { format: 'custom:t1', tone: 'balanced', subject: 'Client', conciseness: 'standard', inputMode: 'free', freeText: 'Placeholder session.', interventions: [], mse: {}, risk: {}, redactedNames: [] };
+  const p = L.buildPrompt({ ...base, previousNote: 'Plan: review the thought record.' });
+  check('buildPrompt uses template headings and the previous-session block', p.includes('Presenting Concern') && p.includes('NOTE FROM THE PREVIOUS SESSION') && p.includes('review the thought record'));
+  check('buildPrompt leaves the previous-session block out when empty', !L.buildPrompt(base).includes('PREVIOUS SESSION'));
+
+  const text = 'Subjective: Client reported stress.\nObjective: On time.\nAssessment: Writer used CBT and Client responded well. Client denied suicidal ideation.\nPlan: Client will return next session.';
+  const audit = (over = {}) => Object.fromEntries(L.auditNote({ text, sections: L.parseNote(text, 'soap'), interventions: ['CBT'], diagnoses: [], minutes: 53, cptText: '90837', hasDate: true, signature: 'Writer, LCSW', conciseness: 'brief', ...over }).map(i => [i.id, i.ok]));
+  const a = audit();
+  check('auditNote passes a complete note and flags the missing diagnosis', a.risk && a.intervention && a.response && a.plan && a.time && a.date && a.signature && a.markers && !a.dx, JSON.stringify(a));
+  const b = audit({ text: 'Client seemed fine on [DATE-REDACTED].', sections: [], interventions: [], minutes: null, cptText: '', hasDate: false, signature: '' });
+  check('auditNote flags gaps, vague wording and leftover markers', !b.risk && !b.plan && !b.time && !b.date && !b.signature && !b.vague && !b.markers, JSON.stringify(b));
+
+  const lp = L.buildLetterPrompt({ type: 'referral', recipientRole: 'primary care provider', details: 'Requesting an evaluation.', diagnoses: ['Primary: F41.1'], screeningScores: [], hasSince: true, frequency: 'Weekly' });
+  check('buildLetterPrompt uses placeholders for the name and start date', lp.includes('[CLIENT-NAME]') && lp.includes('[START-DATE]') && lp.includes('Requesting an evaluation.') && lp.includes('F41.1'));
+  check('buildLetterPrompt rejects the on-device letter type', (() => { try { L.buildLetterPrompt({ type: 'attendance', details: 'x' }); return false; } catch { return true; } })());
+  const att = L.buildAttendanceLetter({ since: '01/15/2026', frequency: 'Weekly', lastSeen: '11/02/2026' });
+  check('attendance letter is written on-device with placeholders', att.includes('[CLIENT-NAME]') && att.includes('01/15/2026') && att.includes('11/02/2026'), att);
+  const framed = L.frameLetter({ today: 'November 16, 2026', recipientName: '', body: 'Body.', signature: 'Writer, LCSW' });
+  check('frameLetter adds date, greeting and signature', framed.startsWith('November 16, 2026') && framed.includes('To whom it may concern') && framed.trim().endsWith('Writer, LCSW'), framed);
+  const hp = L.buildHandoutPrompt({ note: text });
+  check('buildHandoutPrompt carries the note and the three headings', L.HANDOUT_HEADINGS.every(h => hp.includes(h + ':')) && hp.includes('Client reported stress.'));
+  check('example content is marked as a placeholder', /^EXAMPLE ONLY/.test(L.EXAMPLE.freeText) && L.EXAMPLE.interventions.every(i => L.INTERVENTIONS.includes(i)) && L.parseNote(L.EXAMPLE.note, 'soap').length === 4);
+}
+
 // 4. AI-buzzword scrub removes em dashes and banned words.
 const scrubbed = L.scrubText('Writer will delve into goals — moreover, review plan.');
 check('scrubText removes em dash and buzzwords', !/—|delve|moreover/i.test(scrubbed), `output: ${scrubbed}`);
