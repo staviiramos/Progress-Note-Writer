@@ -60,6 +60,7 @@ Last updated 2026-10-08. Read `CLAUDE.md` first for architecture and ground rule
 
 - The original Claude Design prototype files were deleted on 2026-10-06 at the owner's request (still in Git history before commit "Remove the Claude Design prototype files").
 - 2026-10-08: the owner asked for every item in the LCSW review (`/mnt/project-files/reviews/lcsw-first-look.md` in the project), which added the modality field the owner had earlier declined. Only the state is captured, and it stays in the on-device header.
+- 2026-11-16: a second LCSW review with a HIPAA readiness assessment found redaction leaks, dictation outside the redaction path, and free-key guidance that conflicts with Groq's BAA terms. Nothing was implemented. Findings and the recommended order of work are in `/mnt/project-files/reviews/lcsw-second-review-hipaa.md`; the owner chooses what to build.
 - Ideas not yet requested:
   - showing a live "names detected" preview while typing on tabs other than the Progress Note.
 
