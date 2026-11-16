@@ -16,7 +16,7 @@
   --paper: oklch(98.5% 0.008 80);
   --ink: oklch(22% 0.012 60);
   --ink-2: oklch(36% 0.012 60);
-  --muted: oklch(52% 0.012 60);
+  --muted: oklch(45% 0.012 60);
   --line: oklch(86% 0.018 75);
   --line-2: oklch(80% 0.022 75);
   --accent: oklch(48% 0.085 35);
@@ -77,7 +77,7 @@ textarea { resize: vertical; }
 /* Shell */
 .app {
   display: grid;
-  grid-template-columns: minmax(380px, 460px) 1fr;
+  grid-template-columns: minmax(400px, 44%) 1fr;
   grid-template-rows: auto 1fr;
   height: 100vh; width: 100vw; overflow: hidden;
 }
@@ -97,7 +97,7 @@ textarea { resize: vertical; }
   font-family: var(--serif); font-weight: 500; font-size: 18px;
   letter-spacing: -0.01em; margin: 0;
 }
-.brand .tag { font-size: 11.5px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.brand .tag { font-size: 12.5px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
 
 /* Sidebar */
 .sidebar {
@@ -115,13 +115,13 @@ textarea { resize: vertical; }
   display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
 }
 .card h3 .hint {
-  font-family: var(--sans); font-size: 10.5px; font-weight: 400;
+  font-family: var(--sans); font-size: 11.5px; font-weight: 400;
   letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
 }
 .row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .row:last-child { margin-bottom: 0; }
 .row.h { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
-.row label, .field-label { font-size: 11.5px; color: var(--muted); letter-spacing: 0.02em; font-weight: 500; }
+.row label, .field-label { font-size: 12.5px; color: var(--muted); letter-spacing: 0.02em; font-weight: 500; }
 
 /* Controls */
 .input, .select, .textarea {
@@ -147,7 +147,7 @@ textarea { resize: vertical; }
 }
 .seg button {
   flex: 1; appearance: none; border: 0; background: transparent;
-  color: var(--ink-2); padding: 6px 10px; font-size: 12.5px;
+  color: var(--ink-2); padding: 6px 10px; font-size: 13px;
   border-radius: 5px; cursor: pointer; transition: background .12s, color .12s;
   font-weight: 500; letter-spacing: 0.005em;
 }
@@ -174,7 +174,7 @@ textarea { resize: vertical; }
 .tone-dial .labels {
   position: absolute; left: 4px; right: 4px; top: 32px;
   display: flex; justify-content: space-between;
-  font-size: 10.5px; color: var(--muted); letter-spacing: 0.02em;
+  font-size: 11.5px; color: var(--muted); letter-spacing: 0.02em;
 }
 
 /* Tone stacked */
@@ -186,14 +186,14 @@ textarea { resize: vertical; }
   cursor: pointer; font-size: 13px; color: var(--ink-2); transition: all .12s;
 }
 .tone-stacked button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
-.tone-stacked button .desc { font-size: 11px; color: var(--muted); }
+.tone-stacked button .desc { font-size: 12px; color: var(--muted); }
 
 /* Chips */
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
   appearance: none; border: 1px solid var(--line-2); background: var(--paper);
   color: var(--ink-2); padding: 5px 11px; border-radius: 999px;
-  font-size: 12px; cursor: pointer; transition: all .12s; font-weight: 500;
+  font-size: 13px; cursor: pointer; transition: all .12s; font-weight: 500;
 }
 .chip:hover { border-color: var(--ink-2); color: var(--ink); }
 .chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
@@ -204,14 +204,14 @@ textarea { resize: vertical; }
   align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line);
 }
 .risk-row:last-of-type { border-bottom: 0; }
-.risk-row .name { font-size: 12.5px; font-weight: 500; color: var(--ink-2); }
+.risk-row .name { font-size: 13px; font-weight: 500; color: var(--ink-2); }
 .risk-row .tri {
   display: inline-flex; padding: 2px; gap: 2px;
   border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg);
 }
 .risk-row .tri button {
   appearance: none; border: 0; background: transparent; cursor: pointer;
-  padding: 3px 8px; font-size: 11px; border-radius: 4px; color: var(--muted); font-weight: 500;
+  padding: 3px 8px; font-size: 12px; border-radius: 4px; color: var(--muted); font-weight: 500;
 }
 .risk-row .tri button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px oklch(20% 0 0 / .08); }
 .risk-row .tri button.endorsed[aria-pressed="true"] { color: var(--warn); }
@@ -220,8 +220,8 @@ textarea { resize: vertical; }
 /* MSE */
 .mse { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .mse .mse-cell { display: flex; flex-direction: column; gap: 4px; }
-.mse .mse-cell label { font-size: 10.5px; color: var(--muted); letter-spacing: 0.02em; }
-.mse .mse-cell select { font-size: 12px; padding: 6px 8px; }
+.mse .mse-cell label { font-size: 11.5px; color: var(--muted); letter-spacing: 0.02em; }
+.mse .mse-cell select { font-size: 13px; padding: 6px 8px; }
 
 /* Tabs */
 .tabs {
@@ -230,7 +230,7 @@ textarea { resize: vertical; }
 }
 .tabs button {
   flex: 1; appearance: none; border: 0; background: transparent;
-  color: var(--muted); padding: 7px 10px; font-size: 12.5px;
+  color: var(--muted); padding: 7px 10px; font-size: 13px;
   border-radius: 5px; cursor: pointer; font-weight: 500;
 }
 .tabs button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px oklch(20% 0 0 / .08); }
@@ -241,7 +241,7 @@ textarea { resize: vertical; }
 .mode-sel button[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px oklch(20% 0 0 / .1); }
 .topbar .brand { flex: 1 1 0; min-width: max-content; }
 .brand h1, .brand .tag { white-space: nowrap; }
-.topbar .meta { flex: 1 1 0; display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.topbar .meta { flex: 1 1 0; display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); white-space: nowrap; }
 .mode-sel .tl-short { display: none; }
 .tab-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-left: 6px; vertical-align: middle; position: relative; top: -1px; }
 @media (max-width: 1560px) { .topbar .brand .tag { display: none; } }
@@ -255,12 +255,12 @@ textarea { resize: vertical; }
 
 /* Intake & Dx helpers */
 .tri-seg { display: flex; gap: 2px; }
-.tri-seg button { flex: 1; appearance: none; border: 1px solid var(--line); background: transparent; padding: 5px 6px; border-radius: 5px; font-size: 11.5px; color: var(--muted); cursor: pointer; font-family: inherit; transition: background .1s, color .1s; }
+.tri-seg button { flex: 1; appearance: none; border: 1px solid var(--line); background: transparent; padding: 5px 6px; border-radius: 5px; font-size: 12.5px; color: var(--muted); cursor: pointer; font-family: inherit; transition: background .1s, color .1s; }
 .tri-seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 500; }
 .chk-row { display: flex; flex-wrap: wrap; gap: 6px; }
-.svc-header { font-family: var(--sans); font-size: 12px; color: var(--ink-2); line-height: 1.6; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
-.svc-signature { font-family: var(--sans); font-size: 12.5px; color: var(--ink-2); margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--line); white-space: pre-line; }
-.chk-btn { appearance: none; border: 1px solid var(--line); background: transparent; padding: 5px 10px; border-radius: 20px; font-size: 12px; color: var(--muted); cursor: pointer; font-family: inherit; }
+.svc-header { font-family: var(--sans); font-size: 13px; color: var(--ink-2); line-height: 1.6; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+.svc-signature { font-family: var(--sans); font-size: 13px; color: var(--ink-2); margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--line); white-space: pre-line; }
+.chk-btn { appearance: none; border: 1px solid var(--line); background: transparent; padding: 5px 10px; border-radius: 20px; font-size: 13px; color: var(--muted); cursor: pointer; font-family: inherit; }
 .chk-btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 .inline-detail { margin-top: 5px; }
 .note-output { padding: var(--pad) 0; font-family: var(--serif); font-size: 15.5px; line-height: 1.8; color: var(--ink); max-width: 660px; }
@@ -278,8 +278,8 @@ textarea { resize: vertical; }
 }
 .dx-ac-item:last-child { border-bottom: 0; }
 .dx-ac-item:hover, .dx-ac-item.focused { background: var(--accent-soft); }
-.dx-ac-item .dx-code { font-family: var(--mono); font-size: 10.5px; color: var(--accent); font-weight: 600; letter-spacing: .03em; }
-.dx-ac-item .dx-name { font-size: 12.5px; color: var(--ink); line-height: 1.3; }
+.dx-ac-item .dx-code { font-family: var(--mono); font-size: 11.5px; color: var(--accent); font-weight: 600; letter-spacing: .03em; }
+.dx-ac-item .dx-name { font-size: 13px; color: var(--ink); line-height: 1.3; }
 
 /* Dx symptom checklist */
 .sx-list { display: flex; flex-direction: column; gap: 6px; }
@@ -298,25 +298,25 @@ textarea { resize: vertical; }
   transition: background .1s, border-color .1s;
 }
 .sx-item.checked .sx-chk-box { background: var(--accent); border-color: var(--accent); }
-.sx-chk-lbl { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+.sx-chk-lbl { font-size: 13px; color: var(--ink-2); line-height: 1.45; }
 .sx-item.checked .sx-chk-lbl { color: var(--ink); font-weight: 500; }
 .sx-ctx { padding: 0 11px 10px; }
-.sx-ctx textarea { min-height: 54px; font-size: 12.5px; }
+.sx-ctx textarea { min-height: 54px; font-size: 13px; }
 
 /* Dx criterion groups */
 .sx-group { margin-bottom: 14px; }
 .sx-group:last-child { margin-bottom: 0; }
 .sx-group-hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-.sx-group-label { font-size: 11.5px; font-weight: 600; color: var(--ink); letter-spacing: .01em; }
+.sx-group-label { font-size: 12.5px; font-weight: 600; color: var(--ink); letter-spacing: .01em; }
 .sx-group-badge {
-  font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
   background: var(--bg-2); border: 1px solid var(--line); color: var(--muted);
   white-space: nowrap; flex-shrink: 0;
 }
 .sx-group-badge.partial { background: color-mix(in oklab, var(--warn) 9%, var(--paper)); border-color: color-mix(in oklab, var(--warn) 28%, var(--line)); color: var(--warn); }
 .sx-group-badge.met { background: color-mix(in oklab, var(--ok) 9%, var(--paper)); border-color: color-mix(in oklab, var(--ok) 28%, var(--line)); color: var(--ok); }
-.sx-group-note { font-size: 10.5px; color: var(--muted); margin-bottom: 5px; line-height: 1.4; font-style: italic; padding-left: 1px; }
-.note-output h2.note-section { font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin: 1.6em 0 0.5em; }
+.sx-group-note { font-size: 11.5px; color: var(--muted); margin-bottom: 5px; line-height: 1.4; font-style: italic; padding-left: 1px; }
+.note-output h2.note-section { font-family: var(--sans); font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 6px; margin: 1.6em 0 0.5em; }
 .note-output p { margin: 0 0 0.85em; }
 
 /* Voice */
@@ -355,7 +355,7 @@ textarea { resize: vertical; }
   width: 100%; max-width: 720px; display: flex; align-items: center;
   justify-content: space-between; margin-bottom: 18px; gap: 12px;
 }
-.note-toolbar .left { display: flex; gap: 10px; align-items: center; font-size: 12px; color: var(--muted); }
+.note-toolbar .left { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--muted); }
 .note-toolbar .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .note-toolbar .actions .btn { white-space: nowrap; }
 
@@ -408,12 +408,12 @@ textarea { resize: vertical; }
 .paper .meta {
   display: flex; justify-content: space-between; align-items: baseline;
   border-bottom: 1px solid var(--line); padding-bottom: 18px; margin-bottom: 26px;
-  font-family: var(--sans); font-size: 11.5px; color: var(--muted);
+  font-family: var(--sans); font-size: 12.5px; color: var(--muted);
   letter-spacing: 0.04em; text-transform: uppercase;
 }
 .paper .meta .fmt { color: var(--ink); font-weight: 600; }
 .paper h2.note-section {
-  font-family: var(--sans); font-size: 10.5px; font-weight: 600;
+  font-family: var(--sans); font-size: 11.5px; font-weight: 600;
   letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 26px 0 10px;
 }
 .paper h2.note-section:first-of-type { margin-top: 0; }
@@ -428,24 +428,24 @@ textarea { resize: vertical; }
 .sec-tools { display: flex; gap: 2px; opacity: 0; transition: opacity .15s; flex-shrink: 0; font-family: var(--sans); }
 .note-sec:hover .sec-tools, .note-sec:focus-within .sec-tools { opacity: 1; }
 @media (hover: none) { .sec-tools { opacity: .8; } }
-.sec-tools button { border: 0; background: none; color: var(--accent); font-size: 11.5px; padding: 3px 7px; border-radius: 5px; cursor: pointer; font-family: var(--sans); }
+.sec-tools button { border: 0; background: none; color: var(--accent); font-size: 12.5px; padding: 3px 7px; border-radius: 5px; cursor: pointer; font-family: var(--sans); }
 .sec-tools button:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 12%, transparent); }
 .sec-tools button:disabled { color: var(--muted); cursor: default; }
 .sec-edit textarea { width: 100%; font-family: var(--serif); font-size: inherit; line-height: 1.6; margin: 4px 0 8px; }
 .sec-edit-actions { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px; font-family: var(--sans); }
-.scr-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 auto 14px; max-width: 720px; width: 100%; font-size: 12px; }
+.scr-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 auto 14px; max-width: 720px; width: 100%; font-size: 13px; }
 .scr-strip-lbl { color: var(--muted); margin-right: 2px; }
-.scr-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--paper); color: var(--muted); cursor: pointer; font-size: 12px; font-family: var(--sans); }
+.scr-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--paper); color: var(--muted); cursor: pointer; font-size: 13px; font-family: var(--sans); }
 .scr-chip b { font-weight: 600; }
 .scr-chip.on { border-color: color-mix(in oklab, var(--accent) 45%, var(--line)); background: color-mix(in oklab, var(--accent) 7%, var(--paper)); color: var(--ink); }
 .scr-chip input { margin: 0; accent-color: var(--accent); }
 .scr-chip.pending { border-style: dashed; color: var(--muted); }
 .scr-chip.pending:hover { border-color: var(--accent); color: var(--ink); }
-.revise-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 auto 14px; max-width: 720px; width: 100%; font-size: 12px; }
+.revise-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 auto 14px; max-width: 720px; width: 100%; font-size: 13px; }
 .revise-bar .lbl { color: var(--muted); margin-right: 4px; }
-.revise-bar .btn { padding: 5px 10px; font-size: 12px; }
+.revise-bar .btn { padding: 5px 10px; font-size: 13px; }
 .revise-custom { display: flex; gap: 6px; flex: 1 1 260px; min-width: 0; }
-.revise-custom .input { flex: 1; min-width: 0; padding: 5px 10px; font-size: 12.5px; }
+.revise-custom .input { flex: 1; min-width: 0; padding: 5px 10px; font-size: 13px; }
 .paper .empty { font-family: var(--sans); color: var(--muted); font-size: 13.5px; text-align: center; padding: 64px 20px; }
 .paper .empty .icon {
   width: 36px; height: 36px; margin: 0 auto 14px; border-radius: 50%;
@@ -469,13 +469,13 @@ textarea { resize: vertical; }
   background: color-mix(in oklab, var(--warn) 8%, var(--paper));
   border: 1px solid color-mix(in oklab, var(--warn) 25%, var(--line));
   border-radius: var(--r); padding: 12px 16px;
-  font-size: 12.5px; color: var(--ink-2); display: flex; gap: 12px; align-items: flex-start;
+  font-size: 13px; color: var(--ink-2); display: flex; gap: 12px; align-items: flex-start;
 }
-.flag-bar .lbl { font-weight: 600; color: var(--warn); letter-spacing: 0.04em; text-transform: uppercase; font-size: 11px; }
+.flag-bar .lbl { font-weight: 600; color: var(--warn); letter-spacing: 0.04em; text-transform: uppercase; font-size: 12px; }
 .flag-bar ul { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
 .flag-bar li {
   background: var(--paper); border: 1px solid var(--line);
-  padding: 2px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11.5px;
+  padding: 2px 8px; border-radius: 4px; font-family: var(--mono); font-size: 12.5px;
 }
 
 /* HIPAA */
@@ -484,44 +484,44 @@ textarea { resize: vertical; }
   background: color-mix(in oklab, var(--ok) 10%, var(--paper));
   border: 1px solid color-mix(in oklab, var(--ok) 35%, var(--line));
   color: color-mix(in oklab, var(--ok) 75%, var(--ink));
-  padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
 }
 .hipaa-badge .ico { width: 12px; height: 12px; }
 .hipaa-card { border-color: color-mix(in oklab, var(--ok) 22%, var(--line)); background: color-mix(in oklab, var(--ok) 4%, var(--paper)); }
-.hipaa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; color: var(--ink-2); }
+.hipaa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
 .hipaa-cell { display: flex; flex-direction: column; gap: 2px; padding: 7px 9px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-sm); }
-.hipaa-cell b { font-weight: 600; font-size: 11px; color: var(--ink); }
-.hipaa-cell span { color: var(--muted); font-size: 10.5px; line-height: 1.35; }
+.hipaa-cell b { font-weight: 600; font-size: 12px; color: var(--ink); }
+.hipaa-cell span { color: var(--muted); font-size: 11.5px; line-height: 1.35; }
 
 /* Misc */
-.api-key-note { font-size: 11.5px; color: var(--muted); line-height: 1.45; margin: 0; }
+.api-key-note { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin: 0; }
 .spin { width: 12px; height: 12px; border: 1.5px solid color-mix(in oklab, currentColor 30%, transparent); border-top-color: currentColor; border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .toast {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
   background: var(--ink); color: var(--paper); padding: 9px 16px;
-  border-radius: 999px; font-size: 12.5px;
+  border-radius: 999px; font-size: 13px;
   box-shadow: 0 6px 24px oklch(20% 0 0 / .25); z-index: 9999; animation: toast .25s ease;
 }
 @keyframes toast { from { transform: translate(-50%, 12px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 .muted { color: var(--muted); }
-.note-sm { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+.note-sm { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
 
 /* Allowlist chip editor */
 .allowlist-wrap { margin-top: 10px; }
-.allowlist-label { font-size: 11px; color: var(--ink-2); margin-bottom: 5px; font-weight: 500; letter-spacing: 0.02em; }
+.allowlist-label { font-size: 12px; color: var(--ink-2); margin-bottom: 5px; font-weight: 500; letter-spacing: 0.02em; }
 .al-add-row {
   display: flex; gap: 7px; align-items: center;
 }
 .al-add-input {
   flex: 1; border: 1px solid var(--line); border-radius: var(--r-sm);
-  background: var(--bg); font-size: 12.5px; color: var(--ink);
+  background: var(--bg); font-size: 13px; color: var(--ink);
   padding: 6px 10px; outline: none; transition: border-color .15s;
 }
 .al-add-input:focus { border-color: var(--accent); }
 .al-add-input::placeholder { color: var(--muted); }
 .al-add-btn {
-  flex-shrink: 0; padding: 6px 12px; font-size: 12px; font-weight: 500;
+  flex-shrink: 0; padding: 6px 12px; font-size: 13px; font-weight: 500;
   background: var(--accent-soft); border: 1px solid var(--accent);
   color: var(--accent); border-radius: var(--r-sm); cursor: pointer; transition: background .12s;
 }
@@ -529,7 +529,7 @@ textarea { resize: vertical; }
 .al-manage-toggle {
   display: flex; align-items: center; gap: 5px; margin-top: 8px;
   background: none; border: none; cursor: pointer; padding: 0;
-  font-size: 11.5px; color: var(--accent); font-weight: 500; line-height: 1;
+  font-size: 12.5px; color: var(--accent); font-weight: 500; line-height: 1;
 }
 .al-manage-toggle .al-arrow { font-size: 9px; transition: transform .15s; display: inline-block; }
 .al-manage-toggle.open .al-arrow { transform: rotate(180deg); }
@@ -537,14 +537,14 @@ textarea { resize: vertical; }
   margin-top: 8px; padding: 10px; border: 1px solid var(--line);
   border-radius: var(--r-sm); background: var(--bg);
 }
-.al-manage-panel-empty { font-size: 12px; color: var(--muted); }
+.al-manage-panel-empty { font-size: 13px; color: var(--muted); }
 .al-chips-list { display: flex; flex-wrap: wrap; gap: 5px; }
 .al-chip {
   display: inline-flex; align-items: center; gap: 2px;
   background: color-mix(in oklab, var(--ok) 14%, var(--paper));
   border: 1px solid color-mix(in oklab, var(--ok) 28%, var(--line));
   color: var(--ink); border-radius: 999px; padding: 2px 4px 2px 9px;
-  font-size: 11.5px; line-height: 1.4; white-space: nowrap;
+  font-size: 12.5px; line-height: 1.4; white-space: nowrap;
 }
 .al-rm {
   background: none; border: none; cursor: pointer; color: var(--ink-2);
@@ -557,24 +557,24 @@ textarea { resize: vertical; }
 .goal-card { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 12px; margin-bottom: 10px; background: var(--bg); }
 .goal-card:last-child { margin-bottom: 0; }
 .goal-card-meta { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
-.goal-date { font-size: 12px; color: var(--ink-2); flex: 1; min-width: 120px; }
-.goal-date input { border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--ink); font-size: 12px; padding: 4px 7px; outline: none; }
+.goal-date { font-size: 13px; color: var(--ink-2); flex: 1; min-width: 120px; }
+.goal-date input { border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--ink); font-size: 13px; padding: 4px 7px; outline: none; }
 .goal-date input:focus { border-color: var(--accent); }
-.goal-rm { margin-top: 8px; font-size: 11.5px; color: var(--danger); background: none; border: none; cursor: pointer; padding: 0; font-weight: 500; }
+.goal-rm { margin-top: 8px; font-size: 12.5px; color: var(--danger); background: none; border: none; cursor: pointer; padding: 0; font-weight: 500; }
 .goal-rm:hover { text-decoration: underline; }
 .add-goal-btn { width: 100%; margin-top: 10px; padding: 8px; border: 1.5px dashed var(--line-2); border-radius: var(--r-sm); background: none; color: var(--accent); font-size: 13px; font-weight: 500; cursor: pointer; transition: border-color .12s, background .12s; }
 .add-goal-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
-.goal-status-hint { font-size: 11px; color: var(--muted); margin-top: 10px; }
-.plan-goals-ref { font-size: 12px; color: var(--ink-2); margin-top: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); }
+.goal-status-hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+.plan-goals-ref { font-size: 13px; color: var(--ink-2); margin-top: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); }
 .plan-goals-ref strong { font-weight: 600; color: var(--ink); }
 
 /* Screening scores */
 .score-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .score-row { display: flex; align-items: center; gap: 8px; }
-.score-label { font-size: 12px; font-weight: 600; color: var(--ink); min-width: 52px; font-family: var(--mono); }
+.score-label { font-size: 13px; font-weight: 600; color: var(--ink); min-width: 52px; font-family: var(--mono); }
 .score-input { width: 62px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--ink); font-size: 13px; padding: 5px 8px; outline: none; text-align: center; }
 .score-input:focus { border-color: var(--accent); }
-.score-badge { font-size: 11px; border-radius: 999px; padding: 2px 8px; font-weight: 500; white-space: nowrap; }
+.score-badge { font-size: 12px; border-radius: 999px; padding: 2px 8px; font-weight: 500; white-space: nowrap; }
 .score-badge.minimal { background: color-mix(in oklab, var(--ok) 14%, var(--paper)); color: color-mix(in oklab, var(--ok) 70%, var(--ink)); }
 .score-badge.mild { background: color-mix(in oklab, #f5a623 14%, var(--paper)); color: color-mix(in oklab, #f5a623 80%, var(--ink)); }
 .score-badge.moderate { background: color-mix(in oklab, var(--danger) 10%, var(--paper)); color: color-mix(in oklab, var(--danger) 70%, var(--ink)); }
@@ -587,7 +587,7 @@ textarea { resize: vertical; }
 .stt-btn:hover { border-color: var(--accent); color: var(--accent); }
 .stt-btn.active { border-color: var(--danger); color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, var(--paper)); animation: stt-pulse 1.2s ease-in-out infinite; }
 .stt-btn.active .ico { animation: none; }
-.dictate-fab { position: fixed; right: 20px; bottom: 20px; z-index: 40; display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; background: var(--paper); border: 1px solid var(--line-2); border-radius: 999px; box-shadow: var(--shadow-paper); font-size: 12px; color: var(--ink-2); max-width: calc(100vw - 32px); }
+.dictate-fab { position: fixed; right: 20px; bottom: 20px; z-index: 40; display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; background: var(--paper); border: 1px solid var(--line-2); border-radius: 999px; box-shadow: var(--shadow-paper); font-size: 13px; color: var(--ink-2); max-width: calc(100vw - 32px); }
 .dictate-fab .stt-btn { position: static; width: 34px; height: 34px; flex-shrink: 0; }
 .dictate-fab .stt-btn:disabled { opacity: 0.45; cursor: default; }
 .dictate-fab.active { border-color: var(--danger); }
@@ -601,16 +601,16 @@ textarea { resize: vertical; }
 .safety-main { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); gap: 24px; overflow-y: auto; padding: 28px 32px 80px; align-items: start; }
 .safety-fields { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .safety-side { position: sticky; top: 0; display: flex; flex-direction: column; gap: 14px; }
-.sp-intro { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 0; }
+.sp-intro { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0; }
 .sp-section { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; box-shadow: var(--shadow-paper); }
 .sp-section h4 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 4px; display: flex; align-items: center; }
-.sp-hint { font-size: 11.5px; color: var(--muted); margin-bottom: 8px; display: block; }
+.sp-hint { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; display: block; }
 .sp-section textarea { width: 100%; resize: vertical; }
-.sp-step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: var(--paper); font-size: 11px; font-weight: 700; margin-right: 8px; flex-shrink: 0; }
+.sp-step-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: var(--paper); font-size: 12px; font-weight: 700; margin-right: 8px; flex-shrink: 0; }
 .sp-progress { display: flex; gap: 4px; margin: 8px 0 4px; }
 .sp-progress span { flex: 1; height: 6px; border-radius: 3px; background: var(--line); }
 .sp-progress span.on { background: var(--accent); }
-.sp-preview { font-size: 12.5px; color: var(--ink-2); line-height: 1.55; }
+.sp-preview { font-size: 13px; color: var(--ink-2); line-height: 1.55; }
 .sp-preview div { margin-bottom: 4px; overflow-wrap: anywhere; }
 .sp-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .jump-fab { display: none; }
@@ -638,20 +638,20 @@ textarea { resize: vertical; }
 .screening-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; align-items: start; }
 .screening-tool { background: var(--paper); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-paper); }
 .screening-tool h3 { font-family: var(--serif); font-size: 16px; font-weight: 500; margin: 0 0 2px; }
-.screening-tool .st-meta { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.screening-tool .st-meta { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
 .st-question { display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .st-question:last-of-type { border-bottom: none; }
 .st-q-text { font-size: 13px; color: var(--ink); line-height: 1.45; }
-.st-q-num { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.st-q-num { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 2px; }
 .st-options { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
-.st-opt { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 11.5px; background: none; cursor: pointer; color: var(--ink-2); transition: all .12s; white-space: nowrap; }
+.st-opt { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 12.5px; background: none; cursor: pointer; color: var(--ink-2); transition: all .12s; white-space: nowrap; }
 .st-opt:hover { border-color: var(--accent); color: var(--accent); }
 .st-opt.sel { background: var(--accent); border-color: var(--accent); color: var(--paper); }
 .st-score-bar { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; border-radius: var(--r-sm); background: var(--bg); }
 .st-score-num { font-family: var(--serif); font-size: 28px; font-weight: 500; line-height: 1; color: var(--ink); min-width: 40px; }
 .st-score-detail { flex: 1; }
 .st-score-detail .sev { font-size: 13px; font-weight: 600; }
-.st-score-detail .range { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.st-score-detail .range { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
 .st-score-detail .progress { height: 5px; border-radius: 999px; background: var(--line); margin-top: 6px; overflow: hidden; }
 .st-score-detail .progress-fill { height: 100%; border-radius: 999px; transition: width .3s; }
 .st-score-detail .progress-fill.minimal { background: var(--ok); }
@@ -659,7 +659,7 @@ textarea { resize: vertical; }
 .st-score-detail .progress-fill.moderate { background: color-mix(in oklab, var(--danger) 70%, #f5a623); }
 .st-score-detail .progress-fill.severe { background: var(--danger); }
 .st-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.st-clear { font-size: 12px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; }
+.st-clear { font-size: 13px; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; }
 .st-clear:hover { color: var(--danger); }
 .tool-selector-wrap { background: var(--paper); border-radius: var(--r); padding: var(--pad); box-shadow: var(--shadow-paper); }
 .tool-selector-wrap h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 12px; }
@@ -667,8 +667,8 @@ textarea { resize: vertical; }
 .tool-card { border: 1.5px solid var(--line); border-radius: var(--r); padding: 10px 13px; cursor: pointer; background: var(--bg); transition: border-color .12s, background .12s; text-align: left; font: inherit; min-width: 140px; }
 .tool-card:hover, .tool-card.selected { border-color: var(--accent); background: var(--accent-soft); }
 .tool-card .tc-label { font-weight: 600; font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 6px; }
-.tool-card .tc-desc { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
-.tool-card .tc-sub { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+.tool-card .tc-desc { font-size: 13px; color: var(--ink-2); margin-top: 1px; }
+.tool-card .tc-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
 .tool-card .tc-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: var(--line-2); }
 .tool-card.selected .tc-dot { background: var(--accent); }
 .tool-card.done .tc-dot { background: var(--ok); }
@@ -680,16 +680,16 @@ textarea { resize: vertical; }
 .ts-chevron { font-size: 9px; color: var(--muted); transition: transform .15s; flex-shrink: 0; }
 .ts-chevron.open { transform: rotate(90deg); }
 .ts-title { font-weight: 600; font-size: 13.5px; flex: 1; }
-.ts-title .ts-full { font-weight: 400; color: var(--muted); margin-left: 6px; font-size: 12.5px; }
-.ts-meta { font-size: 11.5px; color: var(--muted); }
+.ts-title .ts-full { font-weight: 400; color: var(--muted); margin-left: 6px; font-size: 13px; }
+.ts-meta { font-size: 12.5px; color: var(--muted); }
 .ts-rm { font-size: 18px; line-height: 1; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
 .ts-rm:hover { color: var(--danger); background: color-mix(in oklab, var(--danger) 10%, transparent); }
 .tool-sec-body { border-top: 1px solid var(--line); padding: 16px; }
-.tool-sec-body .st-meta { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+.tool-sec-body .st-meta { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
 .st-part { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; padding-bottom: 6px; border-bottom: 1px solid var(--line-2, var(--line)); }
 .st-part:first-of-type { margin-top: 0; }
 .st-part-label { font-family: var(--serif); font-size: 15px; font-weight: 500; color: var(--ink); }
-.st-part-note { font-size: 11.5px; color: var(--muted); }
+.st-part-note { font-size: 12.5px; color: var(--muted); }
 .st-part .score-badge { margin-left: auto; }
 .st-question.skipped { opacity: 0.45; }
 .st-skip-note { margin-left: 8px; font-family: var(--sans); font-style: italic; }
@@ -699,9 +699,9 @@ textarea { resize: vertical; }
 .screening-integration h3 { font-family: var(--serif); font-size: 15px; font-weight: 500; margin: 0 0 10px; }
 .si-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 14px; }
 .si-result { padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); }
-.si-result .name { font-size: 12px; font-weight: 600; color: var(--ink); font-family: var(--mono); }
+.si-result .name { font-size: 13px; font-weight: 600; color: var(--ink); font-family: var(--mono); }
 .si-result .score { font-size: 22px; font-family: var(--serif); font-weight: 500; line-height: 1.2; }
-.si-result .sev-label { font-size: 11px; margin-top: 2px; }
+.si-result .sev-label { font-size: 12px; margin-top: 2px; }
 .si-result.empty { color: var(--muted); }
 .si-result.empty .score { font-size: 14px; color: var(--muted); }
 
@@ -710,49 +710,144 @@ textarea { resize: vertical; }
 .sidebar::-webkit-scrollbar-thumb, .main::-webkit-scrollbar-thumb, .screening-main::-webkit-scrollbar-thumb { background: color-mix(in oklab, var(--ink) 12%, transparent); border-radius: 999px; border: 3px solid var(--bg); }
 .sidebar::-webkit-scrollbar-thumb { border-color: var(--bg-2); }
 
+
+/* Collapsible cards (Fold) */
+.card.fold > h3 { display: block; margin: 0; }
+.card.fold.open > h3 { margin-bottom: 12px; }
+.card.fold.closed { padding-top: 11px; padding-bottom: 11px; }
+.fold-head { appearance: none; border: 0; background: none; padding: 0; margin: 0; width: 100%; display: flex; align-items: baseline; gap: 8px; font: inherit; color: inherit; letter-spacing: inherit; cursor: pointer; text-align: left; }
+.fold-head:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.fold-chev { font-size: 11px; color: var(--muted); transition: transform .15s; flex-shrink: 0; display: inline-block; }
+.fold.open .fold-chev { transform: rotate(90deg); }
+.fold-title { flex: 0 0 auto; }
+.fold-head .hint { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+.fold.closed .fold-head .hint { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+
+/* Progress Note form: slim top row, compact privacy row, pinned Generate bar */
+.card.top-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 12px; padding-bottom: 12px; }
+.card.top-row .row { margin: 0; min-width: 0; }
+.card.top-row .row:only-child { grid-column: 1 / -1; }
+.card.privacy-card { padding-top: 10px; padding-bottom: 10px; }
+.card.privacy-card .row { margin-top: 0 !important; }
+.privacy-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+.privacy-line .off { color: var(--warn); font-weight: 600; }
+.link-btn { appearance: none; border: 0; background: none; padding: 0; font: inherit; font-size: 12.5px; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.plain-list { margin: 0 0 4px; padding-left: 18px; color: var(--ink-2); font-size: 13.5px; line-height: 1.55; }
+.plain-list li { margin-bottom: 4px; }
+.gen-bar { position: sticky; bottom: calc(-1 * var(--pad)); z-index: 5; margin: auto calc(-1 * var(--pad)) calc(-1 * var(--pad)); padding: 12px var(--pad); background: color-mix(in oklab, var(--bg-2) 92%, transparent); backdrop-filter: blur(6px); border-top: 1px solid var(--line); }
+.gen-bar .gen-btn { width: 100%; justify-content: center; padding: 11px 14px; font-size: 14px; }
+.gen-bar .flag-bar { margin-bottom: 10px; }
+button.hipaa-badge { cursor: pointer; font-family: inherit; }
+button.hipaa-badge:hover { border-color: var(--ok); }
+.ap-text { display: none; }
+@media (min-width: 1700px) { .ap-text { display: inline; } }
+.paper .empty-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+/* Interventions grouped under headings */
+.chip-group + .chip-group { margin-top: 10px; }
+.chip-group-label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.02em; margin-bottom: 5px; }
+
+/* Group notes */
+.member-row { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px; }
+.member-head { display: flex; gap: 6px; align-items: center; }
+.member-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 auto 14px; max-width: 720px; width: 100%; font-size: 13px; }
+.member-bar .lbl { color: var(--muted); }
+.member-bar .seg { flex-wrap: wrap; flex: 0 1 auto; width: auto; }
+.member-bar .seg button { flex: 0 0 auto; }
+
+/* Note check */
+.note-check { width: 100%; max-width: 720px; margin-top: 14px; border: 1px solid color-mix(in oklab, var(--warn) 25%, var(--line)); background: color-mix(in oklab, var(--warn) 6%, var(--paper)); border-radius: var(--r); font-size: 13px; color: var(--ink-2); }
+.note-check.clean { border-color: color-mix(in oklab, var(--ok) 25%, var(--line)); background: color-mix(in oklab, var(--ok) 5%, var(--paper)); }
+.nc-head { appearance: none; border: 0; background: none; width: 100%; padding: 10px 14px; display: flex; align-items: baseline; gap: 8px; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+.note-check ul { list-style: none; margin: 0; padding: 0 14px 10px; }
+.note-check li { display: flex; gap: 8px; padding: 4px 0; line-height: 1.45; }
+.nc-mark { flex: 0 0 16px; font-weight: 700; text-align: center; }
+.note-check li.ok .nc-mark { color: var(--ok); }
+.note-check li.gap .nc-mark { color: var(--warn); }
+.note-check li.ok strong { font-weight: 500; }
+.nc-detail { color: var(--ink-2); }
+.nc-foot { color: var(--muted); font-size: 12.5px; padding-top: 8px; }
+
+/* Templates and wide dialogs */
+.tpl-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.modal.wide { max-width: 620px; }
+.modal { max-height: calc(100vh - 40px); overflow-y: auto; }
+
+/* Client-facing screening: full screen, one question at a time */
+.client-screen { position: fixed; inset: 0; z-index: 1000; background: var(--paper); overflow-y: auto; display: flex; flex-direction: column; align-items: center; padding: 20px 20px 40px; }
+.cs-exit { align-self: flex-end; appearance: none; border: 1px solid var(--line); background: none; color: var(--muted); font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; cursor: pointer; }
+.cs-body { width: 100%; max-width: 620px; margin: auto 0; padding: 20px 0; }
+.cs-progress { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.cs-stem { font-size: 15px; color: var(--ink-2); font-style: italic; margin-bottom: 10px; line-height: 1.5; }
+.cs-body h2 { font-family: var(--serif); font-weight: 500; font-size: 24px; line-height: 1.35; margin: 0 0 24px; }
+.cs-body p { font-size: 16px; color: var(--ink-2); }
+.cs-options { display: flex; flex-direction: column; gap: 10px; }
+.cs-opt { appearance: none; text-align: left; font: inherit; font-size: 17px; padding: 16px 18px; border: 1.5px solid var(--line-2); border-radius: 12px; background: var(--paper); color: var(--ink); cursor: pointer; }
+.cs-opt:hover { border-color: var(--ink-2); }
+.cs-opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+.cs-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 24px; }
+
+/* Printable note, letter or handout: rendered into <body> through a portal, shown only while printing it. */
+.pn-print { display: none; }
+@media print {
+  body.print-doc > *:not(.pn-print) { display: none !important; }
+  body.print-doc { background: #fff !important; }
+  body.print-doc .pn-print { display: block; color: #000; font-family: Georgia, 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; }
+  .pn-print h1 { font-size: 18pt; font-weight: normal; margin: 0 0 6pt; }
+  .pn-print .sp-print-meta { display: flex; gap: 28pt; margin: 6pt 0 14pt; font-size: 11pt; }
+  .pn-print .sp-print-meta span { flex: 1; border-bottom: 1px solid #000; padding-bottom: 2pt; }
+  .pn-print .text { white-space: pre-wrap; }
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
-  .app { grid-template-columns: minmax(340px, 400px) 1fr; }
+  .app { grid-template-columns: minmax(340px, 44%) 1fr; }
   .paper { padding: 44px 48px; }
   .main { padding: 22px 26px 80px; }
 }
 @media (max-width: 900px) {
-  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; height: auto; min-height: 100vh; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; height: auto; min-height: 100vh; overflow: clip; }
   .topbar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
   .topbar .brand h1 { font-size: 16px; }
   .topbar .brand .tag { display: none; }
-  .topbar .meta { font-size: 11px; gap: 6px; flex: 0 0 auto; }
+  .topbar .meta { font-size: 12px; gap: 6px; flex: 0 0 auto; }
   .mode-sel { order: 3; flex-basis: 100%; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; scroll-snap-type: x proximity; }
   .mode-sel::-webkit-scrollbar { display: none; }
-  .mode-sel button { flex: 1 0 auto; font-size: 12.5px; padding: 8px 12px; scroll-snap-align: start; }
+  .mode-sel { padding-right: 28px; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent); }
+  .gen-bar { bottom: 0; margin: 0 -14px -14px; padding: 10px 14px; }
+  .card.top-row { grid-template-columns: 1fr; }
+  .cs-body h2 { font-size: 20px; }
+  .mode-sel button { flex: 1 0 auto; font-size: 13px; padding: 8px 12px; scroll-snap-align: start; }
   .topbar .brand { min-width: 0; }
-  .hipaa-badge { padding: 3px 8px; font-size: 10.5px; }
-  .sidebar { border-right: 0; border-bottom: 1px solid var(--line); max-height: none; overflow-y: visible; padding: 14px; gap: 12px; }
+  .hipaa-badge { padding: 3px 8px; font-size: 11.5px; }
+  .sidebar { border-right: 0; border-bottom: 1px solid var(--line); max-height: none; overflow: visible; padding: 14px; gap: 12px; }
   .main { padding: 18px 14px 100px; overflow-y: visible; }
   .paper { padding: 32px 24px; border-radius: 10px; min-height: auto; }
-  .paper .meta { font-size: 10.5px; padding-bottom: 14px; margin-bottom: 18px; }
+  .paper .meta { font-size: 11.5px; padding-bottom: 14px; margin-bottom: 18px; }
   .note-toolbar { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 14px; }
-  .note-toolbar .left { font-size: 11.5px; }
+  .note-toolbar .left { font-size: 12.5px; }
   .note-toolbar .actions { width: 100%; flex-wrap: wrap; }
-  .note-toolbar .actions .btn { flex: 1; min-width: 0; justify-content: center; padding: 10px 12px; }
+  .note-toolbar .actions .btn { flex: 1 1 40%; min-width: 0; justify-content: center; padding: 10px 12px; }
   .hipaa-grid { grid-template-columns: 1fr; }
   .jump-fab {
     white-space: nowrap;
     position: fixed; right: 14px; bottom: 14px; z-index: 200;
     background: var(--ink); color: var(--paper); border: 0; padding: 10px 16px;
-    border-radius: 999px; font-size: 12.5px; font-weight: 500;
+    border-radius: 999px; font-size: 13px; font-weight: 500;
     box-shadow: 0 8px 22px oklch(20% 0 0 / .25); cursor: pointer;
     display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
   }
   .jump-fab .ico { width: 13px; height: 13px; }
+  .jump-fab.raised { bottom: 78px; }
 }
 @media (max-width: 560px) {
   .topbar { padding: 8px 12px; }
   .brand .mark { width: 18px; height: 18px; }
   .topbar .brand h1 { font-size: 15px; }
   .topbar .meta .kb-text { display: none; }
-  .mode-sel button { font-size: 12px; padding: 8px 11px; }
+  .mode-sel button { font-size: 13px; padding: 8px 11px; }
   .sidebar { padding: 12px; gap: 10px; }
+  .gen-bar { margin: 0 -12px -12px; padding: 10px 12px; }
   .card { padding: 14px; border-radius: 9px; }
   .card h3 { font-size: 13.5px; margin-bottom: 10px; }
   .main { padding: 14px 10px 100px; }
@@ -760,8 +855,8 @@ textarea { resize: vertical; }
   .paper h2.note-section { margin: 20px 0 8px; }
   .mse { grid-template-columns: 1fr; }
   .chips { gap: 5px; }
-  .chip { padding: 6px 10px; font-size: 11.5px; }
-  .seg button { padding: 9px 8px; font-size: 12.5px; min-height: 36px; }
+  .chip { padding: 6px 10px; font-size: 12.5px; }
+  .seg button { padding: 9px 8px; font-size: 13px; min-height: 36px; }
   .tabs button { padding: 9px 10px; min-height: 36px; }
   .tone-stacked button { padding: 10px 12px; }
   .btn { padding: 10px 14px; min-height: 40px; font-size: 13px; }
@@ -772,7 +867,7 @@ textarea { resize: vertical; }
   .tg[data-on="1"] i { transform: translateX(18px); }
   .risk-row { grid-template-columns: 1fr; gap: 6px; }
   .risk-row .tri { width: 100%; }
-  .risk-row .tri button { flex: 1; padding: 7px 4px; min-height: 32px; font-size: 11px; }
+  .risk-row .tri button { flex: 1; padding: 7px 4px; min-height: 32px; font-size: 12px; }
   .modal { padding: 22px 20px 18px; border-radius: 12px; }
   .modal h3 { font-size: 17px; }
   .modal-actions { flex-direction: column-reverse; }
@@ -833,23 +928,34 @@ window.PN_LIB = (() => {
     },
   };
 
+  // Writer-defined note templates (headings only). Registered under "custom:<id>" so
+  // buildPrompt and parseNote treat them like any other sectioned format.
+  const cleanHeadings = (v) => (Array.isArray(v) ? v : String(v || '').split(/[\n,]+/))
+    .map((h) => String(h).replace(/[^A-Za-z0-9 &/'()\-]/g, '').trim().slice(0, 40)).filter(Boolean).slice(0, 12);
+  function registerTemplates(list) {
+    (list || []).forEach((t) => {
+      const sections = cleanHeadings(t.sections);
+      const name = String(t.name || '').replace(/[^A-Za-z0-9 &/'()\-]/g, '').trim().slice(0, 40);
+      if (!t.id || !name || !sections.length) return;
+      FORMATS['custom:' + t.id] = { name, full: name, sections, hidden: true, custom: true,
+        description: 'Write each section under its heading, using only the information provided. Leave out a section only if the notes hold nothing for it.' };
+    });
+  }
+
   const TONES = {
     conversational: { label: 'Conversational', desc: 'Approachable, plain-language; minimal jargon', guidance: 'Write in a warm, plain-spoken professional voice. Avoid heavy clinical jargon. Use everyday words where possible while keeping clinical accuracy.' },
     balanced: { label: 'Balanced', desc: 'Standard clinical documentation tone', guidance: 'Write in standard clinical documentation tone: professional, concise, and observational. Use clinical terminology where it adds precision but do not over-formalize.' },
     clinical: { label: 'Highly Clinical', desc: 'Formal, terminology-forward, billing-ready', guidance: 'Write in a highly clinical, formal register suitable for medical records and billing review. Use precise clinical terminology, formal syntax, and third-person observational phrasing throughout.' },
   };
 
-  const INTERVENTIONS = [
-    'CBT', 'DBT', 'ACT', 'Motivational Interviewing', 'Psychodynamic',
-    'Behavioral Activation', 'Cognitive Restructuring', 'Exposure',
-    'Mindfulness', 'Solution-Focused', 'Narrative Therapy',
-    'IFS (Parts Work)', 'EMDR Prep', 'Psychoeducation',
-    'Reflective Listening', 'Validation', 'Reframing', 'Grounding',
-    'Skills Training', 'Relapse Prevention', 'Crisis Planning',
-    'Family Systems', 'Trauma-Focused CBT', 'Supportive Therapy', 'IPT',
-    'Cognitive Processing Therapy', 'Prolonged Exposure', 'Play Therapy',
-    'Case Management', 'Care Coordination',
+  // Grouped for the picker. INTERVENTIONS stays the flat list other code uses.
+  const INTERVENTION_GROUPS = [
+    { label: 'Approaches', items: ['CBT', 'DBT', 'ACT', 'Motivational Interviewing', 'Psychodynamic', 'Solution-Focused', 'Narrative Therapy', 'IFS (Parts Work)', 'Family Systems', 'IPT', 'Supportive Therapy', 'Play Therapy'] },
+    { label: 'Trauma-focused', items: ['Trauma-Focused CBT', 'Cognitive Processing Therapy', 'Prolonged Exposure', 'EMDR Prep', 'Exposure', 'Grounding'] },
+    { label: 'Skills and techniques', items: ['Behavioral Activation', 'Cognitive Restructuring', 'Mindfulness', 'Psychoeducation', 'Reflective Listening', 'Validation', 'Reframing', 'Skills Training', 'Relapse Prevention'] },
+    { label: 'Safety and coordination', items: ['Crisis Planning', 'Case Management', 'Care Coordination'] },
   ];
+  const INTERVENTIONS = INTERVENTION_GROUPS.flatMap((g) => g.items);
 
   const MSE_FIELDS = [
     { key: 'appearance', label: 'Appearance', options: ['', 'Well-groomed', 'Casually dressed', 'Disheveled', 'Appropriate to setting'] },
@@ -1259,7 +1365,7 @@ window.PN_LIB = (() => {
     return parts.filter(Boolean).join(' ');
   }
 
-  function buildPrompt({ noteType = 'session', format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, moodQuote, risk, riskExtra, redactedNames, sessionDuration, service, modality, telehealth, collateral, discharge, diagnoses, screeningScores, activeGoals, closedGoals, safetyPlanLines }) {
+  function buildPrompt({ noteType = 'session', format, tone, subject, conciseness, voiceMode, voiceStrength, inputMode, freeText, structured, bullets, interventions, mse, moodQuote, risk, riskExtra, redactedNames, sessionDuration, service, modality, telehealth, collateral, discharge, diagnoses, screeningScores, activeGoals, closedGoals, safetyPlanLines, previousNote }) {
     const fmt = FORMATS[noteType === 'discharge' ? 'discharge' : noteType === 'collateral' ? 'emr' : format];
     const toneInfo = TONES[tone];
     const conc = CONCISENESS[conciseness] || CONCISENESS.standard;
@@ -1368,6 +1474,13 @@ window.PN_LIB = (() => {
     }
     parts.push('');
     parts.push('--- END SESSION NOTES ---');
+    if (previousNote && previousNote.trim()) {
+      parts.push('');
+      parts.push('--- NOTE FROM THE PREVIOUS SESSION (for continuity only) ---');
+      parts.push(previousNote.trim());
+      parts.push('--- END PREVIOUS NOTE ---');
+      parts.push(`Use the previous note only to describe change since then (for example, follow-through on the earlier plan, or symptoms that improved, held steady or worsened), and only where this session's notes support the comparison. Never carry its content forward as if it happened this session.`);
+    }
     parts.push('');
     parts.push(`Now write the ${docKind}:`);
     return parts.join('\n');
@@ -1399,6 +1512,127 @@ window.PN_LIB = (() => {
   function plainNote(sections) {
     return sections.map((s) => s.body.trim()).filter(Boolean).join('\n\n');
   }
+  // ── Note check: an on-device review of a finished session note. No model call. ──
+  const VAGUE_PHRASES = ['seemed', 'appeared to be', 'doing well', 'doing better', 'good session', 'as usual', 'some progress', 'kind of', 'sort of'];
+  function auditNote({ text, sections, interventions, diagnoses, minutes, cptText, hasDate, signature, conciseness }) {
+    const t = text || '', lower = t.toLowerCase();
+    const sec = (re) => (sections || []).find((x) => x.heading && re.test(x.heading));
+    const filled = (x) => !!(x && x.body && x.body.trim().length > 15);
+    const out = [];
+    const add = (id, label, ok, detail) => out.push({ id, label, ok: !!ok, detail: ok ? '' : detail });
+
+    add('risk', 'Risk statement',
+      /\b(suicid|homicid|self[- ]harm|risk (was|is|level|assessment|remains)|risk was not assessed|safety plan|denied (all )?(si|hi|risk))/i.test(t),
+      'No risk statement found. Document risk, or state that it was not assessed.');
+    const named = (interventions || []).some((n) => lower.includes(n.toLowerCase().replace(/\s*\(.*\)$/, '')));
+    add('intervention', 'Intervention named',
+      named || filled(sec(/^intervention/i)) || /\bwriter (used|utilized|provided|facilitated|guided|introduced|reviewed|taught|practiced|applied|led|assisted|explored|validated|conducted|offered|supported|encouraged|processed)\b/i.test(t),
+      'The note does not say what the Writer did in session.');
+    add('response', 'Response to intervention',
+      filled(sec(/^response/i)) || /\b(respon(ded|se|sive)|engaged|receptive|was able to|identified|demonstrated|agreed|expressed|practiced)\b/i.test(t),
+      'The note does not describe how the client responded.');
+    add('plan', 'Plan or next step',
+      filled(sec(/^plan/i)) || /\b(next session|will (continue|return|meet|follow|practice|complete|bring)|follow[- ]up|homework|plans? to|scheduled)\b/i.test(t),
+      'No plan, homework or next contact is stated.');
+    const dx = (diagnoses || []).filter(Boolean);
+    if (!dx.length) add('dx', 'Diagnosis tied in', false, 'No diagnosis is entered, so the note cannot show medical necessity.');
+    else {
+      const hit = dx.some((d) => {
+        const code = (d.match(/[A-Z]\d{2}(?:\.\d+)?/) || [''])[0].toLowerCase();
+        const words = d.replace(/^.*?[—:-]\s*/, '').toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 4 && w !== 'disorder' && w !== 'primary' && w !== 'secondary');
+        return (code && lower.includes(code)) || words.some((w) => lower.includes(w));
+      });
+      add('dx', 'Diagnosis tied in', hit, 'A diagnosis is entered but the note does not refer to it.');
+    }
+    add('time', 'Session time and code', !!minutes && !!cptText,
+      !minutes ? 'Add start and end times so the header shows minutes and a code suggestion.' : 'No billing code fits the minutes entered.');
+    add('date', 'Date of service', !!hasDate, 'Add the session date so it appears in the header.');
+    add('signature', 'Signature line', !!(signature && signature.trim()), 'Add your signature line under Note settings.');
+    const words = (t.match(/\S+/g) || []).length;
+    const range = ((CONCISENESS[conciseness] || CONCISENESS.standard).words || '').split('-').map(Number);
+    add('length', 'Length', !(range.length === 2) || (words >= range[0] * 0.6 && words <= range[1] * 1.4),
+      `${words} words; the selected length aims for ${range.join(' to ')}.`);
+    const vague = VAGUE_PHRASES.filter((v) => new RegExp('\\b' + v + '\\b', 'i').test(t));
+    add('vague', 'Specific wording', !vague.length, `Vague wording an auditor may question: ${vague.map((v) => `"${v}"`).join(', ')}.`);
+    add('markers', 'No redaction markers left', !/\[[A-Z0-9+ ]+-REDACTED\]/.test(t),
+      'The note holds markers such as [DATE-REDACTED]. Replace them when you file the note.');
+    return out;
+  }
+
+  // ── Letters. The client's name and all dates stay on the device as placeholders. ──
+  const LETTER_TYPES = {
+    referral:     { label: 'Referral letter', ai: true, guidance: 'A referral to another provider or service. Cover the reason for referral, relevant background, current treatment, and what is being requested.' },
+    summary:      { label: 'Treatment summary', ai: true, guidance: 'A summary of treatment for another provider or a payer. Cover the reason for treatment, services provided, progress, current status and recommendations.' },
+    coordination: { label: 'Care coordination update', ai: true, guidance: 'A brief update for another provider involved in care. Cover the current focus of treatment, relevant changes, and any request or recommendation.' },
+    attendance:   { label: 'Attendance letter', ai: false },
+  };
+  function buildLetterPrompt({ type, recipientRole, details, diagnoses, screeningScores, hasSince, frequency }) {
+    const lt = LETTER_TYPES[type];
+    if (!lt || !lt.ai) throw new Error('Unknown letter type: ' + type);
+    const parts = [];
+    parts.push(`You are a licensed psychotherapist writing a ${lt.label.toLowerCase()}. ${lt.guidance}`);
+    parts.push('');
+    parts.push('RULES:');
+    parts.push('- Use ONLY the information provided below. Do not add history, symptoms, diagnoses, recommendations or requests that are not stated.');
+    parts.push('- Write the body of the letter only, in the first person ("I"), in plain professional language. Three to five short paragraphs.');
+    parts.push('- Refer to the person in treatment only as [CLIENT-NAME]. Keep that placeholder, and any other bracketed placeholder, exactly as written; they are filled in afterwards.');
+    parts.push('- Do not write a date, address block, greeting, closing or signature. Those are added separately.');
+    parts.push('- Share only what the stated purpose needs. Leave out detail that does not serve it.');
+    parts.push('- No em-dashes or en-dashes. No AI filler phrases. Output the letter body only.');
+    parts.push('');
+    parts.push('--- LETTER DATA ---');
+    if (recipientRole && recipientRole.trim()) parts.push(`Recipient: ${recipientRole.trim()}`);
+    if (hasSince) parts.push('In treatment since: [START-DATE]');
+    if (frequency) parts.push(`Session frequency: ${frequency}`);
+    if (Array.isArray(diagnoses) && diagnoses.length) parts.push(`Diagnoses: ${diagnoses.join('; ')}`);
+    if (Array.isArray(screeningScores) && screeningScores.length) parts.push(`Screening results: ${screeningScores.join('; ')}`);
+    parts.push('');
+    parts.push(`Purpose and details: ${(details || '').trim()}`);
+    parts.push('--- END LETTER DATA ---');
+    return parts.join('\n');
+  }
+  // Attendance letters carry no clinical content, so they are written on-device with no model call.
+  function buildAttendanceLetter({ since, frequency, lastSeen }) {
+    const parts = [`[CLIENT-NAME] has been attending outpatient psychotherapy with me${since ? ` since ${since}` : ''}${frequency ? `, with sessions scheduled ${frequency.toLowerCase()}` : ''}.`];
+    if (lastSeen) parts.push(`The most recent appointment attended was on ${lastSeen}.`);
+    parts.push('This letter confirms attendance only and is provided at the request of [CLIENT-NAME]. No clinical information is included.');
+    parts.push('Please contact me with any questions.');
+    return parts.join('\n\n');
+  }
+  // Date, greeting, body, closing and signature, assembled on-device.
+  function frameLetter({ today, recipientName, body, signature }) {
+    return [today, recipientName && recipientName.trim() ? `Dear ${recipientName.trim()},` : 'To whom it may concern,', body.trim(), ['Sincerely,', (signature || '').trim()].filter(Boolean).join('\n')]
+      .filter(Boolean).join('\n\n');
+  }
+
+  // Plain-language take-home summary. `note` must already be de-identified by the caller.
+  const HANDOUT_HEADINGS = ['What we worked on', 'Things to practice', 'Next steps'];
+  function buildHandoutPrompt({ note }) {
+    const parts = [];
+    parts.push('You are a licensed psychotherapist writing a short take-home summary for a client after a session. Use only the session note below.');
+    parts.push('');
+    parts.push('RULES:');
+    parts.push('- Write directly to the client as "you", in plain everyday words at about a 6th-grade reading level.');
+    parts.push('- Use exactly these three headings, each on its own line followed by a colon:');
+    HANDOUT_HEADINGS.forEach((h) => parts.push(`  ${h}:`));
+    parts.push('- Under "Things to practice" and "Next steps", write short lines that each start with "- ".');
+    parts.push('- Leave out diagnoses, codes, risk assessment, screening scores, mental status findings and clinical jargon.');
+    parts.push('- Do not add advice, exercises or appointments that are not in the note. If the note holds nothing for a section, write "Nothing specific this time."');
+    parts.push('- Do not use any names. Warm and matter-of-fact. No em-dashes. Under 180 words. Output the handout only.');
+    parts.push('');
+    parts.push('--- SESSION NOTE ---');
+    parts.push((note || '').trim());
+    parts.push('--- END SESSION NOTE ---');
+    return parts.join('\n');
+  }
+
+  // "Try an example": placeholder content so a new visitor can see the tool work. Not a real person.
+  const EXAMPLE = {
+    freeText: 'EXAMPLE ONLY, placeholder text. Client arrived on time. Reported feeling stressed about a work deadline and sleeping about five hours a night this week. Reviewed the thought record from last session; client completed three entries. Practiced a paced breathing exercise in session and client said it helped a little. Client agreed to keep a regular bedtime and to bring the thought record next week.',
+    interventions: ['CBT', 'Psychoeducation', 'Skills Training'],
+    note: 'Subjective:\nClient reported stress related to a work deadline and sleeping about five hours per night this week.\n\nObjective:\nClient arrived on time and had completed three thought record entries since the last session.\n\nAssessment:\nWriter reviewed the thought record with Client and used skills training to practice paced breathing. Client stated the exercise helped a little. Risk: Client denied suicidal ideation, homicidal ideation and self-harm.\n\nPlan:\nClient agreed to keep a regular bedtime and to bring the thought record to the next session.',
+  };
+
   // Prompts for revising an existing note. `context` is the original (already de-identified)
   // generation prompt; `note` must be de-identified by the caller before it is passed in.
   function buildRevisePrompt({ context, note, instruction, heading }) {
@@ -2074,7 +2308,7 @@ window.PN_LIB = (() => {
     };
   }
 
-  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, MSE_FIELDS, MSE_WNL, RISK_ITEMS, RISK_LEVELS, SI_DETAILS, DX_DATABASE, NOTE_TYPES, SERVICE_TYPES, MODALITIES, US_STATES, COLLATERAL_WITH, COLLATERAL_METHODS, DISCHARGE_REASONS, CANCEL_LABELS, CANCEL_REASONS, CANCEL_OUTREACH_LABELS, CANCEL_NEXT, INTAKE_HEADINGS, isRemote, suggestCPT, fmtDateUS, fillTokens, unfillTokens, buildServiceHeader, buildCancellationNote, buildPlanPrompt, detectNames, redactNames, parseNameList, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, joinNote, plainNote, buildRevisePrompt, scoreASRS, scoreCSSRS, cssrsApplies };
+  return { FORMATS, TONES, CONCISENESS, INTERVENTIONS, INTERVENTION_GROUPS, registerTemplates, cleanHeadings, auditNote, LETTER_TYPES, buildLetterPrompt, buildAttendanceLetter, frameLetter, HANDOUT_HEADINGS, buildHandoutPrompt, EXAMPLE, MSE_FIELDS, MSE_WNL, RISK_ITEMS, RISK_LEVELS, SI_DETAILS, DX_DATABASE, NOTE_TYPES, SERVICE_TYPES, MODALITIES, US_STATES, COLLATERAL_WITH, COLLATERAL_METHODS, DISCHARGE_REASONS, CANCEL_LABELS, CANCEL_REASONS, CANCEL_OUTREACH_LABELS, CANCEL_NEXT, INTAKE_HEADINGS, isRemote, suggestCPT, fmtDateUS, fillTokens, unfillTokens, buildServiceHeader, buildCancellationNote, buildPlanPrompt, detectNames, redactNames, parseNameList, detectPHI, redactPHI, makeSanitizer, scrubText, buildPrompt, buildIntakePrompt, buildDxPrompt, parseNote, joinNote, plainNote, buildRevisePrompt, scoreASRS, scoreCSSRS, cssrsApplies };
 })();
 </script>
 
@@ -2091,7 +2325,7 @@ const __TWEAKS_STYLE = `
     font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
   .twk-hd{display:flex;align-items:center;justify-content:space-between;
     padding:10px 8px 10px 14px;cursor:move;user-select:none}
-  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-hd b{font-size: 13px;font-weight:600;letter-spacing:.01em}
   .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
     width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
   .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
@@ -2103,7 +2337,7 @@ const __TWEAKS_STYLE = `
   .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;color:rgba(41,38,27,.72)}
   .twk-lbl>span:first-child{font-weight:500}
   .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
-  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  .twk-sect{font-size: 11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
     color:rgba(41,38,27,.45);padding:10px 0 0}
   .twk-sect:first-child{padding-top:0}
   .twk-field{appearance:none;width:100%;height:26px;padding:0 8px;
@@ -2294,12 +2528,15 @@ const Icon = {
 // Groq retires models on free keys (console.groq.com/docs/deprecations); swap this when it does.
 const GROQ_MODEL = 'openai/gpt-oss-120b';
 
-async function callGroq(prompt, token) {
+const stripThink = (t) => t.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/<think>[\s\S]*/i, '').trim();
+
+// onPartial(textSoFar): when given, the response is streamed and the callback is called as text arrives.
+async function callGroq(prompt, token, onPartial) {
   const model = GROQ_MODEL;
   const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_completion_tokens: 4000, temperature: 0.3, reasoning_effort: 'low', include_reasoning: false }),
+    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_completion_tokens: 4000, temperature: 0.3, reasoning_effort: 'low', include_reasoning: false, stream: !!onPartial }),
   });
   if (!resp.ok) {
     const body = await resp.text().catch(() => '');
@@ -2311,14 +2548,38 @@ async function callGroq(prompt, token) {
     if (resp.status === 429) throw new Error('Rate limit reached. Wait a moment and try again.');
     throw new Error(detail || `API error (${resp.status})`);
   }
-  const data = await resp.json();
-  const content = data.choices[0].message.content || '';
-  if (!content.trim()) throw new Error('Groq returned an empty response (' + (data.choices[0].finish_reason || 'unknown') + '). Try again.');
-  const stripped = content
-    .replace(/<think>[\s\S]*?<\/think>/gi, '')
-    .replace(/<think>[\s\S]*/i, '')
-    .trim();
-  return stripped;
+  let content = '', finish = 'unknown';
+  if (onPartial) {
+    // Server-sent events: "data: {json}" lines, ending with "data: [DONE]".
+    const reader = resp.body.getReader(), decoder = new TextDecoder();
+    let buf = '', last = 0;
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line.startsWith('data:')) continue;
+        const data = line.slice(5).trim();
+        if (!data || data === '[DONE]') continue;
+        const chunk = JSON.parse(data);
+        if (chunk.error) throw new Error(chunk.error.message || 'Groq stopped the response. Try again.');
+        const choice = chunk.choices && chunk.choices[0];
+        if (!choice) continue;
+        if (choice.delta && choice.delta.content) content += choice.delta.content;
+        if (choice.finish_reason) finish = choice.finish_reason;
+      }
+      const now = Date.now();
+      if (content && now - last > 80) { last = now; onPartial(stripThink(content)); }
+    }
+  } else {
+    const data = await resp.json();
+    content = data.choices[0].message.content || '';
+    finish = data.choices[0].finish_reason || 'unknown';
+  }
+  if (!content.trim()) throw new Error('Groq returned an empty response (' + finish + '). Try again.');
+  return stripThink(content);
 }
 
 function useToast() {
@@ -2410,25 +2671,48 @@ function fmtTime12(t) {
 function NamesToRedactField({ value, onChange }) {
   return (
     <div className="row" style={{marginTop:10,marginBottom:0}}>
-      <label htmlFor="always-redact">Names to always redact</label>
-      <input id="always-redact" className="input" type="text" autoComplete="off" spellCheck={false}
+      <label>Names to always redact</label>
+      <input className="input" type="text" autoComplete="off" spellCheck={false} aria-label="Names to always redact"
         placeholder="First and last names, comma separated" value={value} onChange={e => onChange(e.target.value)}/>
       <div className="note-sm" style={{marginTop:4}}>Replaced in any capitalization, including at the start of a sentence. Not saved; cleared by "Note completed".</div>
     </div>
   );
 }
 
-// Compact privacy settings shown on every tab that sends text to the model. Same App state everywhere.
+// Compact privacy row shown on every tab that sends text to the model. Same App state everywhere.
+// The full settings open in PrivacyModal (also from the shield in the header).
 function PrivacyControls({ ctl }) {
   return (
     <div className="card privacy-card">
-      <h3>Privacy <span className="hint">same settings on every tab</span></h3>
-      <div className="row h" style={{marginBottom:0}}>
-        <label style={{margin:0}}>Safe Harbor de-identification</label>
-        <button className="tg" type="button" aria-label="Safe Harbor de-identification" data-on={ctl.safeHarbor?'1':'0'} onClick={()=>ctl.setSafeHarbor(!ctl.safeHarbor)}><i/></button>
-      </div>
-      {ctl.safeHarbor && <AllowlistEditor words={ctl.allowlist} onAdd={ctl.addAllowedWord} onRemove={ctl.removeAllowedWord}/>}
       <NamesToRedactField value={ctl.alwaysRedact} onChange={ctl.setAlwaysRedact}/>
+      <div className="privacy-line">
+        <span className={ctl.safeHarbor ? '' : 'off'}>Identifier removal {ctl.safeHarbor ? 'on' : 'off'}{ctl.allowlist.length ? ` · ${ctl.allowlist.length} allowed word${ctl.allowlist.length !== 1 ? 's' : ''}` : ''}</span>
+        <button type="button" className="link-btn" onClick={ctl.open}>Privacy settings</button>
+      </div>
+    </div>
+  );
+}
+
+function PrivacyModal({ ctl, subject, onClose }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()} role="dialog" aria-label="Privacy settings">
+        <h3>Privacy</h3>
+        <ul className="plain-list">
+          <li>Names are found on this device and replaced with "{subject}" before anything is sent.</li>
+          <li>Phone numbers, emails, SSNs, dates, ZIP codes, record numbers, web addresses and ages 90 and over are replaced with markers.</li>
+          <li>Session dates and goal dates are never sent. They are filled in on this device.</li>
+          <li>Nothing is saved. "Note completed" erases everything you entered.</li>
+        </ul>
+        <div className="row h" style={{marginTop:12,marginBottom:0}}>
+          <label style={{margin:0}}>Safe Harbor de-identification</label>
+          <button className="tg" type="button" aria-label="Safe Harbor de-identification" data-on={ctl.safeHarbor?'1':'0'} onClick={()=>ctl.setSafeHarbor(!ctl.safeHarbor)}><i/></button>
+        </div>
+        {ctl.safeHarbor && <AllowlistEditor words={ctl.allowlist} onAdd={ctl.addAllowedWord} onRemove={ctl.removeAllowedWord}/>}
+        <NamesToRedactField value={ctl.alwaysRedact} onChange={ctl.setAlwaysRedact}/>
+        <div className="note-sm" style={{marginTop:8}}>Unless you have a signed Business Associate Agreement with Groq, this de-identification is your only protection, so leave identifying details out of what you type.</div>
+        <div className="modal-actions"><button className="btn primary" onClick={onClose}>Done</button></div>
+      </div>
     </div>
   );
 }
@@ -2855,7 +3139,7 @@ function screeningResult(tool, answers) {
 }
 
 // One selected screening, shown as a collapsible panel.
-function ScreeningTool({ tool, answers, onChange, onClear, onRemove, prior, onPrior, collapsed, onToggleCollapse }) {
+function ScreeningTool({ tool, answers, onChange, onClear, onRemove, onHandOff, prior, onPrior, collapsed, onToggleCollapse }) {
   const { answered, required, total, sev, scoreText } = screeningResult(tool, answers);
   const pct = sev ? (sev.pct ?? Math.round((total / tool.max) * 100)) : 0;
 
@@ -2874,7 +3158,7 @@ function ScreeningTool({ tool, answers, onChange, onClear, onRemove, prior, onPr
       {!collapsed && (
         <div className="tool-sec-body">
           <div className="st-meta">{tool.meta}</div>
-          {tool.stem && <div style={{fontSize:12.5,color:'var(--ink-2)',marginBottom:12,fontStyle:'italic',lineHeight:1.5}}>{tool.stem}</div>}
+          {tool.stem && <div style={{fontSize:13,color:'var(--ink-2)',marginBottom:12,fontStyle:'italic',lineHeight:1.5}}>{tool.stem}</div>}
           {tool.questions.map((q, i) => (
             <React.Fragment key={i}>
             {tool.parts && tool.parts.filter(p => p.start === i).map(p => (
@@ -2935,6 +3219,7 @@ function ScreeningTool({ tool, answers, onChange, onClear, onRemove, prior, onPr
             </div>
           )}
           <div className="st-actions">
+            {tool.kind !== 'triage' && <button className="btn" type="button" onClick={onHandOff} title="Full-screen view for the client: one question at a time, no scores shown">Hand to client</button>}
             {answered > 0 && <button className="st-clear" type="button" onClick={onClear}>Clear responses</button>}
           </div>
         </div>
@@ -2949,6 +3234,8 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, priorScores, set
   const [activeKeys, setActiveKeys] = useState(() =>
     tools.filter(t => Object.keys(screeningAnswers[t.key] || {}).length).map(t => t.key));
   const [collapsed, setCollapsed] = useState({});
+  // Tool shown full-screen for the client to answer on this device.
+  const [clientTool, setClientTool] = useState(null);
 
   const setAnswer = useCallback((toolKey, qIdx, val) => {
     setScreeningAnswers(prev => ({
@@ -2992,7 +3279,7 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, priorScores, set
   return (
     <div className="screening-main">
       <div className="tool-selector-wrap">
-        <h3>Choose screenings <span style={{fontFamily:'var(--sans)',fontSize:12,fontWeight:400,color:'var(--muted)'}}>— select one or more</span></h3>
+        <h3>Choose screenings <span style={{fontFamily:'var(--sans)',fontSize:13,fontWeight:400,color:'var(--muted)'}}>Select one or more</span></h3>
         <div className="tool-selector">
           {tools.map(t => {
             const on = activeKeys.includes(t.key);
@@ -3011,7 +3298,7 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, priorScores, set
 
       {completedTools.length > 0 && (
         <div className="screening-integration">
-          <h3>Completed screenings <span style={{fontFamily:'var(--sans)',fontSize:12,fontWeight:400,color:'var(--muted)'}}>— scores auto-included in any generated note</span></h3>
+          <h3>Completed screenings <span style={{fontFamily:'var(--sans)',fontSize:13,fontWeight:400,color:'var(--muted)'}}>Scores go into any note you generate</span></h3>
           <div className="si-grid">
             {completedTools.map(tool => {
               const r = screeningResult(tool, screeningAnswers[tool.key] || {});
@@ -3040,6 +3327,7 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, priorScores, set
                 onChange={(i, v) => setAnswer(tool.key, i, v)}
                 onClear={() => clearTool(tool.key)}
                 onRemove={() => removeTool(tool.key)}
+                onHandOff={() => setClientTool(tool.key)}
                 prior={priorScores[tool.key] ?? ''}
                 onPrior={(v) => setPriorScores(prev => ({ ...prev, [tool.key]: v }))}
                 collapsed={!!collapsed[tool.key]}
@@ -3048,6 +3336,8 @@ function ScreeningsTab({ screeningAnswers, setScreeningAnswers, priorScores, set
             ))}
           </div>
         )}
+      {clientTool && <ClientScreening tool={SCREENING_TOOLS[clientTool]} answers={screeningAnswers[clientTool] || {}}
+        onAnswer={(i, v) => setAnswer(clientTool, i, v)} onClose={() => setClientTool(null)}/>}
     </div>
   );
 }
@@ -3162,19 +3452,19 @@ function SafetyPlanTab({ safetyPlan, setSafetyPlan, showToast, privacyCtl }) {
           <div className="sp-progress" aria-label={`${filled} of ${total} steps filled`}>
             {SAFETY_PLAN_STEPS.map(s => <span key={s.key} className={(safetyPlan[s.key] || '').trim() ? 'on' : ''}/>)}
           </div>
-          <div style={{fontSize:12,color:'var(--muted)'}}>{filled === total ? 'All steps filled.' : filled ? 'Partly filled. Only filled steps go into notes.' : 'No steps filled yet.'}</div>
+          <div style={{fontSize:13,color:'var(--muted)'}}>{filled === total ? 'All steps filled.' : filled ? 'Partly filled. Only filled steps go into notes.' : 'No steps filled yet.'}</div>
         </div>
         <div className="card">
           <h3>Included in notes</h3>
           {lines.length
             ? <div className="sp-preview">{lines.map((l, i) => <div key={i}>{l}</div>)}</div>
-            : <div style={{fontSize:12,color:'var(--muted)'}}>Nothing yet.</div>}
+            : <div style={{fontSize:13,color:'var(--muted)'}}>Nothing yet.</div>}
           <div className="sp-actions">
             <button className="btn" type="button" onClick={copyPlan}><Icon.copy/>Copy safety plan</button>
             <button className="btn" type="button" onClick={printSafetyPlan} title="Print a one-page copy for the client, or save it as a PDF">Print / Save as PDF</button>
             {filled > 0 && <button className="btn" type="button" onClick={() => { setSafetyPlan(EMPTY_SAFETY_PLAN); showToast('Safety plan cleared'); }}>Clear</button>}
           </div>
-          <div style={{fontSize:11.5,color:'var(--muted)',marginTop:8}}>The printout is for the client: it shows the text as typed, with blank lines for empty steps, and is not de-identified.</div>
+          <div style={{fontSize:12.5,color:'var(--muted)',marginTop:8}}>The printout is for the client: it shows the text as typed, with blank lines for empty steps, and is not de-identified.</div>
           <div>
             <SafetyPlanPrint safetyPlan={safetyPlan}/>
           </div>
@@ -3200,6 +3490,23 @@ function Check({ on, onChange, children }) {
   return <button type="button" className="chk-btn" aria-pressed={!!on} onClick={() => onChange(!on)}>{children}</button>;
 }
 
+// A card that collapses to its title and a one-line summary. Without onToggle it is a plain card.
+function Fold({ id, title, hint, summary, open = true, onToggle, className = '', children }) {
+  if (!onToggle) return <div className={`card ${className}`}><h3>{title} {hint && <span className="hint">{hint}</span>}</h3>{children}</div>;
+  return (
+    <div className={`card fold ${open ? 'open' : 'closed'} ${className}`}>
+      <h3>
+        <button type="button" className="fold-head" aria-expanded={open} onClick={() => onToggle(id)}>
+          <span className="fold-chev" aria-hidden="true">▸</span>
+          <span className="fold-title">{title}</span>
+          <span className="hint">{open ? hint : (summary || hint)}</span>
+        </button>
+      </h3>
+      {open && children}
+    </div>
+  );
+}
+
 const EMPTY_TELEHEALTH = { consent: false, locationVerified: false, state: '', atHome: false };
 
 // In person / video / phone, plus the telehealth attestations payers look for.
@@ -3217,7 +3524,7 @@ function ModalityFields({ modality, setModality, telehealth, setTelehealth }) {
             <Check on={telehealth.atHome} onChange={v => set('atHome', v)}>Client at home</Check>
           </div>
           <div style={{display:'flex',gap:8,alignItems:'center',marginTop:8}}>
-            <span style={{fontSize:11.5,color:'var(--muted)'}}>Client's state</span>
+            <span style={{fontSize:12.5,color:'var(--muted)'}}>Client's state</span>
             <select className="select" style={{width:'auto'}} value={telehealth.state} onChange={e => set('state', e.target.value)} aria-label="Client's state">
               <option value="">—</option>
               {L.US_STATES.map(st => <option key={st} value={st}>{st}</option>)}
@@ -3230,10 +3537,10 @@ function ModalityFields({ modality, setModality, telehealth, setTelehealth }) {
   );
 }
 
-const MseCard = React.memo(function MseCard({ mse, setMse, moodQuote, setMoodQuote }) {
+const MseCard = React.memo(function MseCard({ mse, setMse, moodQuote, setMoodQuote, open, onToggle }) {
+  const set = Object.values(mse).filter(Boolean).length;
   return (
-    <div className="card">
-      <h3>Mental status exam <span className="hint">Quick fill</span></h3>
+    <Fold id="mse" title="Mental status exam" hint="Quick fill" summary={set ? `${set} of ${L.MSE_FIELDS.length} set` : 'Not set'} open={open} onToggle={onToggle}>
       <button type="button" className="chk-btn" style={{marginBottom:10}} onClick={() => setMse(m => ({ ...m, ...L.MSE_WNL }))}>Within normal limits</button>
       <div className="mse">
         {L.MSE_FIELDS.map(f => (
@@ -3249,7 +3556,7 @@ const MseCard = React.memo(function MseCard({ mse, setMse, moodQuote, setMoodQuo
         <label>Mood in the client's own words</label>
         <input className="input" type="text" placeholder='e.g. "pretty tired this week"' value={moodQuote} onChange={e => setMoodQuote(e.target.value)}/>
       </div>
-    </div>
+    </Fold>
   );
 });
 
@@ -3259,13 +3566,14 @@ const emptyRisk = () => L.RISK_ITEMS.reduce((acc, r) => { acc[r.key] = { status:
 const riskUntouched = (risk, x) => !L.RISK_ITEMS.some(r => risk[r.key].status || risk[r.key].note.trim())
   && !x.level && !x.protective.trim() && !x.means;
 
-const RiskCard = React.memo(function RiskCard({ risk, setRisk, riskExtra, setRiskExtra }) {
+const RiskCard = React.memo(function RiskCard({ risk, setRisk, riskExtra, setRiskExtra, open, onToggle }) {
   const setX = (k, v) => setRiskExtra(x => ({ ...x, [k]: v }));
   const toggleSi = (d) => setRiskExtra(x => ({ ...x, siDetails: x.siDetails.includes(d) ? x.siDetails.filter(y => y !== d) : [...x.siDetails, d] }));
   const denyAll = () => setRisk(r => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, { ...v, status: 'denied' }])));
   return (
-    <div className="card">
-      <h3>Risk assessment <button type="button" className="chk-btn" style={{fontSize:11,fontFamily:'var(--sans)'}} onClick={denyAll}>All denied</button></h3>
+    <Fold id="risk" title="Risk assessment" hint="Every session" open={open} onToggle={onToggle}
+      summary={riskUntouched(risk, riskExtra) ? 'Not documented' : L.RISK_ITEMS.every(r => risk[r.key].status === 'denied') ? `All denied${riskExtra.level ? ` · ${riskExtra.level} risk` : ''}` : riskExtra.level ? `${riskExtra.level} risk` : 'Documented'}>
+      <button type="button" className="chk-btn" style={{marginBottom:6}} onClick={denyAll}>All denied</button>
       {L.RISK_ITEMS.map(({ key, label }) => {
         const r = risk[key];
         const setStatus = (s) => setRisk(x => ({ ...x, [key]: { ...x[key], status: s } }));
@@ -3280,7 +3588,7 @@ const RiskCard = React.memo(function RiskCard({ risk, setRisk, riskExtra, setRis
                   {L.SI_DETAILS.map(d => <Check key={d} on={riskExtra.siDetails.includes(d)} onChange={() => toggleSi(d)}>{d}</Check>)}
                 </div>
               )}
-              {present && <input className="input" style={{marginTop:6,fontSize:12,padding:'6px 9px'}} placeholder="Detail (optional)" value={r.note} onChange={e => setRNote(e.target.value)}/>}
+              {present && <input className="input" style={{marginTop:6,fontSize:13,padding:'6px 9px'}} placeholder="Detail (optional)" value={r.note} onChange={e => setRNote(e.target.value)}/>}
             </div>
             <div className="tri">
               <button aria-pressed={r.status==='denied'} onClick={() => setStatus('denied')}>Denied</button>
@@ -3303,7 +3611,7 @@ const RiskCard = React.memo(function RiskCard({ risk, setRisk, riskExtra, setRis
         <label>Overall risk level</label>
         <Seg value={riskExtra.level} options={L.RISK_LEVELS} onChange={v => setX('level', v)}/>
       </div>
-    </div>
+    </Fold>
   );
 });
 
@@ -3345,10 +3653,10 @@ const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
     <div className="goal-card">
       <div className="goal-card-meta">
         <div className="goal-date">
-          <span style={{fontSize:11,color:'var(--muted)',marginBottom:2,display:'block'}}>Target date</span>
-          <input className="input" type="date" value={goal.targetDate || ''} onChange={e => onUpdate(goal.id, { targetDate: e.target.value })} style={{fontSize:12,padding:'4px 8px'}}/>
+          <span style={{fontSize:12,color:'var(--muted)',marginBottom:2,display:'block'}}>Target date</span>
+          <input className="input" type="date" value={goal.targetDate || ''} onChange={e => onUpdate(goal.id, { targetDate: e.target.value })} style={{fontSize:13,padding:'4px 8px'}}/>
         </div>
-        <div className="seg" role="radiogroup" style={{fontSize:11.5,flex:1}}>
+        <div className="seg" role="radiogroup" style={{fontSize:12.5,flex:1}}>
           <button type="button" aria-pressed={goal.status==='active'} onClick={() => onUpdate(goal.id, {status:'active'})}>Active</button>
           <button type="button" aria-pressed={goal.status==='achieved'} onClick={() => onUpdate(goal.id, {status:'achieved'})}>Achieved</button>
           <button type="button" aria-pressed={goal.status==='discontinued'} onClick={() => onUpdate(goal.id, {status:'discontinued'})}>D/C</button>
@@ -3368,7 +3676,7 @@ const GoalCard = React.memo(function GoalCard({ goal, onUpdate, onRemove }) {
   );
 });
 
-function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent, screeningStrip, diagnosisLines, signature }) {
+function TreatmentPlanTab({ onPrint, goals, setGoals, apiKeyRef, showToast, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent, screeningStrip, diagnosisLines, signature }) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [flags, setFlags] = useState(null);
@@ -3412,12 +3720,15 @@ function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLine
       screeningScores: screeningLines || [], safetyPlanLines: safetyPlanToLines(planItems, san.clean),
     });
     try {
-      const raw = await callGroq(prompt, key);
-      setNote(L.fillTokens(L.redactNames(L.scrubText(raw), san.names, 'Client'), tokens));
+      const post = (t) => L.fillTokens(L.redactNames(L.scrubText(t), san.names, 'Client'), tokens);
+      setNote(post(await callGroq(prompt, key, (t) => setNote(post(t)))));
     } catch(err) {
+      setNote('');
       showToast(err.message || 'Generation failed', true);
     } finally { setLoading(false); }
   };
+
+  useGenerateShortcut('plan', generate);
 
   const copyNote = async () => {
     if (!note) return;
@@ -3463,11 +3774,12 @@ function TreatmentPlanTab({ goals, setGoals, apiKeyRef, showToast, screeningLine
       <main id="plan-pane" className="main">
         <div className="note-toolbar">
           <div className="left">
-            {activeGoals.length > 0 && <span style={{fontSize:12}}>{activeGoals.length} active goal{activeGoals.length!==1?'s':''} ready</span>}
+            {activeGoals.length > 0 && <span style={{fontSize:13}}>{activeGoals.length} active goal{activeGoals.length!==1?'s':''} ready</span>}
           </div>
           <div className="actions">
             <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
-            <button className="btn primary" disabled={loading||!activeGoals.length} onClick={generate}>
+            <button className="btn" disabled={!note||loading} onClick={() => onPrint({ text: framedText([], note, signature) })}>Print / Save as PDF</button>
+            <button className="btn primary" disabled={loading||!activeGoals.length} onClick={generate} title="Ctrl+Enter">
               {loading ? <span className="spin"/> : <Icon.target/>}
               {loading ? 'Generating…' : note ? 'Regenerate plan' : 'Generate plan narrative'}
             </button>
@@ -3601,7 +3913,7 @@ function StatusRow({ label, item, setItem, opts, detailPh, showOn }) {
   );
 }
 
-function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent, screeningStrip, diagnoses, setPrimaryDx, setSecondaryDx, signature }) {
+function IntakeTab({ onPrint, apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlanItems, privacy, privacyCtl, onContent, screeningStrip, diagnoses, setPrimaryDx, setSecondaryDx, signature }) {
   const [subject, setSubject] = useState('Client');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
@@ -3691,13 +4003,16 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
         treatmentModality: modality, frequency, txDuration, referrals,
         screeningScores: screeningLines || [],
         safetyPlanLines: safetyPlanToLines(planItems, san.clean),
-      }), key);
+      }), key, (t) => setNote(L.redactNames(L.scrubText(t), san.names, subject)));
       setNote(L.redactNames(L.scrubText(raw), san.names, subject));
       setHeader(nextHeader);
     } catch(err) {
+      setNote('');
       showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
     } finally { setLoading(false); }
   };
+
+  useGenerateShortcut('intake', generate);
 
   const copyNote = async () => {
     try { await navigator.clipboard.writeText(framedText(header, note, signature)); showToast('Copied to clipboard'); }
@@ -3747,12 +4062,12 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
             <label>Session time</label>
             <div style={{display:'flex',gap:10,alignItems:'flex-end'}}>
               <div style={{flex:1}}>
-                <div style={{fontSize:11.5,color:'var(--muted)',marginBottom:4}}>Start</div>
+                <div style={{fontSize:12.5,color:'var(--muted)',marginBottom:4}}>Start</div>
                 <input className="input" type="time" value={sessionStart} onChange={e=>setSessionStart(e.target.value)}/>
               </div>
               <span style={{color:'var(--muted)',fontSize:13,paddingBottom:9,flexShrink:0}}>to</span>
               <div style={{flex:1}}>
-                <div style={{fontSize:11.5,color:'var(--muted)',marginBottom:4}}>End</div>
+                <div style={{fontSize:12.5,color:'var(--muted)',marginBottom:4}}>End</div>
                 <input className="input" type="time" value={sessionEnd} onChange={e=>setSessionEnd(e.target.value)}/>
               </div>
             </div>
@@ -3762,7 +4077,7 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
               </div>
             )}
             {sessionStart && sessionEnd && sessionDuration === null && (
-              <div style={{marginTop:6,fontSize:12,color:'var(--danger)'}}>End time must be after start time</div>
+              <div style={{marginTop:6,fontSize:13,color:'var(--danger)'}}>End time must be after start time</div>
             )}
           </div>
           <div style={{marginTop:10}}><ModalityFields modality={sessionModality} setModality={setSessionModality} telehealth={telehealth} setTelehealth={setTelehealth}/></div>
@@ -3910,11 +4225,12 @@ function IntakeTab({ apiKeyRef, showToast, onNeedKey, screeningLines, safetyPlan
 
       <main className="main" id="intake-pane">
         <div className="note-toolbar">
-          <div className="left">{note && <span style={{fontSize:12}}>Intake note generated · CPT 90791</span>}</div>
+          <div className="left">{note && <span style={{fontSize:13}}>Intake note generated · CPT 90791</span>}</div>
           <div className="actions">
             <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
             <button className="btn" disabled={!note||loading} onClick={copyPlain} title="Copy the note without section headings">Copy plain text</button>
-            <button className="btn primary" disabled={loading} onClick={generate}>
+            <button className="btn" disabled={!note||loading} onClick={() => onPrint({ text: framedText(header, note, signature) })}>Print / Save as PDF</button>
+            <button className="btn primary" disabled={loading} onClick={generate} title="Ctrl+Enter">
               {loading ? <span className="spin"/> : <Icon.spark/>}
               {loading ? 'Generating…' : note ? 'Regenerate' : 'Generate intake note'}
             </button>
@@ -3990,7 +4306,7 @@ const SxItem = React.memo(function SxItem({ criterion, itemKey, checked, onToggl
   );
 });
 
-function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl, onContent, screeningLines, screeningStrip }) {
+function DxTab({ onPrint, apiKeyRef, showToast, onNeedKey, privacy, privacyCtl, onContent, screeningLines, screeningStrip }) {
   const [subject, setSubject] = useState('Client');
   const [dxQuery, setDxQuery] = useState('');
   const [showDrop, setShowDrop] = useState(false);
@@ -4066,12 +4382,15 @@ function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl, onContent
       const san = L.makeSanitizer([...selectedSymptoms.map(s => s.context), observations], { subject, ...privacy });
       setFlags(san);
       const cleanSymptoms = selectedSymptoms.map(s => ({ ...s, context: san.clean(s.context) }));
-      const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, selectedSymptoms: cleanSymptoms, observations: san.clean(observations), screeningScores: screeningLines || [] }), key);
+      const raw = await callGroq(L.buildDxPrompt({ subject, diagnosis, selectedSymptoms: cleanSymptoms, observations: san.clean(observations), screeningScores: screeningLines || [] }), key, (t) => setNote(L.redactNames(L.scrubText(t), san.names, subject)));
       setNote(L.redactNames(L.scrubText(raw), san.names, subject));
     } catch(err) {
+      setNote('');
       showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
     } finally { setLoading(false); }
   };
+
+  useGenerateShortcut('dx', generate);
 
   const copyNote = async () => {
     try { await navigator.clipboard.writeText(note); showToast('Copied to clipboard'); }
@@ -4191,10 +4510,11 @@ function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl, onContent
 
       <main id="dx-pane" className="main">
         <div className="note-toolbar">
-          <div className="left">{note && <span style={{fontSize:12}}>Diagnostic justification generated</span>}</div>
+          <div className="left">{note && <span style={{fontSize:13}}>Diagnostic justification generated</span>}</div>
           <div className="actions">
             <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
-            <button className="btn primary" disabled={loading} onClick={generate}>
+            <button className="btn" disabled={!note||loading} onClick={() => onPrint({ text: note })}>Print / Save as PDF</button>
+            <button className="btn primary" disabled={loading} onClick={generate} title="Ctrl+Enter">
               {loading ? <span className="spin"/> : <Icon.spark/>}
               {loading ? 'Generating…' : note ? 'Regenerate' : 'Generate statement'}
             </button>
@@ -4205,7 +4525,7 @@ function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl, onContent
         <article className={`paper ${loading?'loading':''}`} style={{padding:'40px 48px'}}>
           {note ? (
             <div style={{fontFamily:'var(--serif)',fontSize:'16px',lineHeight:1.85,color:'var(--ink)',maxWidth:620}}>
-              <div style={{fontSize:10.5,fontFamily:'var(--sans)',letterSpacing:'.06em',textTransform:'uppercase',color:'var(--muted)',fontWeight:600,marginBottom:20,borderBottom:'1px solid var(--line)',paddingBottom:10}}>
+              <div style={{fontSize:11.5,fontFamily:'var(--sans)',letterSpacing:'.06em',textTransform:'uppercase',color:'var(--muted)',fontWeight:600,marginBottom:20,borderBottom:'1px solid var(--line)',paddingBottom:10}}>
                 Diagnostic Justification — {selectedDx ? `${selectedDx.code} ${selectedDx.name}` : ''}
               </div>
               <p style={{margin:0,whiteSpace:'pre-wrap'}}>{note}</p>
@@ -4220,6 +4540,337 @@ function DxTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl, onContent
               <div className="icon"><Icon.page/></div>
               <h4>Justification statement will appear here</h4>
               <div>Search for a diagnosis, select presenting symptoms, then press Generate statement.</div>
+            </div>
+          )}
+        </article>
+      </main>
+    </>
+  );
+}
+
+// ── Settings kept on this device (pn.settings). Writer preferences only, never client data. ──
+const loadSettings = () => { try { const v = JSON.parse(localStorage.getItem('pn.settings') || '{}'); return v && typeof v === 'object' ? v : {}; } catch { return {}; } };
+const FOLD_DEFAULTS = { content: true, risk: true };
+const oneOf = (v, options, fallback) => options.includes(v) ? v : fallback;
+const JUMP_TARGETS = { progress: ['note-pane', 'Jump to note'], intake: ['intake-pane', 'Jump to note'], dx: ['dx-pane', 'Jump to justification'], plan: ['plan-pane', 'Jump to plan'], letters: ['letters-pane', 'Jump to letter'] };
+
+// Ctrl/Cmd+Enter asks the visible tab to generate. App dispatches 'pn-generate' with the tab key.
+function useGenerateShortcut(tabKey, generate) {
+  const ref = useRef(generate); ref.current = generate;
+  useEffect(() => {
+    const on = (e) => { if (e.detail === tabKey) ref.current(); };
+    window.addEventListener('pn-generate', on);
+    return () => window.removeEventListener('pn-generate', on);
+  }, [tabKey]);
+}
+
+// Printable copy of any note, letter or handout: rendered into <body> through a portal and
+// shown only while printing (body.print-doc). Nothing is sent anywhere.
+function PrintSheet({ doc }) {
+  if (!doc) return null;
+  return ReactDOM.createPortal(
+    <div className="pn-print" aria-hidden="true">
+      {doc.title && <h1>{doc.title}</h1>}
+      {doc.fillIn && <div className="sp-print-meta"><span>Name:</span><span>Date:</span></div>}
+      <div className="text">{doc.text}</div>
+    </div>, document.body);
+}
+
+// Interventions grouped under headings, with the Writer's most used ones first.
+const InterventionPicker = React.memo(function InterventionPicker({ selected, onToggle, usage }) {
+  const usual = Object.entries(usage || {}).filter(([n, c]) => c >= 2 && L.INTERVENTIONS.includes(n)).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([n]) => n);
+  const groups = [...(usual.length ? [{ label: 'Your usual', items: usual }] : []), ...L.INTERVENTION_GROUPS];
+  return groups.map(g => (
+    <div className="chip-group" key={g.label}>
+      <div className="chip-group-label">{g.label}</div>
+      <div className="chips">
+        {g.items.map(i => <button key={i} type="button" className="chip" aria-pressed={selected.includes(i)} onClick={() => onToggle(i)}>{i}</button>)}
+      </div>
+    </div>
+  ));
+});
+
+// Group session: one short entry per member. Labels stay on this device and are never sent.
+const GroupMembers = React.memo(function GroupMembers({ members, setMembers }) {
+  const update = (id, patch) => setMembers(ms => ms.map(m => m.id === id ? { ...m, ...patch } : m));
+  const add = () => setMembers(ms => ms.length >= 12 ? ms : [...ms, { id: Date.now().toString(36) + ms.length, label: '', notes: '', riskDenied: false }]);
+  return (
+    <>
+      <div className="note-sm" style={{marginTop:0,marginBottom:10}}>Describe the group topic once in Session content. Add a member here for each note you need. Each member gets a separate note.</div>
+      {members.map((m, i) => (
+        <div className="member-row" key={m.id}>
+          <div className="member-head">
+            <input className="input" type="text" autoComplete="off" spellCheck={false} placeholder={`Member ${i + 1} label (stays on this device)`} aria-label={`Member ${i + 1} label`} value={m.label} onChange={e => update(m.id, { label: e.target.value })}/>
+            <button type="button" className="ts-rm" aria-label={`Remove member ${i + 1}`} onClick={() => setMembers(ms => ms.filter(x => x.id !== m.id))}>×</button>
+          </div>
+          <textarea className="textarea" rows="2" placeholder="This member's participation and response" aria-label={`Member ${i + 1} notes`} value={m.notes} onChange={e => update(m.id, { notes: e.target.value })}/>
+          <div className="chk-row"><Check on={m.riskDenied} onChange={v => update(m.id, { riskDenied: v })}>Denied all risk items when asked</Check></div>
+        </div>
+      ))}
+      <button className="add-goal-btn" type="button" onClick={add} disabled={members.length >= 12}>+ Add member</button>
+    </>
+  );
+});
+
+// On-device review of the finished note. See PN_LIB.auditNote.
+function NoteCheck({ items }) {
+  const [open, setOpen] = useState(false);
+  if (!items || !items.length) return null;
+  const passed = items.filter(i => i.ok).length;
+  const gaps = items.filter(i => !i.ok);
+  return (
+    <div className={`note-check${gaps.length ? '' : ' clean'}`}>
+      <button type="button" className="nc-head" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+        <span className="fold-chev" aria-hidden="true" style={{transform: open ? 'rotate(90deg)' : 'none'}}>▸</span>
+        <strong>Note check</strong>
+        <span>{passed} of {items.length} passed{gaps.length ? ` · ${gaps.map(g => g.label.toLowerCase()).slice(0, 3).join(', ')}${gaps.length > 3 ? '…' : ''}` : ''}</span>
+      </button>
+      {open && (
+        <ul>
+          {items.map(i => (
+            <li key={i.id} className={i.ok ? 'ok' : 'gap'}>
+              <span className="nc-mark" aria-hidden="true">{i.ok ? '✓' : '!'}</span>
+              <span><strong>{i.label}</strong>{!i.ok && <span className="nc-detail"> {i.detail}</span>}</span>
+            </li>
+          ))}
+          <li className="nc-foot">Checked on this device against the note text and the form. It is a prompt to re-read, not a guarantee.</li>
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// Writer-defined note templates: a name and a list of section headings.
+function TemplatesModal({ templates, onChange, onClose }) {
+  const [name, setName] = useState('');
+  const [heads, setHeads] = useState('');
+  const sections = L.cleanHeadings(heads);
+  const add = () => {
+    if (!name.trim() || sections.length < 2) return;
+    onChange([...templates, { id: Date.now().toString(36), name: name.trim().slice(0, 40), sections }]);
+    setName(''); setHeads('');
+  };
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={e => e.stopPropagation()} role="dialog" aria-label="My note templates">
+        <h3>My note templates</h3>
+        <p>Set your own section headings, for example the ones your agency requires. Templates are saved on this device. Do not put client information in them.</p>
+        {templates.map(t => (
+          <div className="tpl-row" key={t.id}>
+            <div><strong>{t.name}</strong><div className="note-sm" style={{marginTop:2}}>{t.sections.join(' · ')}</div></div>
+            <button type="button" className="btn" onClick={() => onChange(templates.filter(x => x.id !== t.id))}>Delete</button>
+          </div>
+        ))}
+        <div className="row" style={{marginTop:12}}>
+          <label>Template name</label>
+          <input className="input" type="text" placeholder="e.g. Agency note" value={name} onChange={e => setName(e.target.value)}/>
+        </div>
+        <div className="row">
+          <label>Section headings, one per line</label>
+          <textarea className="textarea" rows="4" placeholder={'Presenting Concern\nInterventions\nResponse\nPlan'} value={heads} onChange={e => setHeads(e.target.value)}/>
+          <div className="note-sm">{sections.length} heading{sections.length !== 1 ? 's' : ''}. At least two, up to twelve.</div>
+        </div>
+        <div className="modal-actions">
+          <button className="btn" onClick={onClose}>Done</button>
+          <button className="btn primary" disabled={!name.trim() || sections.length < 2} onClick={add}>Add template</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Plain-language summary for the client, made from the finished note.
+function HandoutModal({ handout, setText, onCopy, onPrint, onClose }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal wide" onClick={e => e.stopPropagation()} role="dialog" aria-label="Client handout">
+        <h3>Client handout</h3>
+        <p>A plain-language summary of this session for the client to take home. Read it before you share it. It has no name on it; the printout leaves a line for one.</p>
+        {handout.loading && !handout.text
+          ? <div className="note-sm">Writing…</div>
+          : <textarea className="textarea" rows="12" aria-label="Handout text" value={handout.text} readOnly={handout.loading} onChange={e => setText(e.target.value)}/>}
+        <div className="modal-actions">
+          <button className="btn" onClick={onClose}>Close</button>
+          <button className="btn" disabled={handout.loading || !handout.text} onClick={onCopy}><Icon.copy/>Copy</button>
+          <button className="btn primary" disabled={handout.loading || !handout.text} onClick={onPrint}>Print / Save as PDF</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Full-screen self-report view to hand to the client: one question at a time, no scores shown.
+function ClientScreening({ tool, answers, onAnswer, onClose }) {
+  const order = tool.questions.map((_, i) => i);
+  const [pos, setPos] = useState(0);
+  const [done, setDone] = useState(false);
+  const applies = (i, a) => !tool.applies || tool.applies(i, a);
+  const next = (from, a) => { let p = from + 1; while (p < order.length && !applies(p, a)) p++; if (p >= order.length) setDone(true); else setPos(p); };
+  const back = () => { let p = pos - 1; while (p > 0 && !applies(p, answers)) p--; if (p >= 0) { setPos(p); setDone(false); } };
+  const pick = (v) => { onAnswer(pos, v); next(pos, { ...answers, [pos]: v }); };
+  return (
+    <div className="client-screen" role="dialog" aria-label={`${tool.label} for the client`}>
+      <button type="button" className="cs-exit" onClick={onClose}>Clinician: close</button>
+      {done ? (
+        <div className="cs-body">
+          <h2>Thank you</h2>
+          <p>You have finished. Please hand this back.</p>
+          <div className="cs-nav"><button type="button" className="btn" onClick={() => { setDone(false); }}>Back</button></div>
+        </div>
+      ) : (
+        <div className="cs-body">
+          <div className="cs-progress">Question {pos + 1} of {order.length}</div>
+          {tool.stem && <div className="cs-stem">{tool.stem}</div>}
+          <h2>{tool.questions[pos]}</h2>
+          <div className="cs-options">
+            {tool.options.map(opt => (
+              <button key={opt.value} type="button" className={`cs-opt${answers[pos] === opt.value ? ' sel' : ''}`} onClick={() => pick(opt.value)}>{opt.label}</button>
+            ))}
+          </div>
+          <div className="cs-nav">
+            <button type="button" className="btn" disabled={pos === 0} onClick={back}>Back</button>
+            {answers[pos] !== undefined && <button type="button" className="btn" onClick={() => next(pos, answers)}>Next</button>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Letters: referral, treatment summary, care coordination (model) and attendance (on-device).
+// The client's name, the recipient's name and all dates stay on this device.
+function LettersTab({ apiKeyRef, showToast, onNeedKey, privacy, privacyCtl, onContent, diagnosisLines, screeningLines, signature, onPrint }) {
+  const [type, setType] = useState('referral');
+  const [clientName, setClientName] = useState('');
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientRole, setRecipientRole] = useState('');
+  const [since, setSince] = useState('');
+  const [lastSeen, setLastSeen] = useState('');
+  const [frequency, setFrequency] = useState('');
+  const [includeDx, setIncludeDx] = useState(false);
+  const [includeScores, setIncludeScores] = useState(false);
+  const [details, setDetails] = useState('');
+  const [body, setBody] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [flags, setFlags] = useState(null);
+  useReportContent('letters', body || details || clientName || recipientName || recipientRole || since || lastSeen, onContent);
+  const lt = L.LETTER_TYPES[type];
+  const today = () => new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  // "my client" at the start of a sentence gets a capital.
+  const fill = (text) => L.fillTokens(text, { '[CLIENT-NAME]': clientName.trim() || 'my client', '[START-DATE]': L.fmtDateUS(since) })
+    .replace(/(^|[.!?]\s+|\n)my client/g, (m, pre) => pre + 'My client');
+
+  const generate = async () => {
+    if (loading) return;
+    if (!lt.ai) { setFlags(null); setBody(fill(L.buildAttendanceLetter({ since: L.fmtDateUS(since), frequency, lastSeen: L.fmtDateUS(lastSeen) }))); return; }
+    if (!details.trim()) { showToast('Add the purpose and details first'); return; }
+    const key = apiKeyRef.current;
+    if (!key) { onNeedKey(); return; }
+    // The two names typed above never leave the device: they are swapped out before the usual de-identification.
+    const own = (t) => L.redactNames(L.redactNames(t, L.parseNameList(clientName), '[CLIENT-NAME]', true), L.parseNameList(recipientName), 'the recipient', true);
+    const san = L.makeSanitizer([own(details), own(recipientRole)], { subject: 'Client', ...privacy });
+    const clean = (t) => san.clean(own(t));
+    setFlags(san); setLoading(true); setBody('');
+    const post = (raw) => fill(L.redactNames(L.scrubText(raw), san.names, 'Client'));
+    try {
+      const raw = await callGroq(L.buildLetterPrompt({ type, recipientRole: clean(recipientRole), details: clean(details), hasSince: !!since, frequency,
+        diagnoses: includeDx ? diagnosisLines : [], screeningScores: includeScores ? (screeningLines || []) : [] }), key, (t) => setBody(post(t)));
+      setBody(post(raw));
+    } catch (err) {
+      setBody('');
+      showToast(err.message.startsWith('invalid_key') ? 'Groq rejected the key — get a free key at console.groq.com' : (err.message || 'Generation failed'), true);
+    } finally { setLoading(false); }
+  };
+  useGenerateShortcut('letters', generate);
+
+  const full = body ? L.frameLetter({ today: today(), recipientName, body, signature }) : '';
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(full); showToast('Letter copied'); }
+    catch { showToast('Copy failed — select and copy manually'); }
+  };
+
+  return (
+    <>
+      <aside className="sidebar">
+        <div className="card">
+          <h3>Letter <span className="hint">{lt.ai ? 'Drafted by AI' : 'No AI needed'}</span></h3>
+          <div className="row">
+            <label>Type</label>
+            <select className="select" value={type} onChange={e => { setType(e.target.value); setBody(''); setFlags(null); }}>
+              {Object.entries(L.LETTER_TYPES).map(([k, t]) => <option key={k} value={k}>{t.label}</option>)}
+            </select>
+          </div>
+          <div className="row">
+            <label>Client name</label>
+            <input className="input" type="text" autoComplete="off" spellCheck={false} placeholder="Stays on this device" value={clientName} onChange={e => setClientName(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>Recipient name</label>
+            <input className="input" type="text" autoComplete="off" spellCheck={false} placeholder="Stays on this device. Blank: To whom it may concern" value={recipientName} onChange={e => setRecipientName(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>In treatment since</label>
+            <input className="input" type="date" value={since} onChange={e => setSince(e.target.value)}/>
+          </div>
+          {!lt.ai && <div className="row">
+            <label>Most recent appointment</label>
+            <input className="input" type="date" value={lastSeen} onChange={e => setLastSeen(e.target.value)}/>
+          </div>}
+          <div className="row" style={{marginBottom:0}}>
+            <label>Session frequency</label>
+            <Seg value={frequency} options={['Weekly','Bi-weekly','Monthly','As needed']} onChange={setFrequency}/>
+          </div>
+          <div className="note-sm" style={{marginTop:8}}>Names and dates are never sent to the AI. They are placed into the letter on this device.</div>
+        </div>
+        {lt.ai && <>
+          <div className="card">
+            <h3>Content <span className="hint">Required</span></h3>
+            <div className="row">
+              <label>Recipient's role</label>
+              <input className="input" type="text" placeholder="e.g. primary care provider, psychiatrist, insurance reviewer" value={recipientRole} onChange={e => setRecipientRole(e.target.value)}/>
+            </div>
+            <div className="row">
+              <label>Purpose and details</label>
+              <textarea className="textarea" rows="6" placeholder="What the letter is for and what it should say. Only what you write here is used." value={details} onChange={e => setDetails(e.target.value)}/>
+            </div>
+            <div className="chk-row">
+              <Check on={includeDx} onChange={setIncludeDx}>Include diagnosis</Check>
+              <Check on={includeScores} onChange={setIncludeScores}>Include screening results</Check>
+            </div>
+            <div className="note-sm" style={{marginTop:8}}>{includeDx && !diagnosisLines.length ? 'No diagnosis is entered on the Progress Note or Intake tab yet. ' : ''}Share only what the purpose needs, and confirm a release of information is on file.</div>
+          </div>
+          <PrivacyControls ctl={privacyCtl}/>
+        </>}
+      </aside>
+      <main id="letters-pane" className="main">
+        <div className="note-toolbar">
+          <div className="left"/>
+          <div className="actions">
+            <button className="btn" disabled={!body || loading} onClick={copy}><Icon.copy/>Copy</button>
+            <button className="btn" disabled={!body || loading} onClick={() => onPrint({ text: full })}>Print / Save as PDF</button>
+            <button className="btn primary" disabled={loading} onClick={generate} title="Ctrl+Enter">
+              {loading ? <span className="spin"/> : <Icon.spark/>}
+              {loading ? 'Writing…' : body ? 'Rewrite letter' : 'Write letter'}
+            </button>
+          </div>
+        </div>
+        <RedactionFlags flags={flags}/>
+        <article className={`paper ${loading ? 'loading' : ''}`}>
+          {body ? (
+            <>
+              <div className="meta"><span className="fmt">{lt.label}</span><span>Review before sending</span></div>
+              {full.split(/\n{2,}/).map((para, i) => <p key={i} style={{whiteSpace:'pre-line'}}>{para}</p>)}
+            </>
+          ) : loading ? (
+            <>
+              <div className="meta"><span className="fmt">Drafting…</span><span>Writer</span></div>
+              {[0,1,2,3].map(i=><div className="gen-line" key={i} style={{width:`${65+(i*7)%30}%`}}/>)}
+            </>
+          ) : (
+            <div className="empty">
+              <div className="icon"><Icon.page/></div>
+              <h4>Your letter will appear here</h4>
+              <div>{lt.ai ? 'Describe the purpose on the left, then press Write letter.' : 'Fill in the dates on the left, then press Write letter. Attendance letters are written on this device.'}</div>
             </div>
           )}
         </article>
@@ -4253,14 +4904,24 @@ function App() {
   const removeApiKey = () => { apiKeyRef.current = ''; setApiKey(''); try { localStorage.removeItem('pn.apikey'); } catch {} setShowKeyModal(false); };
   const generateRef = useRef(null);
 
+  // Writer preferences saved on this device (pn.settings). No client data goes in here.
+  const savedRef = useRef(null);
+  if (!savedRef.current) { savedRef.current = loadSettings(); L.registerTemplates(savedRef.current.templates); }
+  const S = savedRef.current;
+  const [templates, setTemplates] = useState(() => (Array.isArray(S.templates) ? S.templates : []).filter(t => L.FORMATS['custom:' + t.id]));
+  const [folds, setFolds] = useState(() => S.folds && typeof S.folds === 'object' ? S.folds : {});
+  const [usage, setUsage] = useState(() => S.usage && typeof S.usage === 'object' ? S.usage : {});
+  const isOpen = (id) => folds[id] ?? FOLD_DEFAULTS[id] ?? false;
+  const toggleFold = useCallback((id) => setFolds(f => ({ ...f, [id]: !(f[id] ?? FOLD_DEFAULTS[id] ?? false) })), []);
+
   const [appMode, setAppMode] = useState('progress');
-  const [format, setFormat] = useState('soap');
-  const [subject, setSubject] = useState('Client');
-  const [tone, setTone] = useState('balanced');
-  const [conciseness, setConciseness] = useState('standard');
-  const [voiceOn, setVoiceOn] = useState(false);
-  const [voiceStrength, setVoiceStrength] = useState(50);
-  const [inputMode, setInputMode] = useState('free');
+  const [format, setFormat] = useState(() => oneOf(S.format, Object.keys(L.FORMATS).filter(k => !L.FORMATS[k].hidden || L.FORMATS[k].custom), 'soap'));
+  const [subject, setSubject] = useState(() => oneOf(S.subject, ['Client', 'Patient'], 'Client'));
+  const [tone, setTone] = useState(() => oneOf(S.tone, Object.keys(L.TONES), 'balanced'));
+  const [conciseness, setConciseness] = useState(() => oneOf(S.conciseness, Object.keys(L.CONCISENESS), 'standard'));
+  const [voiceOn, setVoiceOn] = useState(() => S.voiceOn === true);
+  const [voiceStrength, setVoiceStrength] = useState(() => Number.isFinite(S.voiceStrength) ? Math.min(100, Math.max(0, S.voiceStrength)) : 50);
+  const [inputMode, setInputMode] = useState(() => oneOf(S.inputMode, ['free', 'structured', 'bullets'], 'free'));
   const [freeText, setFreeText] = useState('');
   const [structured, setStructured] = useState({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
   const [bullets, setBullets] = useState('');
@@ -4272,8 +4933,8 @@ function App() {
   const [riskExtra, setRiskExtra] = useState(EMPTY_RISK_EXTRA);
   const [riskNudge, setRiskNudge] = useState(false);
   const [noteType, setNoteType] = useState('session');
-  const [service, setService] = useState('individual');
-  const [modality, setModality] = useState('');
+  const [service, setService] = useState(() => oneOf(S.service, Object.keys(L.SERVICE_TYPES), 'individual'));
+  const [modality, setModality] = useState(() => oneOf(S.modality, Object.keys(L.MODALITIES), ''));
   const [telehealth, setTelehealth] = useState(EMPTY_TELEHEALTH);
   const [interactiveComplexity, setInteractiveComplexity] = useState(false);
   const [lateEntry, setLateEntry] = useState(false);
@@ -4297,6 +4958,17 @@ function App() {
   const [customRevision, setCustomRevision] = useState('');
   const lastGenRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [genLabel, setGenLabel] = useState('');
+  // Pasted note from the last session, for continuity. De-identified like the session content.
+  const [previousNote, setPreviousNote] = useState('');
+  // Group sessions: one entry per member, and the notes written for them.
+  const [members, setMembers] = useState([]);
+  const [groupNotes, setGroupNotes] = useState(null);
+  const [groupIdx, setGroupIdx] = useState(0);
+  const [handout, setHandout] = useState(null);
+  const [printDoc, setPrintDoc] = useState(null);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [nameFlags, setNameFlags] = useState([]);
   const [phiFlags, setPhiFlags] = useState([]);
   const [generatedMeta, setGeneratedMeta] = useState(null);
@@ -4306,7 +4978,7 @@ function App() {
   const addAllowedWord = (w) => { const next = [...allowlist, w]; setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
   const privacy = useMemo(() => ({ allowlist, safeHarbor, alwaysRedact }), [allowlist, safeHarbor, alwaysRedact]);
   const removeAllowedWord = (w) => { const next = allowlist.filter(x => x !== w); setAllowlist(next); try { localStorage.setItem('pn.allowlist', JSON.stringify(next)); } catch {} };
-  const privacyCtl = { safeHarbor, setSafeHarbor, allowlist, addAllowedWord, removeAllowedWord, alwaysRedact, setAlwaysRedact };
+  const privacyCtl = { safeHarbor, setSafeHarbor, allowlist, addAllowedWord, removeAllowedWord, alwaysRedact, setAlwaysRedact, open: () => setShowPrivacy(true) };
   const [confirming, setConfirming] = useState(false);
   const [sessionDate, setSessionDate] = useState('');
   const [sessionStart, setSessionStart] = useState('');
@@ -4333,6 +5005,13 @@ function App() {
     try { localStorage.removeItem('pn.drafts'); } catch {}
     try { localStorage.removeItem('pn.groqmodel'); } catch {}
   }, []);
+  useEffect(() => {
+    try { localStorage.setItem('pn.settings', JSON.stringify({ format, subject, tone, conciseness, service, modality, inputMode, voiceOn, voiceStrength, folds, usage, templates })); } catch {}
+  }, [format, subject, tone, conciseness, service, modality, inputMode, voiceOn, voiceStrength, folds, usage, templates]);
+  const changeTemplates = (next) => {
+    L.registerTemplates(next); setTemplates(next);
+    if (format.startsWith('custom:') && !next.some(t => 'custom:' + t.id === format)) setFormat('soap');
+  };
   const [toast, showToast] = useToast();
 
   const appendTranscript = useCallback((text) => {
@@ -4360,12 +5039,16 @@ function App() {
     setPrevNote(null); setEditIdx(null); lastGenRef.current = null; setNameFlags([]); setPhiFlags([]);
   };
 
+  const isGroup = noteType === 'session' && service === 'group';
+  const groupList = isGroup ? members.filter(m => m.notes.trim()) : [];
+
   const generate = async ({ riskConfirmed = false } = {}) => {
     if (loading) return;
     if (noteType === 'cancel') { writeCancellation(); return; }
     if (!rawInput.trim()) { showToast('Add some session content first'); return; }
+    const group = groupList.length > 0;
     // Risk is documented every session, or the note says it was not assessed. Ask before assuming the latter.
-    if (noteType !== 'collateral' && !riskConfirmed && riskUntouched(risk, riskExtra)) { setRiskNudge(true); return; }
+    if (noteType !== 'collateral' && !riskConfirmed && riskUntouched(risk, riskExtra) && (!group || groupList.some(m => !m.riskDenied))) { setRiskNudge(true); return; }
     setRiskNudge(false);
     const key = apiKeyRef.current;
     if (!key) { pendingGenRef.current = true; setShowKeyModal(true); return; }
@@ -4374,51 +5057,75 @@ function App() {
     const activeGoals = goals.filter(g => g.status === 'active' && g.text.trim());
     const closedGoals = goals.filter(g => g.status !== 'active' && g.text.trim());
     // So do safety plan lines and the other free-text fields that reach the prompt.
-    const freeFields = [moodQuote, riskExtra.protective, riskExtra.meansNote, discharge.aftercare, ...L.RISK_ITEMS.map(r => risk[r.key].note)];
+    const freeFields = [moodQuote, riskExtra.protective, riskExtra.meansNote, discharge.aftercare, previousNote, ...L.RISK_ITEMS.map(r => risk[r.key].note), ...(group ? members.map(m => m.notes) : [])];
     const extraTexts = [...activeGoals.map(g => g.text), ...closedGoals.map(g => g.text), ...safetyPlanItems.map(e => e.text), ...freeFields];
-    const alwaysNames = L.parseNameList(alwaysRedact);
+    // Member labels never go to the model; if a label is typed in the notes it is replaced like a name.
+    const memberLabels = group ? members.flatMap(m => L.parseNameList(m.label)).filter(n => !/^member\b/i.test(n)) : [];
+    const alwaysNames = [...L.parseNameList(alwaysRedact), ...memberLabels];
     const allNames = Array.from(new Set([...detectedNames, ...alwaysNames, ...extraTexts.flatMap(t => L.detectNames(t, [], allowlist))]));
     const goalPHI = safeHarbor ? extraTexts.flatMap(t => L.detectPHI(t)) : [];
-    setLoading(true); setNote(''); setGeneratedMeta(null); setNameFlags(allNames); setPhiFlags([...detectedPHI, ...goalPHI]);
+    setLoading(true); setNote(''); setGroupNotes(null); setGroupIdx(0); setNameFlags(allNames); setPhiFlags([...detectedPHI, ...goalPHI]);
     const sanitize = (s) => { let o = L.redactNames(L.redactNames(s, alwaysNames, subject, true), allNames, subject); if (safeHarbor) o = L.redactPHI(o); return o; };
     const truncate = (s, max = 2500) => s.length > max ? s.slice(0, max) + '…' : s;
     // Goal target dates go out as placeholders and are filled in after the response.
     const tokens = {};
-    activeGoals.forEach((g, i) => { if (g.targetDate) tokens[`[TARGET-DATE-${i + 1}]`] = L.fmtDateUS(g.targetDate); });
+    if (!group) activeGoals.forEach((g, i) => { if (g.targetDate) tokens[`[TARGET-DATE-${i + 1}]`] = L.fmtDateUS(g.targetDate); });
     const header = buildHeader();
-    const prompt = L.buildPrompt({
-      noteType, format, tone, subject, conciseness, voiceMode: voiceOn, voiceStrength, inputMode,
-      freeText: truncate(sanitize(freeText)),
+    const cleanRisk = Object.fromEntries(Object.entries(risk).map(([k, v]) => [k, { ...v, note: sanitize(v.note) }]));
+    const deniedRisk = Object.fromEntries(L.RISK_ITEMS.map(r => [r.key, { status: 'denied', note: '' }]));
+    // `m` is a group member, or null for an ordinary note. A member note carries the shared group
+    // content plus that member's own lines, and none of the single-client cards.
+    const promptFor = (m) => L.buildPrompt({
+      noteType, format, tone, subject, conciseness, voiceMode: voiceOn, voiceStrength, inputMode: m ? 'free' : inputMode,
+      freeText: m ? `${truncate(sanitize(rawInput))}\n\nThis member's participation and response: ${truncate(sanitize(m.notes), 800)}` : truncate(sanitize(freeText)),
       structured: Object.fromEntries(Object.entries(structured).map(([k,v])=>[k,truncate(sanitize(v), 600)])),
       bullets: truncate(sanitize(bullets)),
       interventions: [...interventions, ...otherIntervention.split(',').map(s=>s.trim()).filter(Boolean)],
-      mse: noteType === 'collateral' ? {} : mse, moodQuote: noteType === 'collateral' ? '' : sanitize(moodQuote),
-      risk: Object.fromEntries(Object.entries(risk).map(([k, v]) => [k, { ...v, note: sanitize(v.note) }])),
-      riskExtra: { ...riskExtra, protective: sanitize(riskExtra.protective), meansNote: sanitize(riskExtra.meansNote) },
+      mse: noteType === 'collateral' || m ? {} : mse, moodQuote: noteType === 'collateral' || m ? '' : sanitize(moodQuote),
+      risk: m && m.riskDenied ? deniedRisk : cleanRisk,
+      riskExtra: m && m.riskDenied ? EMPTY_RISK_EXTRA : { ...riskExtra, protective: sanitize(riskExtra.protective), meansNote: sanitize(riskExtra.meansNote) },
       redactedNames: allNames,
       sessionDuration, service, modality, telehealth,
       collateral, discharge: { ...discharge, aftercare: sanitize(discharge.aftercare) },
-      diagnoses: noteType === 'collateral' ? [] : diagnosisLines,
-      screeningScores: noteType === 'collateral' ? [] : screeningLines,
-      activeGoals: activeGoals.map((g, i) => ({ text: sanitize(g.text), targetToken: g.targetDate ? `[TARGET-DATE-${i + 1}]` : '', progress: goalProgress[g.id] || '' })),
+      diagnoses: noteType === 'collateral' || m ? [] : diagnosisLines,
+      screeningScores: noteType === 'collateral' || m ? [] : screeningLines,
+      activeGoals: m ? [] : activeGoals.map((g, i) => ({ text: sanitize(g.text), targetToken: g.targetDate ? `[TARGET-DATE-${i + 1}]` : '', progress: goalProgress[g.id] || '' })),
       closedGoals: noteType === 'discharge' ? closedGoals.map(g => ({ status: g.status, text: sanitize(g.text) })) : [],
-      safetyPlanLines: noteType === 'collateral' ? [] : safetyPlanToLines(safetyPlanItems, sanitize),
+      safetyPlanLines: noteType === 'collateral' || m ? [] : safetyPlanToLines(safetyPlanItems, sanitize),
+      // A pasted note often carries a dated header, so identifiers are removed from it even with the toggle off.
+      previousNote: noteType !== 'session' || m ? '' : truncate(L.redactPHI(sanitize(previousNote)), 2000),
     });
-    lastGenRef.current = { prompt, names: allNames, always: alwaysNames, tokens };
-    setPrevNote(null); setEditIdx(null);
+    const post = (t) => L.fillTokens(L.redactNames(L.redactNames(L.scrubText(t), alwaysNames, subject, true), allNames, subject), tokens);
+    setPrevNote(null); setEditIdx(null); lastGenRef.current = null;
+    setGeneratedMeta({ format: noteType === 'discharge' ? 'discharge' : noteType === 'collateral' ? 'emr' : format, noteType, subject, tone, at: new Date(), header });
+    // On a phone the note is below the form.
+    if (window.matchMedia('(max-width: 900px)').matches) document.getElementById('note-pane').scrollIntoView({ behavior: 'smooth' });
     try {
-      const raw = await callGroq(prompt, key);
-      const cleaned = L.scrubText(raw);
-      setNote(L.fillTokens(L.redactNames(L.redactNames(cleaned, alwaysNames, subject, true), allNames, subject), tokens));
-      setGeneratedMeta({ format: noteType === 'discharge' ? 'discharge' : noteType === 'collateral' ? 'emr' : format, noteType, subject, tone, at: new Date(), header });
+      if (group) {
+        const done = [];
+        for (const m of groupList) {
+          setNote(''); setGenLabel(`Writing ${done.length + 1} of ${groupList.length}…`);
+          const prompt = promptFor(m);
+          const text = post(await callGroq(prompt, key, (t) => setNote(post(t))));
+          done.push({ label: m.label.trim() || `Member ${members.indexOf(m) + 1}`, note: text, ctx: { prompt, names: allNames, always: alwaysNames, tokens } });
+        }
+        setGroupNotes(done); setNote(done[0].note); lastGenRef.current = done[0].ctx;
+      } else {
+        const prompt = promptFor(null);
+        const text = post(await callGroq(prompt, key, (t) => setNote(post(t))));
+        setNote(text); lastGenRef.current = { prompt, names: allNames, always: alwaysNames, tokens };
+      }
+      // Remembers which interventions this Writer picks most, for the "Your usual" row.
+      setUsage(u => { const next = { ...u }; interventions.forEach(i => { next[i] = (next[i] || 0) + 1; }); return next; });
     } catch(err) {
+      setNote(''); setGeneratedMeta(null);
       if (err.message.startsWith('invalid_key')) {
         const detail = err.message.slice('invalid_key:'.length);
-        showToast('Groq rejected the key (401)' + (detail ? ': ' + detail : '') + ' — get a free API key at console.groq.com → API Keys.', true);
+        showToast('Groq rejected the key (401)' + (detail ? ': ' + detail : '') + '. Get an API key at console.groq.com, under API Keys.', true);
       } else {
         showToast(err.message || 'Generation failed. Try again.', true);
       }
-    } finally { setLoading(false); }
+    } finally { setLoading(false); setGenLabel(''); }
   };
   useEffect(() => { generateRef.current = generate; });
 
@@ -4493,18 +5200,58 @@ function App() {
   const copyNote = async () => {
     if (!note) return;
     try { await navigator.clipboard.writeText(framedText(generatedMeta?.header, note, signature)); showToast('Copied to clipboard'); }
-    catch { showToast('Copy failed — please select and copy manually'); }
+    catch { showToast('Copy failed. Select the note and copy it manually.'); }
+  };
+
+  // Group notes: the member being viewed lives in `note`, so edits and revisions work as usual.
+  const switchMember = (i) => {
+    if (i === groupIdx || revising !== null) return;
+    setGroupNotes(gs => gs.map((g, k) => k === groupIdx ? { ...g, note } : g));
+    setGroupIdx(i); setNote(groupNotes[i].note); lastGenRef.current = groupNotes[i].ctx; setPrevNote(null); setEditIdx(null);
+  };
+  const copyAllMembers = () => copyText(groupNotes.map((g, k) => `=== ${g.label} ===\n\n${framedText(generatedMeta?.header, k === groupIdx ? note : g.note, signature)}`).join('\n\n\n'), `Copied ${groupNotes.length} member notes`);
+
+  // Plain-language summary for the client, written from the current draft. The draft is
+  // de-identified again first, as in revise().
+  const makeHandout = async () => {
+    const ctx = lastGenRef.current;
+    const key = apiKeyRef.current;
+    if (!note || !ctx) { showToast('Generate the note first'); return; }
+    if (!key) { setShowKeyModal(true); return; }
+    const names = Array.from(new Set([...ctx.names, ...L.detectNames(note, [], allowlist)]));
+    const always = [...ctx.always, ...L.parseNameList(alwaysRedact)];
+    const redact = (t) => L.redactNames(L.redactNames(t, always, subject, true), names, subject);
+    const post = (t) => redact(L.scrubText(t));
+    setHandout({ text: '', loading: true });
+    try {
+      const raw = await callGroq(L.buildHandoutPrompt({ note: L.redactPHI(redact(L.unfillTokens(note, ctx.tokens))) }), key, (t) => setHandout(h => h && { text: post(t), loading: true }));
+      setHandout(h => h && { text: post(raw), loading: false });
+    } catch (err) {
+      setHandout(null); showToast(err.message || 'Could not write the handout. Try again.', true);
+    }
+  };
+  const printNote = () => note && setPrintDoc({ text: framedText(generatedMeta?.header, note, signature) });
+
+  // "Try an example": placeholder content, and with no key a sample of the output.
+  const loadExample = () => {
+    setNoteType('session'); setInputMode('free'); setFreeText(L.EXAMPLE.freeText); setInterventions(L.EXAMPLE.interventions);
+    setRisk(Object.fromEntries(L.RISK_ITEMS.map(r => [r.key, { status: 'denied', note: '' }]))); setMse(m => ({ ...m, ...L.MSE_WNL }));
+    if (apiKeyRef.current) { showToast('Example loaded. Press Generate note.'); return; }
+    setNote(L.EXAMPLE.note); lastGenRef.current = null;
+    setGeneratedMeta({ format: 'soap', noteType: 'session', subject, tone, at: new Date(), header: [], sample: true });
+    showToast('Example loaded with a sample note. Set a Groq key to generate your own.');
   };
 
   const wipeAll = () => {
     setNote(''); setGeneratedMeta(null); setNameFlags([]); setPhiFlags([]);
     setPrevNote(null); setEditIdx(null); setCustomRevision(''); lastGenRef.current = null;
+    setPreviousNote(''); setMembers([]); setGroupNotes(null); setGroupIdx(0); setHandout(null); setPrintDoc(null);
     setFreeText(''); setBullets('');
     setStructured({ presenting:'', content:'', interventionsText:'', response:'', plan:'' });
-    setVoiceOn(false); setInterventions([]); setOtherIntervention('');
+    setInterventions([]); setOtherIntervention('');
     setSessionDate(''); setSessionStart(''); setSessionEnd('');
     setMse({}); setMoodQuote(''); setRisk(emptyRisk()); setRiskExtra(EMPTY_RISK_EXTRA); setRiskNudge(false);
-    setNoteType('session'); setService('individual'); setModality(''); setTelehealth(EMPTY_TELEHEALTH); setInteractiveComplexity(false); setLateEntry(false);
+    setNoteType('session'); setTelehealth(EMPTY_TELEHEALTH); setInteractiveComplexity(false); setLateEntry(false);
     setCollateral({ with: '', method: '', roi: false }); setDischarge({ reason: '', aftercare: '' }); setCancelInfo({ kind: 'noShow', reason: '', outreach: '', next: '' });
     setDiagnoses({ primary: '', secondary: '' }); setGoalProgress({}); setPriorScores({});
     // Clear everything entered for this client. Intake, Dx, Treatment Plan and Screenings keep
@@ -4521,7 +5268,55 @@ function App() {
   const ToneControl = tweaks.toneStyle==='dial' ? ToneDial : tweaks.toneStyle==='stacked' ? ToneStacked : ToneSegmented;
   const openTweaks = () => window.postMessage({ type: '__activate_edit_mode' }, '*');
   const activeGoalList = goals.filter(g => g.status === 'active' && g.text.trim());
-  const totalInterventions = interventions.length + otherIntervention.split(',').map(s=>s.trim()).filter(Boolean).length;
+  const otherInterventions = otherIntervention.split(',').map(s=>s.trim()).filter(Boolean);
+  const totalInterventions = interventions.length + otherInterventions.length;
+
+  // On-device review of a finished session note.
+  const audit = useMemo(() => {
+    if (!note || loading || revising !== null || !generatedMeta || generatedMeta.sample || generatedMeta.noteType !== 'session') return null;
+    const items = L.auditNote({ text: note, sections, interventions: [...interventions, ...otherInterventions], diagnoses: [diagnoses.primary, diagnoses.secondary],
+      minutes: sessionDuration, cptText: cpt && cpt.text, hasDate: !!sessionDate, signature, conciseness });
+    return groupNotes ? items.filter(i => i.id !== 'dx') : items;
+  }, [note, loading, revising, generatedMeta, sections, interventions, otherIntervention, diagnoses, sessionDuration, cpt && cpt.text, sessionDate, signature, conciseness, groupNotes]);
+
+  // Printing: the sheet is rendered by <PrintSheet/> and shown only while body.print-doc is set.
+  useEffect(() => {
+    if (!printDoc) return;
+    const done = () => setPrintDoc(null);
+    document.body.classList.add('print-doc');
+    window.addEventListener('afterprint', done);
+    window.print();
+    const t = setTimeout(done, 1000);
+    return () => { clearTimeout(t); window.removeEventListener('afterprint', done); document.body.classList.remove('print-doc'); };
+  }, [printDoc]);
+
+  // Keyboard shortcuts. Ctrl/Cmd+Enter generates on the visible tab, Ctrl/Cmd+Shift+Enter copies
+  // the progress note, Ctrl/Cmd+Shift+Backspace opens the "Note completed" confirmation.
+  const keysRef = useRef(null);
+  keysRef.current = { appMode, generate, copyNote };
+  useEffect(() => {
+    const on = (e) => {
+      if (!(e.ctrlKey || e.metaKey) || document.querySelector('.modal-backdrop, .client-screen')) return;
+      const k = keysRef.current;
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); k.appMode === 'progress' ? k.generate() : window.dispatchEvent(new CustomEvent('pn-generate', { detail: k.appMode })); }
+      else if (e.key === 'Enter' && k.appMode === 'progress') { e.preventDefault(); k.copyNote(); }
+      else if (e.key === 'Backspace' && e.shiftKey) { e.preventDefault(); setConfirming(true); }
+    };
+    window.addEventListener('keydown', on);
+    return () => window.removeEventListener('keydown', on);
+  }, []);
+
+  const tabs = [
+    ['progress', 'Progress Note', 'Progress', !!(freeText.trim() || bullets.trim() || Object.values(structured).some(v => v.trim()) || note)],
+    ['intake', 'Intake Assessment', 'Intake', !!tabContent.intake],
+    ['dx', 'Dx Justification', 'Dx', !!tabContent.dx],
+    ['plan', 'Treatment Plan', 'Plan', !!(tabContent.plan || goals.some(g => g.text.trim()))],
+    ['screenings', 'Screenings', 'Screenings', Object.values(screeningAnswers).some(a => Object.keys(a || {}).length > 0)],
+    ['safety', 'Safety Plan', 'Safety', safetyPlanItems.length > 0],
+    ['letters', 'Letters', 'Letters', !!tabContent.letters],
+  ];
+  const anyContent = tabs.some(t => t[3]);
+  const sessionSummary = [sessionDate && L.fmtDateUS(sessionDate), sessionDuration && `${sessionDuration} min`, cpt && cpt.text && `CPT ${cpt.text}`].filter(Boolean).join(' · ') || 'Optional';
 
   return (
     <div className="app">
@@ -4532,14 +5327,7 @@ function App() {
           <span className="tag">De-identified · for Writers</span>
         </div>
         <div className="mode-sel" role="tablist">
-          {[
-            ['progress', 'Progress Note', 'Progress', !!(freeText.trim() || bullets.trim() || Object.values(structured).some(v => v.trim()) || note)],
-            ['intake', 'Intake Assessment', 'Intake', tabContent.intake],
-            ['dx', 'Dx Justification', 'Dx', tabContent.dx],
-            ['plan', 'Treatment Plan', 'Plan', tabContent.plan || goals.some(g => g.text.trim())],
-            ['screenings', 'Screenings', 'Screenings', Object.values(screeningAnswers).some(a => Object.keys(a || {}).length > 0)],
-            ['safety', 'Safety Plan', 'Safety', safetyPlanItems.length > 0],
-          ].map(([key, long, short, has]) => (
+          {tabs.map(([key, long, short, has]) => (
             <button key={key} type="button" role="tab" aria-pressed={appMode===key} aria-selected={appMode===key}
               onClick={(e) => { setAppMode(key); e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); }}
               title={has ? `${long} (has content)` : long}>
@@ -4549,133 +5337,83 @@ function App() {
           ))}
         </div>
         <div className="meta">
-          <span className="hipaa-badge" title="HIPAA Safe Harbor de-identification runs on this device before anything is sent to the AI. Nothing is saved: notes live in memory only and are erased by Note completed.">
+          <button type="button" className="hipaa-badge" onClick={() => setShowPrivacy(true)} aria-label="Privacy settings" title="HIPAA Safe Harbor de-identification runs on this device before anything is sent to the AI. Nothing is saved: notes live in memory only and are erased by Note completed. Click for privacy settings.">
             <Icon.shield/><span className="hb-text">De-identified<span className="hb-extra"> · nothing saved</span></span>
-          </span>
-          <button className={apiKey ? 'btn ghost' : 'btn'} style={{padding:'4px 10px',fontSize:11.5,height:'auto'}} onClick={() => setShowKeyModal(true)} title={apiKey ? 'Groq API key configured — click to update' : 'Enter your free Groq API key'}>
+          </button>
+          <button className={apiKey ? 'btn ghost' : 'btn'} style={{padding:'4px 10px',fontSize:13,height:'auto'}} onClick={() => setShowKeyModal(true)} aria-label={apiKey ? 'Groq key set. Change key' : 'Set Groq key'} title={apiKey ? 'Groq API key configured. Click to update.' : 'Enter your free Groq API key'}>
             <Icon.key/><span className="kb-text">{apiKey ? 'Groq key ✓' : 'Set Groq key'}</span>
           </button>
-          <button className="btn ghost" style={{padding:'4px 8px',fontSize:11.5,height:'auto'}} onClick={openTweaks} title="Appearance settings">
-            <Icon.sliders/>
+          <button className="btn ghost" style={{padding:'4px 8px',fontSize:13,height:'auto'}} onClick={openTweaks} aria-label="Appearance settings" title="Appearance settings">
+            <Icon.sliders/><span className="ap-text">Appearance</span>
           </button>
         </div>
       </header>
 
       {/* These tabs stay mounted while hidden so their drafts survive tab switches. */}
-      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} diagnoses={diagnoses} setPrimaryDx={setPrimaryDx} setSecondaryDx={setSecondaryDx} signature={signature} onContent={reportContent} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={linesFor('intake')} screeningStrip={stripFor('intake')} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
-      <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} onContent={reportContent} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={linesFor('dx')} screeningStrip={stripFor('dx')} privacy={privacy}/></div>
-      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} diagnosisLines={diagnosisLines} signature={signature} onContent={reportContent} privacyCtl={privacyCtl} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={linesFor('plan')} screeningStrip={stripFor('plan')} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
-      {['intake', 'dx', 'plan', 'safety'].includes(appMode) && <DictateButton key={appMode}/>}
+      <div style={{display: appMode === 'intake' ? 'contents' : 'none'}}><IntakeTab key={resetKey} diagnoses={diagnoses} setPrimaryDx={setPrimaryDx} setSecondaryDx={setSecondaryDx} signature={signature} onContent={reportContent} privacyCtl={privacyCtl} onPrint={setPrintDoc} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={linesFor('intake')} screeningStrip={stripFor('intake')} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      <div style={{display: appMode === 'dx' ? 'contents' : 'none'}}><DxTab key={resetKey} onPrint={setPrintDoc} onContent={reportContent} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)} screeningLines={linesFor('dx')} screeningStrip={stripFor('dx')} privacy={privacy}/></div>
+      <div style={{display: appMode === 'plan' ? 'contents' : 'none'}}><TreatmentPlanTab key={resetKey} onPrint={setPrintDoc} diagnosisLines={diagnosisLines} signature={signature} onContent={reportContent} privacyCtl={privacyCtl} goals={goals} setGoals={setGoals} apiKeyRef={apiKeyRef} showToast={showToast} screeningLines={linesFor('plan')} screeningStrip={stripFor('plan')} safetyPlanItems={safetyPlanItems} privacy={privacy}/></div>
+      <div style={{display: appMode === 'letters' ? 'contents' : 'none'}}><LettersTab key={resetKey} diagnosisLines={diagnosisLines} screeningLines={linesFor('letters')} signature={signature} onPrint={setPrintDoc} onContent={reportContent} privacy={privacy} privacyCtl={privacyCtl} apiKeyRef={apiKeyRef} showToast={showToast} onNeedKey={()=>setShowKeyModal(true)}/></div>
+      {['intake', 'dx', 'plan', 'safety', 'letters'].includes(appMode) && <DictateButton key={appMode}/>}
       {appMode === 'safety' && <SafetyPlanTab privacyCtl={privacyCtl} safetyPlan={safetyPlan} setSafetyPlan={setSafetyPlan} showToast={showToast}/>}
       <div style={{display: appMode === 'screenings' ? 'contents' : 'none'}}><ScreeningsTab key={resetKey} screeningAnswers={screeningAnswers} setScreeningAnswers={setScreeningAnswers} priorScores={priorScores} setPriorScores={setPriorScores} showToast={showToast}/></div>
       {appMode === 'progress' && <aside className="sidebar">
-        <div className="card hipaa-card">
-          <h3>Privacy <span className="hint">HIPAA Safe Harbor</span></h3>
-          <div className="hipaa-grid">
-            <div className="hipaa-cell"><b>Names</b><span>auto-detected, replaced with {subject}</span></div>
-            <div className="hipaa-cell"><b>SSNs · Phones · Emails</b><span>regex-redacted before send</span></div>
-            <div className="hipaa-cell"><b>Dates · ZIPs · MRNs</b><span>tokenized as [TYPE-REDACTED]</span></div>
-            <div className="hipaa-cell"><b>Ages 90+ · IPs · URLs</b><span>removed per §164.514(b)</span></div>
-          </div>
-          <div className="row h" style={{marginTop:12,marginBottom:0}}>
-            <label style={{margin:0}}>Safe Harbor de-identification</label>
-            <button className="tg" data-on={safeHarbor?'1':'0'} onClick={()=>setSafeHarbor(!safeHarbor)}><i/></button>
-          </div>
-          {safeHarbor && <AllowlistEditor words={allowlist} onAdd={addAllowedWord} onRemove={removeAllowedWord}/>}
-          <NamesToRedactField value={alwaysRedact} onChange={setAlwaysRedact}/>
-          <div className="note-sm" style={{marginTop:8}}>Notes are never stored by this tool. Use "Note completed" to permanently erase when done. Unless you have a signed Business Associate Agreement with Groq, this de-identification is your only protection, so leave identifying details out of what you type. Session dates and goal dates are never sent: they are filled in on this device.</div>
-        </div>
-
-        <div className="card">
-          <h3>Note settings <span className="hint">Format & voice</span></h3>
+        <div className="card top-row">
           <div className="row">
             <label>Note type</label>
-            <select className="select" value={noteType} onChange={(e)=>{ setNoteType(e.target.value); setRiskNudge(false); }}>
+            <select className="select" aria-label="Note type" value={noteType} onChange={(e)=>{ setNoteType(e.target.value); setRiskNudge(false); }}>
               {Object.entries(L.NOTE_TYPES).map(([k,t]) => <option key={k} value={k}>{t.label}</option>)}
             </select>
           </div>
           {noteType === 'session' && <div className="row">
             <label>Format</label>
-            <select className="select" value={format} onChange={(e)=>setFormat(e.target.value)}>
+            <select className="select" aria-label="Format" value={format} onChange={(e)=> e.target.value === '__manage' ? setShowTemplates(true) : setFormat(e.target.value)}>
               {Object.entries(L.FORMATS).filter(([,f]) => !f.hidden).map(([k,f]) => <option key={k} value={k}>{f.full}</option>)}
+              {templates.length > 0 && <optgroup label="My templates">{templates.map(t => <option key={t.id} value={'custom:' + t.id}>{t.name}</option>)}</optgroup>}
+              <option value="__manage">Manage my templates…</option>
             </select>
           </div>}
-          <div className="row">
-            <label>Refer to subject as</label>
-            <div className="seg" role="radiogroup">
-              <button type="button" aria-pressed={subject==='Client'} onClick={()=>setSubject('Client')}>Client</button>
-              <button type="button" aria-pressed={subject==='Patient'} onClick={()=>setSubject('Patient')}>Patient</button>
-            </div>
-          </div>
-          <div className="row">
-            <label>Clinical tone</label>
-            <ToneControl value={tone} onChange={setTone}/>
-          </div>
-          <div className="row">
-            <label>Note length</label>
-            <div className="seg" role="radiogroup">
-              {Object.entries(L.CONCISENESS).map(([k,v]) => (
-                <button key={k} type="button" aria-pressed={conciseness===k} onClick={()=>setConciseness(k)}>
-                  {v.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="row">
-            <label>Signature line</label>
-            <textarea className="textarea" rows="2" placeholder="e.g. Writer name, LCSW" value={signature} onChange={(e)=>saveSignature(e.target.value)}/>
-            <div className="note-sm">Added under the note when you copy it. Saved on this device only and never sent to the AI.</div>
-          </div>
         </div>
 
-        <div className="card">
-          <h3>Session info <span className="hint">Optional</span></h3>
-          <div className="row">
-            <label>Session date</label>
-            <input className="input" type="date" value={sessionDate} onChange={e=>setSessionDate(e.target.value)}/>
+        {noteType !== 'cancel' && <Fold id="content" title="Session content" hint="Required" open={isOpen('content')} onToggle={toggleFold}
+          summary={rawInput.trim() ? `${(rawInput.match(/\S+/g) || []).length} words` : 'Required'}>
+          <div className="tabs">
+            <button aria-pressed={inputMode==='free'} onClick={()=>setInputMode('free')}>Free text</button>
+            <button aria-pressed={inputMode==='structured'} onClick={()=>setInputMode('structured')}>Structured</button>
+            <button aria-pressed={inputMode==='bullets'} onClick={()=>setInputMode('bullets')}>Bullets</button>
           </div>
-          <div className="row">
-            <label>Session time</label>
-            <div style={{display:'flex',gap:10,alignItems:'flex-end'}}>
-              <div style={{flex:1}}>
-                <div style={{fontSize:11.5,color:'var(--muted)',marginBottom:4}}>Start</div>
-                <input className="input" type="time" value={sessionStart} onChange={e=>setSessionStart(e.target.value)}/>
-              </div>
-              <span style={{color:'var(--muted)',fontSize:13,paddingBottom:9,flexShrink:0}}>to</span>
-              <div style={{flex:1}}>
-                <div style={{fontSize:11.5,color:'var(--muted)',marginBottom:4}}>End</div>
-                <input className="input" type="time" value={sessionEnd} onChange={e=>setSessionEnd(e.target.value)}/>
-              </div>
-            </div>
-            {sessionDuration !== null && (
-              <div style={{marginTop:8,fontSize:13,color:'var(--ok)',fontWeight:500}}>
-                {fmtTime12(sessionStart)} – {fmtTime12(sessionEnd)} &nbsp;·&nbsp; {sessionDuration} minutes
-              </div>
-            )}
-            {sessionStart && sessionEnd && sessionDuration === null && (
-              <div style={{marginTop:6,fontSize:12,color:'var(--danger)'}}>End time must be after start time</div>
-            )}
-          </div>
-          {noteType === 'session' && (
-            <div className="row">
-              <label>Service type</label>
-              <select className="select" value={service} onChange={(e)=>setService(e.target.value)}>
-                {Object.entries(L.SERVICE_TYPES).map(([k,t]) => <option key={k} value={k}>{t.label}</option>)}
-              </select>
+          {inputMode==='free' && (
+            <div className="stt-wrap">
+              <textarea className="textarea" rows="8" placeholder={`Describe the session in your own words. Mention themes, what the ${subject.toLowerCase()} discussed, interventions you used, and how they responded.`} value={freeText} onChange={(e)=>setFreeText(e.target.value)}/>
+              {stt.supported && (
+                <button
+                  type="button"
+                  className={`stt-btn${stt.active ? ' active' : ''}`}
+                  onClick={stt.toggle}
+                  title={stt.active ? 'Stop recording' : 'Dictate (Chrome/Edge only)'}
+                >
+                  <Icon.mic/>
+                </button>
+              )}
             </div>
           )}
-          {noteType !== 'cancel' && <ModalityFields modality={modality} setModality={setModality} telehealth={telehealth} setTelehealth={setTelehealth}/>}
-          {noteType === 'session' && (
-            <div className="row" style={{marginTop:10}}>
-              <label>Billing code <span style={{fontWeight:400,color:'var(--muted)'}}>(suggestion, confirm before billing)</span></label>
-              <div className="chk-row"><Check on={interactiveComplexity} onChange={setInteractiveComplexity}>Interactive complexity</Check></div>
-              <div style={{fontSize:13,fontWeight:500,color: cpt.text ? 'var(--ok)' : 'var(--muted)'}}>{cpt.text ? `CPT ${cpt.text}` : 'No code yet'}</div>
-              {cpt.warning && <div className="note-sm">{cpt.warning}</div>}
-            </div>
+          {inputMode==='structured' && (
+            <>{[['presenting','Presenting issue / focus'],['content','Content discussed'],['interventionsText','Interventions used in session'],['response',`${subject}'s response`],['plan','Plan / next steps']].map(([k,label]) => (
+              <div className="row" key={k}>
+                <label>{label}</label>
+                <textarea className="textarea" rows="2" value={structured[k]} onChange={(e)=>setStructured(s=>({...s,[k]:e.target.value}))}/>
+              </div>
+            ))}</>
           )}
-          <div className="chk-row" style={{marginTop:10}}><Check on={lateEntry} onChange={setLateEntry}>Late entry</Check></div>
-          <div className="note-sm" style={{marginTop:8}}>Date, time, service and code go in a header added on this device. The date is never sent to the AI.</div>
-        </div>
+          {inputMode==='bullets' && <textarea className="textarea" rows="8" placeholder={`- ${subject.toLowerCase()} reported low mood this week\n- explored cognitive distortions around work\n- reviewed thought record`} value={bullets} onChange={(e)=>setBullets(e.target.value)}/>}
+          <div className="note-sm" style={{marginTop:10}}>Names in your input are auto-detected and replaced with {subject} before generation. Dates, places, and other context remain unless you remove them.</div>
+        </Fold>}
+        {noteType !== 'cancel' && <PrivacyControls ctl={privacyCtl}/>}
+
+        {isGroup && <Fold id="members" title="Group members" hint="One note each" open={isOpen('members')} onToggle={toggleFold}
+          summary={groupList.length ? `${groupList.length} member${groupList.length !== 1 ? 's' : ''}` : 'None added'}>
+          <GroupMembers members={members} setMembers={setMembers}/>
+        </Fold>}
 
         {noteType === 'cancel' && (
           <div className="card">
@@ -4736,9 +5474,62 @@ function App() {
           </div>
         )}
 
-        {(noteType === 'session' || noteType === 'discharge') && (
-          <div className="card">
-            <h3>Diagnosis <span className="hint">Medical necessity</span></h3>
+        {noteType === 'session' && !groupList.length && <Fold id="previous" title="Last session" hint="Optional" open={isOpen('previous')} onToggle={toggleFold}
+          summary={previousNote.trim() ? 'Added' : 'Optional'}>
+          <textarea className="textarea" rows="4" aria-label="Last session note" placeholder="Paste the plan or the whole note from the last session. The new note follows up on it." value={previousNote} onChange={(e)=>setPreviousNote(e.target.value)}/>
+          <div className="note-sm">Names and identifiers are removed on this device before it is sent, the same as session content. Not saved; cleared by "Note completed".</div>
+        </Fold>}
+
+        <Fold id="session" title="Session info" hint="Optional" summary={sessionSummary} open={isOpen('session')} onToggle={toggleFold}>
+          <div className="row">
+            <label>Session date</label>
+            <input className="input" type="date" value={sessionDate} onChange={e=>setSessionDate(e.target.value)}/>
+          </div>
+          <div className="row">
+            <label>Session time</label>
+            <div style={{display:'flex',gap:10,alignItems:'flex-end'}}>
+              <div style={{flex:1}}>
+                <div style={{fontSize:12.5,color:'var(--muted)',marginBottom:4}}>Start</div>
+                <input className="input" type="time" value={sessionStart} onChange={e=>setSessionStart(e.target.value)}/>
+              </div>
+              <span style={{color:'var(--muted)',fontSize:13,paddingBottom:9,flexShrink:0}}>to</span>
+              <div style={{flex:1}}>
+                <div style={{fontSize:12.5,color:'var(--muted)',marginBottom:4}}>End</div>
+                <input className="input" type="time" value={sessionEnd} onChange={e=>setSessionEnd(e.target.value)}/>
+              </div>
+            </div>
+            {sessionDuration !== null && (
+              <div style={{marginTop:8,fontSize:13,color:'var(--ok)',fontWeight:500}}>
+                {fmtTime12(sessionStart)} – {fmtTime12(sessionEnd)} &nbsp;·&nbsp; {sessionDuration} minutes
+              </div>
+            )}
+            {sessionStart && sessionEnd && sessionDuration === null && (
+              <div style={{marginTop:6,fontSize:13,color:'var(--danger)'}}>End time must be after start time</div>
+            )}
+          </div>
+          {noteType === 'session' && (
+            <div className="row">
+              <label>Service type</label>
+              <select className="select" value={service} onChange={(e)=>setService(e.target.value)}>
+                {Object.entries(L.SERVICE_TYPES).map(([k,t]) => <option key={k} value={k}>{t.label}</option>)}
+              </select>
+            </div>
+          )}
+          {noteType !== 'cancel' && <ModalityFields modality={modality} setModality={setModality} telehealth={telehealth} setTelehealth={setTelehealth}/>}
+          {noteType === 'session' && (
+            <div className="row" style={{marginTop:10}}>
+              <label>Billing code <span style={{fontWeight:400,color:'var(--muted)'}}>(suggestion, confirm before billing)</span></label>
+              <div className="chk-row"><Check on={interactiveComplexity} onChange={setInteractiveComplexity}>Interactive complexity</Check></div>
+              <div style={{fontSize:13,fontWeight:500,color: cpt.text ? 'var(--ok)' : 'var(--muted)'}}>{cpt.text ? `CPT ${cpt.text}` : 'No code yet'}</div>
+              {cpt.warning && <div className="note-sm">{cpt.warning}</div>}
+            </div>
+          )}
+          <div className="chk-row" style={{marginTop:10}}><Check on={lateEntry} onChange={setLateEntry}>Late entry</Check></div>
+          <div className="note-sm" style={{marginTop:8}}>Date, time, service and code go in a header added on this device. The date is never sent to the AI.</div>
+        </Fold>
+
+        {(noteType === 'session' || noteType === 'discharge') && !groupList.length && (
+          <Fold id="dx" title="Diagnosis" hint="Medical necessity" summary={diagnoses.primary ? diagnoses.primary.slice(0, 30) : 'Not set'} open={isOpen('dx')} onToggle={toggleFold}>
             <div className="row">
               <label>Primary diagnosis</label>
               <DxAutocompleteInput placeholder="e.g. F41.1, depression, PTSD…" value={diagnoses.primary} onChange={setPrimaryDx}/>
@@ -4748,79 +5539,20 @@ function App() {
               <DxAutocompleteInput placeholder="Optional" value={diagnoses.secondary} onChange={setSecondaryDx}/>
             </div>
             <div className="note-sm" style={{marginTop:8}}>Shared with the Intake tab. The note ties the session to this diagnosis where your notes support it.</div>
-          </div>
+          </Fold>
         )}
 
-        {noteType !== 'cancel' && <>
-        <div className="card">
-          <h3>Writer's voice <span className="hint">Optional</span></h3>
-          <div className="row h">
-            <label style={{margin:0}}>Preserve my voice</label>
-            <button className="tg" data-on={voiceOn?'1':'0'} onClick={()=>setVoiceOn(!voiceOn)}><i/></button>
-          </div>
-          {voiceOn && (
-            <div className="voice-detail">
-              <div className="slider-row">
-                <div className="row h" style={{margin:0}}>
-                  <label style={{margin:0}}>Preservation strength</label>
-                  <span className="muted" style={{fontSize:12,fontVariantNumeric:'tabular-nums'}}>{voiceStrength}%</span>
-                </div>
-                <input type="range" className="slider" min="0" max="100" step="5" value={voiceStrength} onChange={(e)=>setVoiceStrength(Number(e.target.value))}/>
-              </div>
-              <div className="note-sm" style={{marginTop:4}}>Your voice is inferred from the session content you write above — the tool mirrors your phrasing, sentence length, and word choices.</div>
-            </div>
-          )}
-        </div>
-
-        <div className="card">
-          <h3>Session content <span className="hint">Required</span></h3>
-          <div className="tabs">
-            <button aria-pressed={inputMode==='free'} onClick={()=>setInputMode('free')}>Free text</button>
-            <button aria-pressed={inputMode==='structured'} onClick={()=>setInputMode('structured')}>Structured</button>
-            <button aria-pressed={inputMode==='bullets'} onClick={()=>setInputMode('bullets')}>Bullets</button>
-          </div>
-          {inputMode==='free' && (
-            <div className="stt-wrap">
-              <textarea className="textarea" rows="8" placeholder={`Describe the session in your own words. Mention themes, what the ${subject.toLowerCase()} discussed, interventions you used, and how they responded.`} value={freeText} onChange={(e)=>setFreeText(e.target.value)}/>
-              {stt.supported && (
-                <button
-                  type="button"
-                  className={`stt-btn${stt.active ? ' active' : ''}`}
-                  onClick={stt.toggle}
-                  title={stt.active ? 'Stop recording' : 'Dictate (Chrome/Edge only)'}
-                >
-                  <Icon.mic/>
-                </button>
-              )}
-            </div>
-          )}
-          {inputMode==='structured' && (
-            <>{[['presenting','Presenting issue / focus'],['content','Content discussed'],['interventionsText','Interventions used in session'],['response',`${subject}'s response`],['plan','Plan / next steps']].map(([k,label]) => (
-              <div className="row" key={k}>
-                <label>{label}</label>
-                <textarea className="textarea" rows="2" value={structured[k]} onChange={(e)=>setStructured(s=>({...s,[k]:e.target.value}))}/>
-              </div>
-            ))}</>
-          )}
-          {inputMode==='bullets' && <textarea className="textarea" rows="8" placeholder={`- ${subject.toLowerCase()} reported low mood this week\n- explored cognitive distortions around work\n- reviewed thought record`} value={bullets} onChange={(e)=>setBullets(e.target.value)}/>}
-          <div className="note-sm" style={{marginTop:10}}>Names in your input are auto-detected and replaced with {subject} before generation. Dates, places, and other context remain unless you remove them.</div>
-        </div>
-
-        <div className="card">
-          <h3>Interventions <span className="hint">{totalInterventions||'none'} selected</span></h3>
-          <div className="chips">
-            {L.INTERVENTIONS.map(i => <button key={i} className="chip" aria-pressed={interventions.includes(i)} onClick={()=>toggleIntervention(i)}>{i}</button>)}
-          </div>
+        {noteType !== 'cancel' && <Fold id="interventions" title="Interventions" hint={`${totalInterventions||'none'} selected`} open={isOpen('interventions')} onToggle={toggleFold}>
+          <InterventionPicker selected={interventions} onToggle={toggleIntervention} usage={usage}/>
           <div className="row" style={{marginTop:10,marginBottom:0}}>
             <label>Other (not listed)</label>
             <input className="input" type="text" placeholder="e.g. Somatic Experiencing, Gestalt chair work (comma-separated)" value={otherIntervention} onChange={(e)=>setOtherIntervention(e.target.value)}/>
           </div>
-        </div>
-        </>}
+        </Fold>}
 
-        {(noteType === 'session' || noteType === 'discharge') && <RiskCard risk={risk} setRisk={setRisk} riskExtra={riskExtra} setRiskExtra={setRiskExtra}/>}
-        {(noteType === 'session' || noteType === 'discharge') && <MseCard mse={mse} setMse={setMse} moodQuote={moodQuote} setMoodQuote={setMoodQuote}/>}
-        {(noteType === 'session' || noteType === 'discharge') && activeGoalList.length > 0 && (
+        {(noteType === 'session' || noteType === 'discharge') && <RiskCard risk={risk} setRisk={setRisk} riskExtra={riskExtra} setRiskExtra={setRiskExtra} open={isOpen('risk')} onToggle={toggleFold}/>}
+        {(noteType === 'session' || noteType === 'discharge') && !groupList.length && <MseCard mse={mse} setMse={setMse} moodQuote={moodQuote} setMoodQuote={setMoodQuote} open={isOpen('mse')} onToggle={toggleFold}/>}
+        {(noteType === 'session' || noteType === 'discharge') && !groupList.length && activeGoalList.length > 0 && (
           <div className="card">
             <h3>Treatment goals <span className="hint">Progress this session</span></h3>
             {activeGoalList.map(g => (
@@ -4832,39 +5564,102 @@ function App() {
             <div className="note-sm">Active goals from the Treatment Plan tab. Met or discontinued goals are listed in discharge summaries.</div>
           </div>
         )}
-        {noteType !== 'cancel' && noteType !== 'collateral' && safetyPlanItems.length > 0 && (
+
+        <Fold id="settings" title="Note settings" hint="Wording and signature" summary={`${subject} · ${L.TONES[tone].label} · ${L.CONCISENESS[conciseness].label}`} open={isOpen('settings')} onToggle={toggleFold}>
+          <div className="row">
+            <label>Refer to subject as</label>
+            <div className="seg" role="radiogroup">
+              <button type="button" aria-pressed={subject==='Client'} onClick={()=>setSubject('Client')}>Client</button>
+              <button type="button" aria-pressed={subject==='Patient'} onClick={()=>setSubject('Patient')}>Patient</button>
+            </div>
+          </div>
+          <div className="row">
+            <label>Clinical tone</label>
+            <ToneControl value={tone} onChange={setTone}/>
+          </div>
+          <div className="row">
+            <label>Note length</label>
+            <div className="seg" role="radiogroup">
+              {Object.entries(L.CONCISENESS).map(([k,v]) => (
+                <button key={k} type="button" aria-pressed={conciseness===k} onClick={()=>setConciseness(k)}>
+                  {v.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="row">
+            <label>Signature line</label>
+            <textarea className="textarea" rows="2" placeholder="e.g. Writer name, LCSW" value={signature} onChange={(e)=>saveSignature(e.target.value)}/>
+            <div className="note-sm">Added under the note when you copy it. Saved on this device only and never sent to the AI.</div>
+          </div>
+        </Fold>
+
+        {noteType !== 'cancel' && <Fold id="voice" title="Writer's voice" hint="Optional" summary={voiceOn ? `On · ${voiceStrength}%` : 'Off'} open={isOpen('voice')} onToggle={toggleFold}>
+          <div className="row h">
+            <label style={{margin:0}}>Preserve my voice</label>
+            <button className="tg" data-on={voiceOn?'1':'0'} onClick={()=>setVoiceOn(!voiceOn)}><i/></button>
+          </div>
+          {voiceOn && (
+            <div className="voice-detail">
+              <div className="slider-row">
+                <div className="row h" style={{margin:0}}>
+                  <label style={{margin:0}}>Preservation strength</label>
+                  <span className="muted" style={{fontSize:13,fontVariantNumeric:'tabular-nums'}}>{voiceStrength}%</span>
+                </div>
+                <input type="range" className="slider" min="0" max="100" step="5" value={voiceStrength} onChange={(e)=>setVoiceStrength(Number(e.target.value))}/>
+              </div>
+              <div className="note-sm" style={{marginTop:4}}>Your voice is inferred from the session content you write above — the tool mirrors your phrasing, sentence length, and word choices.</div>
+            </div>
+          )}
+        </Fold>}
+
+        {noteType !== 'cancel' && noteType !== 'collateral' && !groupList.length && safetyPlanItems.length > 0 && (
           <div className="card">
-            <strong style={{fontSize:12.5}}>Safety plan: {safetyPlanItems.length} of {SAFETY_PLAN_STEPS.length} steps</strong>
-            <span style={{fontSize:12,color:'var(--muted)'}}> referenced in note</span>
+            <strong style={{fontSize:13}}>Safety plan: {safetyPlanItems.length} of {SAFETY_PLAN_STEPS.length} steps</strong>
+            <span style={{fontSize:13,color:'var(--muted)'}}> referenced in note</span>
           </div>
         )}
+
+        <div className="gen-bar">
+          {riskNudge && (
+            <div className="flag-bar" role="alert">
+              <div style={{flex:1}}>
+                <div className="lbl">Risk isn't documented for this session</div>
+                <div style={{fontSize:13,marginBottom:8}}>Fill in the risk card, or choose one of these.</div>
+                <div className="chk-row">
+                  <button type="button" className="btn" onClick={() => { setRisk(r => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, { ...v, status: 'denied' }]))); setRiskNudge(false); showToast('Risk items marked denied. Review, then generate.'); }}>Mark all denied</button>
+                  <button type="button" className="btn" onClick={() => generate({ riskConfirmed: true })}>Generate, risk not assessed</button>
+                </div>
+              </div>
+            </div>
+          )}
+          <button className="btn primary gen-btn" disabled={loading} onClick={() => generate()} title="Ctrl+Enter">
+            {loading ? <span className="spin"/> : <Icon.spark/>}
+            {loading ? (genLabel || 'Generating…') : noteType === 'cancel' ? 'Write note' : groupList.length ? `Generate ${groupList.length} member note${groupList.length !== 1 ? 's' : ''}` : note && !generatedMeta?.sample ? 'Regenerate note' : 'Generate note'}
+          </button>
+        </div>
       </aside>}
       {appMode === 'progress' && <main className="main" id="note-pane">
         <div className="note-toolbar">
           <div className="left">
-            {generatedMeta && <span style={{fontSize:12}}>Generated {generatedMeta.at.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})}</span>}
+            {anyContent && <button className="btn danger" disabled={loading} onClick={()=>setConfirming(true)} title="Erase everything entered for this client (Ctrl+Shift+Backspace)"><Icon.check/>Note completed</button>}
+            {generatedMeta && !generatedMeta.sample && <span style={{fontSize:13}}>Generated {generatedMeta.at.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'})}</span>}
           </div>
           <div className="actions">
             {prevNote !== null && <button className="btn" disabled={loading||revising!==null} onClick={undo}>Undo</button>}
-            <button className="btn" disabled={!note||loading} onClick={copyNote}><Icon.copy/>Copy</button>
+            <button className="btn" disabled={!note||loading} onClick={copyNote} title="Ctrl+Shift+Enter"><Icon.copy/>Copy</button>
             <button className="btn" disabled={!note||loading} onClick={copyPlain} title="Copy the note without section headings">Copy plain text</button>
-            <button className="btn danger" disabled={!note||loading} onClick={()=>setConfirming(true)}><Icon.check/>Note completed</button>
-            <button className="btn primary" disabled={loading} onClick={() => generate()}>
-              {loading ? <span className="spin"/> : <Icon.spark/>}
-              {loading ? 'Generating…' : noteType === 'cancel' ? 'Write note' : note ? 'Regenerate note' : 'Generate note'}
-            </button>
+            <button className="btn" disabled={!note||loading} onClick={printNote}>Print / Save as PDF</button>
+            {generatedMeta?.noteType === 'session' && !generatedMeta.sample && <button className="btn" disabled={!note||loading||revising!==null} onClick={makeHandout} title="A plain-language summary for the client to take home">Client handout</button>}
           </div>
         </div>
-        {riskNudge && (
-          <div className="flag-bar" role="alert">
-            <div style={{flex:1}}>
-              <div className="lbl">Risk isn't documented for this session</div>
-              <div style={{fontSize:12.5,marginBottom:8}}>Fill in the risk card, or choose one of these.</div>
-              <div className="chk-row">
-                <button type="button" className="btn" onClick={() => { setRisk(r => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, { ...v, status: 'denied' }]))); setRiskNudge(false); showToast('Risk items marked denied. Review, then generate.'); }}>Mark all denied</button>
-                <button type="button" className="btn" onClick={() => generate({ riskConfirmed: true })}>Generate, risk not assessed</button>
-              </div>
+        {groupNotes && !loading && (
+          <div className="member-bar">
+            <span className="lbl">Member</span>
+            <div className="seg" role="radiogroup">
+              {groupNotes.map((g, i) => <button key={i} type="button" aria-pressed={i === groupIdx} disabled={revising !== null} onClick={() => switchMember(i)}>{g.label}</button>)}
             </div>
+            <button type="button" className="btn" onClick={copyAllMembers}><Icon.copy/>Copy all members</button>
           </div>
         )}
         {noteType !== 'cancel' && noteType !== 'collateral' && stripFor('progress')}
@@ -4899,12 +5694,12 @@ function App() {
             <>
               <div className="meta">
                 <span className="fmt">{generatedMeta?.noteType && generatedMeta.noteType !== 'session' ? L.NOTE_TYPES[generatedMeta.noteType].label : L.FORMATS[generatedMeta?.format||format].full}</span>
-                <span>Writer · De-identified</span>
+                <span>{generatedMeta?.sample ? 'Sample output · not generated' : 'Writer · De-identified'}</span>
               </div>
               <NoteFrame header={generatedMeta?.header} signature={signature}>
               {sections.map((sec,i) => (
                 <NoteSection key={i} section={sec} idx={i} editing={editIdx===i} busy={revising===i}
-                  disabled={revising!==null || (editIdx!==null && editIdx!==i)}
+                  disabled={loading || revising!==null || (editIdx!==null && editIdx!==i)}
                   onEdit={startEdit} onSave={saveEdit} onCancel={cancelEdit} onRegenerate={onRegenerate} onCopy={copySection}/>
               ))}
               </NoteFrame>
@@ -4918,11 +5713,15 @@ function App() {
             <div className="empty">
               <div className="icon"><Icon.page/></div>
               <h4>Your note will appear here</h4>
-              <div>Fill in session content on the left, then press Generate note.</div>
-              {!apiKey && <div style={{marginTop:16}}><button className="btn primary" onClick={()=>setShowKeyModal(true)}><Icon.key/>Set Groq key to begin</button></div>}
+              <div>Fill in session content, then press Generate note under the form (Ctrl+Enter).</div>
+              <div className="empty-actions">
+                {!apiKey && <button className="btn primary" onClick={()=>setShowKeyModal(true)}><Icon.key/>Set Groq key to begin</button>}
+                <button className="btn" onClick={loadExample}>Try an example</button>
+              </div>
             </div>
           )}
         </article>
+        <NoteCheck items={audit}/>
       </main>}
 
       <TweaksPanel title="Appearance">
@@ -4939,16 +5738,18 @@ function App() {
 
       {toast}
 
-      {{ progress: ['note-pane', 'Jump to note'], intake: ['intake-pane', 'Jump to note'], dx: ['dx-pane', 'Jump to justification'], plan: ['plan-pane', 'Jump to plan'] }[appMode] && (() => {
-        const [pane, label] = { progress: ['note-pane', 'Jump to note'], intake: ['intake-pane', 'Jump to note'], dx: ['dx-pane', 'Jump to justification'], plan: ['plan-pane', 'Jump to plan'] }[appMode];
-        return <a className="jump-fab" href={'#' + pane}><Icon.page/>{label}</a>;
-      })()}
+      {JUMP_TARGETS[appMode] && <a className={`jump-fab${appMode === 'progress' ? ' raised' : ''}`} href={'#' + JUMP_TARGETS[appMode][0]}><Icon.page/>{JUMP_TARGETS[appMode][1]}</a>}
+      <PrintSheet doc={printDoc}/>
+      {showPrivacy && <PrivacyModal ctl={privacyCtl} subject={subject} onClose={() => setShowPrivacy(false)}/>}
+      {showTemplates && <TemplatesModal templates={templates} onChange={changeTemplates} onClose={() => setShowTemplates(false)}/>}
+      {handout && <HandoutModal handout={handout} setText={(text) => setHandout({ text, loading: false })} onClose={() => setHandout(null)}
+        onCopy={() => copyText(handout.text, 'Handout copied')} onPrint={() => setPrintDoc({ title: 'Session summary', fillIn: true, text: handout.text })}/>}
 
       {confirming && (
         <div className="modal-backdrop" onClick={()=>setConfirming(false)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
             <h3>Erase everything?</h3>
-            <p>This permanently wipes the note, the session content you entered, every side-panel selection, screening answers, treatment goals, the safety plan, and any Intake, Dx or Treatment Plan drafts. Your settings and Groq key are kept. <strong>It cannot be recovered.</strong> Make sure you have already copied the note into your record before continuing.</p>
+            <p>This permanently wipes the note, the session content you entered, every side-panel selection, screening answers, treatment goals, the safety plan, group members, and any Intake, Dx, Treatment Plan or Letters drafts. Your settings, templates and Groq key are kept. <strong>It cannot be recovered.</strong> Make sure you have already copied the note into your record before continuing.</p>
             <div className="modal-actions">
               <button className="btn" onClick={()=>setConfirming(false)}>Cancel</button>
               <button className="btn danger solid" onClick={wipeAll}>Yes, erase permanently</button>
